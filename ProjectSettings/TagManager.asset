@@ -5,6 +5,10 @@ TagManager:
   serializedVersion: 3
   tags:
   - Enemy
+  - Ground
+  - Projectile
+  - Boundary
+  - PlayerUnit
   layers:
   - Default
   - TransparentFX
@@ -12,8 +16,8 @@ TagManager:
   - 
   - Water
   - UI
-  - 
-  - 
+  - PlayerUnit
+  - EnemyUnit
   - 
   - 
   - 

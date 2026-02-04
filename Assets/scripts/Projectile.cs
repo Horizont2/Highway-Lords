@@ -2,59 +2,125 @@ using UnityEngine;
 
 public class Projectile : MonoBehaviour
 {
-    public float speed = 10f;
-    public int damage = 20; // Це значення перезапишеться вежею
-    public float rotationOffset = -90f; // Поворот картинки стріли
+    [Header("Налаштування")]
+    public float speed = 15f;
+    public int damage = 20;
+    public float rotationOffset = -90f; // Коригування кута спрайта
 
-    private Transform target;
+    private Transform targetTransform; // Для самонаведення
+    private Vector3 targetPosition;    // Для прямого пострілу
+    private bool homing = false;       // Режим самонаведення?
+    private bool isInitialized = false;
 
-    public void Seek(Transform _target)
+    // === ВАРІАНТ 1: Самонаведення (Для Вежі) ===
+    public void Initialize(Transform _target, int _damage)
     {
-        target = _target;
+        targetTransform = _target;
+        damage = _damage;
+        homing = true;
+        isInitialized = true;
+    }
+
+    // === ВАРІАНТ 2: Прямий постріл (Для Лучників) ===
+    // Цей метод потрібен, щоб Archer.cs міг використовувати цей скрипт
+    public void Initialize(Vector3 _targetPos, int _damage)
+    {
+        targetPosition = _targetPos;
+        damage = _damage;
+        homing = false;
+        isInitialized = true;
+        
+        // Одразу повертаємо в бік цілі
+        Vector3 dir = (targetPosition - transform.position).normalized;
+        float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
+        transform.rotation = Quaternion.Euler(0, 0, angle + rotationOffset);
+        
+        // Видаляємо через 3 секунди, якщо нікуди не влучив
+        Destroy(gameObject, 3f);
     }
 
     void Update()
     {
-        if (target == null)
+        if (!isInitialized) return;
+
+        Vector3 moveDir;
+
+        if (homing)
+        {
+            // === Логіка самонаведення ===
+            if (targetTransform != null)
+            {
+                targetPosition = targetTransform.position;
+            }
+            // Якщо ціль зникла, летимо в останню відому точку
+            
+            moveDir = (targetPosition - transform.position).normalized;
+            
+            // Поворот
+            float angle = Mathf.Atan2(moveDir.y, moveDir.x) * Mathf.Rad2Deg;
+            transform.rotation = Quaternion.Euler(0, 0, angle + rotationOffset);
+
+            if (Vector3.Distance(transform.position, targetPosition) < 0.2f)
+            {
+                HitTarget();
+                return;
+            }
+        }
+        else
+        {
+            // === Логіка прямого польоту ===
+            // Летимо просто прямо туди, куди дивимось (з урахуванням офсету)
+            // Оскільки ми повернули об'єкт при старті, можна використовувати transform.right або up
+            // Але простіше перерахувати вектор, якщо він не змінюється
+            // Тут ми просто рухаємось до точки, яку запам'ятали
+             moveDir = (targetPosition - transform.position).normalized;
+        }
+
+        transform.Translate(moveDir * speed * Time.deltaTime, Space.World);
+    }
+
+    void OnTriggerEnter2D(Collider2D other)
+    {
+        // Ігноруємо стріли та свої юніти (якщо це стріла гравця)
+        if (other.CompareTag("Projectile") || other.CompareTag("Player") || other.CompareTag("PlayerUnit")) return;
+        
+        // Знищення об границі екрану (Boundary)
+        if (other.CompareTag("Boundary"))
         {
             Destroy(gameObject);
             return;
         }
 
-        Vector2 direction = target.position - transform.position;
-        float distanceThisFrame = speed * Time.deltaTime;
-
-        // Поворот до цілі
-        float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
-        transform.rotation = Quaternion.Euler(0f, 0f, angle + rotationOffset);
-
-        if (direction.magnitude <= distanceThisFrame)
+        if (other.CompareTag("Enemy"))
         {
-            HitTarget();
-            return;
-        }
+            // Перевіряємо, чи це не труп
+            if (other.GetComponent<Guard>() && other.GetComponent<Guard>().enabled == false) return;
 
-        transform.Translate(direction.normalized * distanceThisFrame, Space.World);
-    }
-
-    void HitTarget()
-    {
-        // 1. Спробуємо знайти Віз
-        Cart cart = target.GetComponent<Cart>();
-        if (cart != null)
-        {
-            cart.TakeDamage(damage);
-        }
-        else
-        {
-            // 2. Якщо це не віз, спробуємо знайти Охоронця
-            Guard guard = target.GetComponent<Guard>();
-            if (guard != null)
-            {
-                guard.TakeDamage(damage);
-            }
+            HitTarget(other.gameObject);
         }
         
-        Destroy(gameObject); // Знищуємо стрілу
+        // Влучання в землю
+        if (other.CompareTag("Ground")) Destroy(gameObject);
+    }
+
+    void HitTarget(GameObject specificHit = null)
+    {
+        GameObject hitObj = specificHit;
+        
+        // Якщо самонаведення і ми просто долетіли до цілі
+        if (hitObj == null && homing && targetTransform != null) 
+        {
+            hitObj = targetTransform.gameObject;
+        }
+
+        if (hitObj != null)
+        {
+            if (hitObj.TryGetComponent<Guard>(out Guard g)) g.TakeDamage(damage);
+            else if (hitObj.TryGetComponent<Cart>(out Cart c)) c.TakeDamage(damage);
+            else if (hitObj.TryGetComponent<EnemyArcher>(out EnemyArcher ea)) ea.TakeDamage(damage);
+            else if (hitObj.TryGetComponent<Boss>(out Boss b)) b.TakeDamage(damage);
+        }
+        
+        Destroy(gameObject);
     }
 }

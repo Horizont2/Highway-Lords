@@ -5,41 +5,58 @@ public class SoundManager : MonoBehaviour
     public static SoundManager Instance;
 
     [Header("Налаштування Джерел")]
-    public AudioSource musicSource; // Сюди AudioSource з галочкою Loop
-    public AudioSource sfxSource;   // Сюди AudioSource БЕЗ галочки Loop
+    public AudioSource musicSource; 
+    public AudioSource sfxSource;   
 
     [Header("Музика")]
     public AudioClip backgroundMusic;
 
     [Header("Атака та Бій")]
-    public AudioClip arrowShoot;    // Постріл вежі
-    public AudioClip arrowHit;      // Влучання стріли
-    public AudioClip swordHit;      // Удар меча
-    public AudioClip enemyDeath;    // Смерть ворога
-    public AudioClip knightHit;     // Лицар отримав урон (Критично!)
+    public AudioClip arrowShoot;    
+    public AudioClip arrowHit;      
+    public AudioClip swordHit;      
+    public AudioClip enemyDeath;    
+    public AudioClip knightHit;     
 
     [Header("Руйнування")]
-    public AudioClip cartBreak;     // Віз зламався
-    public AudioClip castleDamage;  // Урон по замку (Критично!)
+    public AudioClip cartBreak;     
+    public AudioClip castleDamage;  
+    public AudioClip woodBreak; 
 
     [Header("Економіка та UI")]
-    public AudioClip coinPickup;    // Зібрав золото
-    public AudioClip buyItem;       // Успішна покупка
-    public AudioClip error;         // Немає грошей (Помилка)
+    public AudioClip coinPickup;    
+    public AudioClip buyItem;       
+    public AudioClip error;
+    public AudioClip clickSound;    
+
+    [Header("Будівництво")]
+    public AudioClip constructionSound;
 
     [Header("Події гри")]
-    public AudioClip waveStart;     // Початок хвилі
-    public AudioClip victory;       // Перемога
-    public AudioClip defeat;        // Програш
+    public AudioClip waveStart;     
+    public AudioClip victory;       
+    public AudioClip defeat;        
+
+    // === НОВЕ: Змінні гучності ===
+    [HideInInspector] public float musicVolume = 0.5f;
+    [HideInInspector] public float sfxVolume = 1f;
 
     void Awake()
     {
         if (Instance == null) Instance = this;
         else Destroy(gameObject);
+
+        // Завантажуємо збережену гучність
+        musicVolume = PlayerPrefs.GetFloat("MusicVolume", 0.5f);
+        sfxVolume = PlayerPrefs.GetFloat("SFXVolume", 1f);
     }
 
     void Start()
     {
+        // Застосовуємо гучність до джерел
+        musicSource.volume = musicVolume;
+        sfxSource.volume = sfxVolume;
+        
         PlayMusic();
     }
 
@@ -49,16 +66,32 @@ public class SoundManager : MonoBehaviour
         {
             musicSource.clip = backgroundMusic;
             musicSource.loop = true;
-            musicSource.volume = 0.3f; // Музика тихіше (30%)
+            musicSource.volume = musicVolume; // Використовуємо змінну
             musicSource.Play();
         }
     }
 
-    public void PlaySFX(AudioClip clip, float volume = 1f)
+    public void PlaySFX(AudioClip clip, float volumeScale = 1f)
     {
         if (sfxSource != null && clip != null)
         {
-            sfxSource.PlayOneShot(clip, volume);
+            // Множимо гучність ефекту на загальну гучність SFX
+            sfxSource.PlayOneShot(clip, volumeScale * sfxVolume);
         }
+    }
+
+    // === НОВІ МЕТОДИ ДЛЯ НАЛАШТУВАНЬ ===
+    public void SetMusicVolume(float volume)
+    {
+        musicVolume = volume;
+        musicSource.volume = musicVolume;
+        PlayerPrefs.SetFloat("MusicVolume", musicVolume);
+    }
+
+    public void SetSFXVolume(float volume)
+    {
+        sfxVolume = volume;
+        sfxSource.volume = sfxVolume; // Це вплине тільки на наступні PlayOneShot, або якщо sfxSource щось грає
+        PlayerPrefs.SetFloat("SFXVolume", sfxVolume);
     }
 }

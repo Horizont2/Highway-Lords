@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 
+[RequireComponent(typeof(Rigidbody2D))]
 public class Cart : MonoBehaviour
 {
     [Header("Статус")]
@@ -25,17 +26,29 @@ public class Cart : MonoBehaviour
     [Range(0, 100)] public int stoneChance = 30;
     public int stoneAmount = 10;
 
+    [Header("Логіка зупинки (Spikes)")]
+    public float stopDistance = 3.5f; 
+    
+    // Компоненти
+    private Rigidbody2D rb;
+    private Animator animator; // === НОВЕ: Аніматор ===
+
     void Start()
     {
+        rb = GetComponent<Rigidbody2D>();
+        animator = GetComponent<Animator>(); // Отримуємо аніматор
+
+        // === ВАЖЛИВО: Фізика щоб не падав ===
+        rb.gravityScale = 0; 
+        rb.freezeRotation = true; 
+        
         int difficultyHealth = 50;
-        // Отримуємо складність з GameManager, якщо він є
         if (GameManager.Instance != null)
         {
             difficultyHealth = GameManager.Instance.GetDifficultyHealth();
             goldAmount = GameManager.Instance.GetGoldReward();
         }
 
-        // Налаштування Боса
         if (isBoss)
         {
             maxHealth = difficultyHealth * 5; 
@@ -53,18 +66,39 @@ public class Cart : MonoBehaviour
 
     void Update()
     {
+        // === ПЕРЕВІРКА НА КОЛЮЧКИ ===
+        if (GameManager.Instance != null && GameManager.Instance.currentSpikes != null)
+        {
+            float dist = Vector2.Distance(transform.position, GameManager.Instance.currentSpikes.transform.position);
+            
+            // Перевіряємо, чи колючки ПОПЕРЕДУ нас (лівіше по X)
+            bool isSpikesAhead = (transform.position.x > GameManager.Instance.currentSpikes.transform.position.x);
+
+            if (dist < stopDistance && isSpikesAhead)
+            {
+                // === ГАЛЬМУЄМО ===
+                if (rb != null) rb.linearVelocity = Vector2.zero;
+                
+                // Зупиняємо анімацію
+                if (animator != null) animator.SetBool("IsMoving", false); 
+                
+                return; // Виходимо з Update, щоб не виконувався код руху нижче
+            }
+        }
+
+        // === РУХ ===
+        // Вмикаємо анімацію
+        if (animator != null) animator.SetBool("IsMoving", true);
+        
         transform.Translate(Vector2.left * speed * Time.deltaTime);
         
-        // Знищення, якщо віз виїхав за межі екрану
         if (transform.position.x < -15f) Destroy(gameObject);
     }
 
-    // Цей метод викликає Стріла (Arrow.cs)
     public void TakeDamage(int damage)
     {
         currentHealth -= damage;
         
-        // Показуємо цифру нанесеної шкоди (червону)
         if (GameManager.Instance != null)
             GameManager.Instance.ShowDamage(damage, transform.position);
             
@@ -84,7 +118,6 @@ public class Cart : MonoBehaviour
 
     void Die()
     {
-        // Звуки
         if (SoundManager.Instance != null)
         {
             SoundManager.Instance.PlaySFX(SoundManager.Instance.cartBreak);
@@ -93,32 +126,21 @@ public class Cart : MonoBehaviour
 
         if (GameManager.Instance != null)
         {
-            // === ЗОЛОТО ===
             int finalGold = isBoss ? goldAmount * 3 : goldAmount;
             GameManager.Instance.AddResource(ResourceType.Gold, finalGold);
-            
-            // Показуємо іконку золота з текстом кількості
             GameManager.Instance.ShowResourcePopup(ResourceType.Gold, finalGold, transform.position + Vector3.up * 0.5f);
 
-            // === ДЕРЕВО ===
             if (isBoss || Random.Range(0, 100) < woodChance)
             {
                 GameManager.Instance.AddResource(ResourceType.Wood, woodAmount);
-                
-                // Зсуваємо трохи вправо, щоб не перекривало золото
                 Vector3 woodPos = transform.position + new Vector3(1.2f, 1f, 0); 
-                // Показуємо іконку дерева з текстом
                 GameManager.Instance.ShowResourcePopup(ResourceType.Wood, woodAmount, woodPos);
             }
 
-            // === КАМІНЬ ===
             if (isBoss || Random.Range(0, 100) < stoneChance)
             {
                 GameManager.Instance.AddResource(ResourceType.Stone, stoneAmount);
-                
-                // Зсуваємо трохи вліво
                 Vector3 stonePos = transform.position + new Vector3(-1.2f, 1f, 0);
-                // Показуємо іконку каменю з текстом
                 GameManager.Instance.ShowResourcePopup(ResourceType.Stone, stoneAmount, stonePos);
             }
         }
