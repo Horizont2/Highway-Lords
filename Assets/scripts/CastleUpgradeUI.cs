@@ -17,6 +17,7 @@ public class CastleUpgradeUI : MonoBehaviour
 
         if (upgradeButton != null)
         {
+            upgradeButton.onClick.RemoveAllListeners();
             upgradeButton.onClick.AddListener(TryUpgrade);
         }
 
@@ -40,10 +41,13 @@ public class CastleUpgradeUI : MonoBehaviour
 
         int cost = castle.GetUpgradeCost();
 
+        if (cost <= 0) return;
+
         if (GameManager.Instance.gold >= cost)
         {
             // Списуємо гроші
-            GameManager.Instance.AddResource(ResourceType.Gold, -cost); // Мінус золото
+            GameManager.Instance.gold -= cost;
+            GameManager.Instance.UpdateUI();
             
             // Покращуємо замок
             castle.UpgradeCastle();

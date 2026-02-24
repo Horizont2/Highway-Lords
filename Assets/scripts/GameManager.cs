@@ -282,6 +282,7 @@ public class GameManager : MonoBehaviour
     void Start()
     {
         SetupAllButtons(); 
+        ResolvePanelRefs();
         CacheNewPanelsUI();
         if (autoWirePanels) WirePanelButtons();
         if (logUnwiredButtons) LogUnwiredButtons();
@@ -1362,6 +1363,26 @@ public class GameManager : MonoBehaviour
         CollectPanelUI(barracksPanelNew, out barracksPanelButtons, out barracksPanelTexts);
         CollectPanelUI(shopPanelNew, out shopPanelButtons, out shopPanelTexts);
         CollectPanelUI(settingsPanelNew, out settingsPanelButtons, out settingsPanelTexts);
+    }
+
+    void ResolvePanelRefs()
+    {
+        // Якщо в інспекторі посилання на prefab asset, підміняємо на scene instance з ієрархії
+        constructionPanel = ResolvePanel(constructionPanel, "ConstructionPanel_New");
+        barracksUpgradePanel = ResolvePanel(barracksUpgradePanel, "BarracksPanel_New");
+        shopPanel = ResolvePanel(shopPanel, "ForgePanel_New");
+
+        constructionPanelNew = ResolvePanel(constructionPanelNew, "ConstructionPanel_New");
+        barracksPanelNew = ResolvePanel(barracksPanelNew, "BarracksPanel_New");
+        shopPanelNew = ResolvePanel(shopPanelNew, "ForgePanel_New");
+        settingsPanelNew = ResolvePanel(settingsPanelNew, "SettingsPanel_New");
+    }
+
+    GameObject ResolvePanel(GameObject current, string name)
+    {
+        if (current != null && current.scene.IsValid()) return current;
+        var go = GameObject.Find(name);
+        return go != null ? go : current;
     }
 
     void CollectPanelUI(GameObject panel, out Button[] buttons, out TMP_Text[] texts)
