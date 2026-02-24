@@ -1405,8 +1405,21 @@ public class GameManager : MonoBehaviour
         }
         else
         {
+            // GameObject.Find не бачить неактивні обʼєкти — тому fallback через Resources
             var go = GameObject.Find(objectName);
             if (go != null) btn = go.GetComponent<Button>();
+            if (btn == null)
+            {
+                var allButtons = Resources.FindObjectsOfTypeAll<Button>();
+                foreach (var b in allButtons)
+                {
+                    if (b != null && b.name == objectName)
+                    {
+                        btn = b;
+                        break;
+                    }
+                }
+            }
         }
 
         if (btn != null)
