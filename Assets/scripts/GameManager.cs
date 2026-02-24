@@ -78,7 +78,7 @@ public class GameManager : MonoBehaviour
     public GameObject constructionPanel;    
     public GameObject barracksUpgradePanel; 
 
-    // НОВІ ПАНЕЛІ (літерні/оновлені prefab)
+    // НОВІ ПАНЕЛІ
     [Header("UI: Нові панелі (Construction/Barracks/Shop/Settings)")]
     public GameObject constructionPanelNew;
     public GameObject barracksPanelNew;
@@ -118,7 +118,7 @@ public class GameManager : MonoBehaviour
     public UICostGroup unlockSpearmanCostUI;
 
     [Header("UI: Статистика (НОВЕ)")]
-    public TMP_Text estimatedIncomeText; // Сюди перетягніть текст для відображення доходу
+    public TMP_Text estimatedIncomeText; 
 
     [Header("Налаштування Казарми")]
     public GameObject barracksPrefab;       
@@ -199,10 +199,9 @@ public class GameManager : MonoBehaviour
     public Transform towerTransform;       
     public EnemySpawner spawner; 
 
-    // === СПРАЙТИ ДЛЯ КНОПОК ===
     [Header("Спрайти Кнопок")]
-    public Sprite buildButtonSprite;   // Сюди перетягни спрайт "Build"
-    public Sprite upgradeButtonSprite; // Сюди перетягни спрайт "Upgrade"
+    public Sprite buildButtonSprite;   
+    public Sprite upgradeButtonSprite; 
 
     [Header("Зони")]
     public Transform leftBoundary;
@@ -319,13 +318,12 @@ public class GameManager : MonoBehaviour
     }
 
     // =========================================================================
-    // === НОВА СИСТЕМА ОНОВЛЕННЯ UI ЦІН (Вставляє іконки та текст) ===
+    // === СИСТЕМА ОНОВЛЕННЯ UI ЦІН (Вставляє іконки та текст) ===
     // =========================================================================
     public void UpdateCostUIGroup(UICostGroup costUI, ResourceType type1, int cost1, ResourceType type2 = ResourceType.Gold, int cost2 = 0, string overrideText = "")
     {
         if (costUI == null) return;
 
-        // Перевизначення тексту (наприклад "BUILT", "MAX", "UNLOCKED")
         if (!string.IsNullOrEmpty(overrideText))
         {
             if (costUI.icon1 != null) costUI.icon1.gameObject.SetActive(false);
@@ -541,20 +539,73 @@ public class GameManager : MonoBehaviour
         isWaveInProgress = true;
     }
 
-    // === БУДІВНИЦТВО ===
+    // === БУДІВНИЦТВО (ОНОВЛЕНО) ===
     public void ToggleConstructionMenu()
     {
-        if (constructionPanel)
+        GameObject panelToToggle = constructionPanelNew != null ? constructionPanelNew : constructionPanel;
+        
+        if (panelToToggle != null)
         {
-            bool isActive = !constructionPanel.activeSelf;
-            constructionPanel.SetActive(isActive);
+            bool isActive = !panelToToggle.activeSelf;
+            panelToToggle.SetActive(isActive);
             if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.clickSound, 2.0f);
 
             if (isActive) 
             { 
-                barracksUpgradePanel.SetActive(false); 
-                shopPanel.SetActive(false); 
+                if (barracksPanelNew) barracksPanelNew.SetActive(false); 
+                else if (barracksUpgradePanel) barracksUpgradePanel.SetActive(false);
+                
+                if (shopPanelNew) shopPanelNew.SetActive(false); 
+                else if (shopPanel) shopPanel.SetActive(false);
+                
                 UpdateBarracksStateUI(); 
+            }
+        }
+    }
+
+    public void ToggleBarracksUpgradeMenu()
+    {
+        GameObject panelToToggle = barracksPanelNew != null ? barracksPanelNew : barracksUpgradePanel;
+        
+        if (panelToToggle != null) 
+        {
+            bool isActive = !panelToToggle.activeSelf;
+            panelToToggle.SetActive(isActive);
+            
+            if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.clickSound, 2.0f);
+            
+            if (isActive) 
+            { 
+                UpdateUpgradeMenuPrice(); 
+                UpdateUI(); 
+                
+                if (constructionPanelNew) constructionPanelNew.SetActive(false); 
+                else if (constructionPanel) constructionPanel.SetActive(false);
+                
+                if (shopPanelNew) shopPanelNew.SetActive(false); 
+                else if (shopPanel) shopPanel.SetActive(false);
+            }
+        }
+    }
+
+    public void ToggleShop() 
+    { 
+        GameObject panelToToggle = shopPanelNew != null ? shopPanelNew : shopPanel;
+        
+        if (panelToToggle != null)
+        {
+            bool isActive = !panelToToggle.activeSelf;
+            panelToToggle.SetActive(isActive);
+            
+            if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.clickSound, 2.0f);
+            
+            if(isActive) 
+            { 
+                if (constructionPanelNew) constructionPanelNew.SetActive(false); 
+                else if (constructionPanel) constructionPanel.SetActive(false);
+                
+                if (barracksPanelNew) barracksPanelNew.SetActive(false); 
+                else if (barracksUpgradePanel) barracksUpgradePanel.SetActive(false);
             }
         }
     }
@@ -694,27 +745,7 @@ public class GameManager : MonoBehaviour
                 else btnImg.sprite = upgradeButtonSprite;
             }
 
-            // ОНОВЛЕННЯ ЦІНИ КАЗАРМИ ЧЕРЕЗ НОВУ СИСТЕМУ
             UpdateCostUIGroup(barracksCostUI, ResourceType.Gold, costG, ResourceType.Wood, costW);
-        }
-    }
-
-    public void ToggleBarracksUpgradeMenu()
-    {
-        if (barracksUpgradePanel) 
-        {
-            bool isActive = !barracksUpgradePanel.activeSelf;
-            barracksUpgradePanel.SetActive(isActive);
-            
-            if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.clickSound, 2.0f);
-            
-            if (isActive) 
-            { 
-                UpdateUpgradeMenuPrice(); 
-                UpdateUI(); 
-                constructionPanel.SetActive(false); 
-                shopPanel.SetActive(false); 
-            }
         }
     }
 
@@ -792,23 +823,6 @@ public class GameManager : MonoBehaviour
         else
         {
             if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.error);
-        }
-    }
-
-    public void ToggleShop() 
-    { 
-        if (shopPanel)
-        {
-            bool isActive = !shopPanel.activeSelf;
-            shopPanel.SetActive(isActive);
-            
-            if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.clickSound, 2.0f);
-            
-            if(isActive) 
-            { 
-                constructionPanel.SetActive(false); 
-                barracksUpgradePanel.SetActive(false); 
-            }
         }
     }
     
@@ -1213,8 +1227,6 @@ public class GameManager : MonoBehaviour
         
         if (limitText != null) limitText.text = $"{currentUnits} / {maxUnits}";
         
-        // Зверніть увагу, ціни найму поки залишені як є, оскільки там складний багаторядковий текст. 
-        // Якщо захочете, їх також можна перевести на нову систему.
         if (hirePriceText) 
         {
             string spearPrice = isSpearmanUnlocked ? $"{spearmanFixedCost}G" : "LOCKED";
@@ -1356,7 +1368,7 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    // === АВТОМАТИЧНЕ НАЛАШТУВАННЯ КНОПОК ===
+    // === АВТОМАТИЧНЕ НАЛАШТУВАННЯ КНОПОК ТА ПАНЕЛЕЙ (ОНОВЛЕНО) ===
     void CacheNewPanelsUI()
     {
         CollectPanelUI(constructionPanelNew, out constructionPanelButtons, out constructionPanelTexts);
@@ -1367,7 +1379,6 @@ public class GameManager : MonoBehaviour
 
     void ResolvePanelRefs()
     {
-        // Якщо в інспекторі посилання на prefab asset, підміняємо на scene instance з ієрархії
         constructionPanel = ResolvePanel(constructionPanel, "ConstructionPanel_New");
         barracksUpgradePanel = ResolvePanel(barracksUpgradePanel, "BarracksPanel_New");
         shopPanel = ResolvePanel(shopPanel, "ForgePanel_New");
@@ -1400,10 +1411,22 @@ public class GameManager : MonoBehaviour
 
     void WirePanelButtons()
     {
-        // Openers
-        HookButtonByName("BuildButton", ToggleConstructionMenu);   // Construction
-        HookButtonByName("BarracksButton", ToggleBarracksUpgradeMenu); // Barracks
-        HookButtonByName("ForgeButton", ToggleShop);               // Shop/Forge
+        // Openers (З надійною прив'язкою)
+        if (hammerButton != null) 
+        {
+            hammerButton.onClick.RemoveAllListeners();
+            hammerButton.onClick.AddListener(ToggleConstructionMenu);
+        }
+        else HookButtonByName("BuildButton", ToggleConstructionMenu); 
+
+        HookButtonByName("BarracksButton", ToggleBarracksUpgradeMenu); 
+
+        if (openShopButton != null) 
+        {
+            openShopButton.onClick.RemoveAllListeners();
+            openShopButton.onClick.AddListener(ToggleShop);
+        }
+        else HookButtonByName("ForgeButton", ToggleShop); 
 
         // Settings open/close via SettingsMenu
         var settingsMenu = FindFirstObjectByType<SettingsMenu>();
@@ -1415,9 +1438,9 @@ public class GameManager : MonoBehaviour
         }
 
         // Close buttons inside panels
-        HookButtonByName("CloseButton", ToggleConstructionMenu, constructionPanelNew);
-        HookButtonByName("CloseButton", ToggleBarracksUpgradeMenu, barracksPanelNew);
-        HookButtonByName("CloseButton", ToggleShop, shopPanelNew);
+        HookButtonByName("CloseButton", ToggleConstructionMenu, constructionPanelNew != null ? constructionPanelNew : constructionPanel);
+        HookButtonByName("CloseButton", ToggleBarracksUpgradeMenu, barracksPanelNew != null ? barracksPanelNew : barracksUpgradePanel);
+        HookButtonByName("CloseButton", ToggleShop, shopPanelNew != null ? shopPanelNew : shopPanel);
     }
 
     void HookButtonByName(string objectName, UnityEngine.Events.UnityAction action, GameObject scope = null)
@@ -1430,7 +1453,6 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            // GameObject.Find не бачить неактивні обʼєкти — тому fallback через Resources
             var go = GameObject.Find(objectName);
             if (go != null) btn = go.GetComponent<Button>();
             if (btn == null)
@@ -1449,7 +1471,6 @@ public class GameManager : MonoBehaviour
 
         if (btn == null && (scope != null || GameObject.Find(objectName) != null))
         {
-            // якщо є GameObject без Button — додаємо компонент
             var go = scope != null ? FindChildByName(scope.transform, objectName)?.gameObject : GameObject.Find(objectName);
             if (go != null)
             {

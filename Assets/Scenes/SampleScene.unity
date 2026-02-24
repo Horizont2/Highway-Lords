@@ -5759,8 +5759,8 @@ MonoBehaviour:
   barracksPanelTexts: []
   shopPanelTexts: []
   settingsPanelTexts: []
-  autoWirePanels: 1
-  logUnwiredButtons: 1
+  autoWirePanels: 0
+  logUnwiredButtons: 0
   hammerButton: {fileID: 683413341}
   barracksIconButton: {fileID: 1962385186}
   buildBarracksBtnInMenu: {fileID: 508488601}
