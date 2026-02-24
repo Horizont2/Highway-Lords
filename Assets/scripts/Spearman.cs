@@ -31,6 +31,7 @@ public class Spearman : MonoBehaviour
     private Cart targetCart;
     private Guard targetGuard;
     private EnemyArcher targetArcher; 
+    private EnemySpearman targetEnemySpearman;
     private Boss targetBoss; 
     private EnemyHorse targetHorse; // + НОВЕ: Ціль для Списоносця
 
@@ -118,6 +119,7 @@ public class Spearman : MonoBehaviour
         if (targetBoss != null && (targetBoss.CompareTag("Untagged") || !targetBoss.gameObject.activeInHierarchy)) targetBoss = null;
         if (targetGuard != null && (targetGuard.CompareTag("Untagged") || !targetGuard.gameObject.activeInHierarchy)) targetGuard = null;
         if (targetArcher != null && (targetArcher.CompareTag("Untagged") || !targetArcher.gameObject.activeInHierarchy)) targetArcher = null;
+        if (targetEnemySpearman != null && (targetEnemySpearman.CompareTag("Untagged") || !targetEnemySpearman.gameObject.activeInHierarchy)) targetEnemySpearman = null;
         if (targetCart != null && (targetCart.CompareTag("Untagged") || !targetCart.gameObject.activeInHierarchy)) targetCart = null;
         if (targetHorse != null && (targetHorse.CompareTag("Untagged") || !targetHorse.gameObject.activeInHierarchy)) targetHorse = null;
 
@@ -128,6 +130,7 @@ public class Spearman : MonoBehaviour
         if (targetBoss != null) currentTarget = targetBoss.transform; 
         else if (targetHorse != null) currentTarget = targetHorse.transform;
         else if (targetGuard != null) currentTarget = targetGuard.transform;
+        else if (targetEnemySpearman != null) currentTarget = targetEnemySpearman.transform;
         else if (targetArcher != null) currentTarget = targetArcher.transform;
         else if (targetCart != null) currentTarget = targetCart.transform;
 
@@ -242,7 +245,7 @@ public class Spearman : MonoBehaviour
 
     void FindNearestTarget()
     {
-        if (targetBoss != null || targetGuard != null || targetArcher != null || targetCart != null || targetHorse != null) return;
+        if (targetBoss != null || targetGuard != null || targetArcher != null || targetEnemySpearman != null || targetCart != null || targetHorse != null) return;
 
         float minX = -1000f; float maxX = 1000f;
         if (GameManager.Instance != null)
@@ -283,7 +286,12 @@ public class Spearman : MonoBehaviour
                 if (dist < shortestDist) { shortestDist = dist; targetGuard = go.GetComponent<Guard>(); ResetTargets(); } 
                 continue; 
             }
-            if (go.GetComponent<EnemyArcher>() && !targetBoss && !targetHorse && !targetGuard) 
+            if (go.GetComponent<EnemySpearman>() && !targetBoss && !targetHorse && !targetGuard)
+            {
+                if (dist < shortestDist) { shortestDist = dist; targetEnemySpearman = go.GetComponent<EnemySpearman>(); ResetTargets(); }
+                continue;
+            }
+            if (go.GetComponent<EnemyArcher>() && !targetBoss && !targetHorse && !targetGuard && !targetEnemySpearman) 
             { 
                 if (dist < shortestDist) { shortestDist = dist; targetArcher = go.GetComponent<EnemyArcher>(); ResetTargets(); } 
                 continue; 
@@ -321,6 +329,7 @@ public class Spearman : MonoBehaviour
         if (targetBoss != null) { targetObj = targetBoss.gameObject; targetStats = targetBoss.GetComponent<UnitStats>(); }
         else if (targetHorse != null) { targetObj = targetHorse.gameObject; targetStats = targetHorse.GetComponent<UnitStats>(); }
         else if (targetGuard != null) { targetObj = targetGuard.gameObject; targetStats = targetGuard.GetComponent<UnitStats>(); }
+        else if (targetEnemySpearman != null) { targetObj = targetEnemySpearman.gameObject; targetStats = targetEnemySpearman.GetComponent<UnitStats>(); }
         else if (targetArcher != null) { targetObj = targetArcher.gameObject; targetStats = targetArcher.GetComponent<UnitStats>(); }
         else if (targetCart != null) { targetObj = targetCart.gameObject; }
 
@@ -336,6 +345,7 @@ public class Spearman : MonoBehaviour
         if (targetBoss != null) targetBoss.TakeDamage(finalDamage);
         else if (targetHorse != null) targetHorse.TakeDamage(finalDamage);
         else if (targetGuard != null) targetGuard.TakeDamage(finalDamage);
+        else if (targetEnemySpearman != null) targetEnemySpearman.TakeDamage(finalDamage);
         else if (targetArcher != null) targetArcher.TakeDamage(finalDamage);
         else if (targetCart != null) targetCart.TakeDamage(finalDamage);
     }

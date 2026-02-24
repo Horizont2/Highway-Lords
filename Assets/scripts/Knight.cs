@@ -31,6 +31,8 @@ public class Knight : MonoBehaviour
     // Цілі (Пріоритетна система)
     private Cart targetCart;
     private Guard targetGuard;
+    private EnemySpearman targetSpearman;
+    private EnemyHorse targetHorse;
     private EnemyArcher targetArcher; 
     private Boss targetBoss; 
 
@@ -118,7 +120,9 @@ public class Knight : MonoBehaviour
 
         // Перевірка на зникнення цілей (якщо померли або зникли)
         if (targetBoss != null && (targetBoss.CompareTag("Untagged") || !targetBoss.gameObject.activeInHierarchy)) targetBoss = null;
+        if (targetHorse != null && (targetHorse.CompareTag("Untagged") || !targetHorse.gameObject.activeInHierarchy)) targetHorse = null;
         if (targetGuard != null && (targetGuard.CompareTag("Untagged") || !targetGuard.gameObject.activeInHierarchy)) targetGuard = null;
+        if (targetSpearman != null && (targetSpearman.CompareTag("Untagged") || !targetSpearman.gameObject.activeInHierarchy)) targetSpearman = null;
         if (targetArcher != null && (targetArcher.CompareTag("Untagged") || !targetArcher.gameObject.activeInHierarchy)) targetArcher = null;
         if (targetCart != null && (targetCart.CompareTag("Untagged") || !targetCart.gameObject.activeInHierarchy)) targetCart = null;
 
@@ -127,7 +131,9 @@ public class Knight : MonoBehaviour
         // Визначаємо поточну активну ціль за пріоритетом
         Transform currentTarget = null;
         if (targetBoss != null) currentTarget = targetBoss.transform; 
+        else if (targetHorse != null) currentTarget = targetHorse.transform;
         else if (targetGuard != null) currentTarget = targetGuard.transform;
+        else if (targetSpearman != null) currentTarget = targetSpearman.transform;
         else if (targetArcher != null) currentTarget = targetArcher.transform;
         else if (targetCart != null) currentTarget = targetCart.transform;
 
@@ -275,7 +281,7 @@ public class Knight : MonoBehaviour
     void FindNearestTarget()
     {
         // Якщо у нас вже є ціль, не шукаємо нову (щоб не перемикатись постійно)
-        if (targetBoss != null || targetGuard != null || targetArcher != null || targetCart != null) return;
+        if (targetBoss != null || targetHorse != null || targetGuard != null || targetSpearman != null || targetArcher != null || targetCart != null) return;
 
         float minX = -1000f; float maxX = 1000f;
         if (GameManager.Instance != null)
@@ -300,23 +306,33 @@ public class Knight : MonoBehaviour
 
             float dist = Vector2.Distance(transform.position, go.transform.position);
 
-            // ПРІОРИТЕТИ: Бос -> Гвардієць -> Лучник -> Віз
+            // ПРІОРИТЕТИ: Бос -> Вершник -> Гвардієць -> Ворожий списоносець -> Лучник -> Віз
             if (go.GetComponent<Boss>()) 
             { 
-                if (dist < shortestDist) { shortestDist = dist; targetBoss = go.GetComponent<Boss>(); targetGuard = null; targetArcher = null; targetCart = null; } 
+                if (dist < shortestDist) { shortestDist = dist; targetBoss = go.GetComponent<Boss>(); targetHorse = null; targetGuard = null; targetSpearman = null; targetArcher = null; targetCart = null; } 
                 continue; 
             }
-            if (go.GetComponent<Guard>() && !targetBoss) 
+            if (go.GetComponent<EnemyHorse>() && !targetBoss)
+            {
+                if (dist < shortestDist) { shortestDist = dist; targetHorse = go.GetComponent<EnemyHorse>(); targetGuard = null; targetSpearman = null; targetArcher = null; targetCart = null; }
+                continue;
+            }
+            if (go.GetComponent<Guard>() && !targetBoss && !targetHorse) 
             { 
-                if (dist < shortestDist) { shortestDist = dist; targetGuard = go.GetComponent<Guard>(); targetArcher = null; targetCart = null; } 
+                if (dist < shortestDist) { shortestDist = dist; targetGuard = go.GetComponent<Guard>(); targetSpearman = null; targetArcher = null; targetCart = null; } 
                 continue; 
             }
-            if (go.GetComponent<EnemyArcher>() && !targetBoss && !targetGuard) 
+            if (go.GetComponent<EnemySpearman>() && !targetBoss && !targetHorse && !targetGuard)
+            {
+                if (dist < shortestDist) { shortestDist = dist; targetSpearman = go.GetComponent<EnemySpearman>(); targetArcher = null; targetCart = null; }
+                continue;
+            }
+            if (go.GetComponent<EnemyArcher>() && !targetBoss && !targetHorse && !targetGuard && !targetSpearman) 
             { 
                 if (dist < shortestDist) { shortestDist = dist; targetArcher = go.GetComponent<EnemyArcher>(); targetCart = null; } 
                 continue; 
             }
-            if (go.GetComponent<Cart>() && !targetBoss && !targetGuard && !targetArcher && dist < shortestDist) 
+            if (go.GetComponent<Cart>() && !targetBoss && !targetHorse && !targetGuard && !targetSpearman && !targetArcher && dist < shortestDist) 
             { 
                 shortestDist = dist; targetCart = go.GetComponent<Cart>(); 
             }
@@ -334,7 +350,9 @@ public class Knight : MonoBehaviour
 
         // Визначаємо, кого саме ми б'ємо, щоб отримати його стати
         if (targetBoss != null) targetStats = targetBoss.GetComponent<UnitStats>();
+        else if (targetHorse != null) targetStats = targetHorse.GetComponent<UnitStats>();
         else if (targetGuard != null) targetStats = targetGuard.GetComponent<UnitStats>();
+        else if (targetSpearman != null) targetStats = targetSpearman.GetComponent<UnitStats>();
         else if (targetArcher != null) targetArcher.GetComponent<UnitStats>();
         // Для воза статів може не бути, або вони "Building"
 
@@ -347,7 +365,9 @@ public class Knight : MonoBehaviour
 
         // Наносимо фінальний урон конкретній цілі
         if (targetBoss != null) targetBoss.TakeDamage(finalDamage);
+        else if (targetHorse != null) targetHorse.TakeDamage(finalDamage);
         else if (targetGuard != null) targetGuard.TakeDamage(finalDamage);
+        else if (targetSpearman != null) targetSpearman.TakeDamage(finalDamage);
         else if (targetArcher != null) targetArcher.TakeDamage(finalDamage);
         else if (targetCart != null) targetCart.TakeDamage(finalDamage);
     }

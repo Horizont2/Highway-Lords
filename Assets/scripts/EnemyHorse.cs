@@ -8,7 +8,7 @@ public class EnemyHorse : MonoBehaviour
     public HealthBar healthBar;
 
     [Header("Характеристики")]
-    public float speed = 3.4f;          // Трохи повільніше за піхоту
+    public float speed = 2.5f;          // Трохи повільніше за піхоту
     public float attackRange = 1.8f;    // Трохи більша дальність через спис
     public float attackCooldown = 2.0f; // Довша перезарядка між атаками
     public int damage = 25;             // Високий урон (Charge)
@@ -77,7 +77,11 @@ public class EnemyHorse : MonoBehaviour
             target = null;
         }
 
-        if (target == null) FindTarget();
+        if (target == null || ((target.GetComponent<Castle>() != null || target.GetComponent<Spikes>() != null) && HasAnyDefenders()))
+        {
+            target = null;
+            FindTarget();
+        }
 
         // Логіка бою
         if (target != null)
@@ -104,6 +108,13 @@ public class EnemyHorse : MonoBehaviour
             Vector3 forwardPos = transform.position + Vector3.left * 5f;
             MoveTowards(forwardPos);
         }
+    }
+
+    bool HasAnyDefenders()
+    {
+        return FindObjectsByType<Knight>(FindObjectsSortMode.None).Length > 0
+            || FindObjectsByType<Spearman>(FindObjectsSortMode.None).Length > 0
+            || FindObjectsByType<Archer>(FindObjectsSortMode.None).Length > 0;
     }
 
     void FindTarget()

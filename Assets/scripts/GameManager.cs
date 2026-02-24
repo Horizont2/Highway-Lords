@@ -855,6 +855,25 @@ public class GameManager : MonoBehaviour
         foreach (var p in projectiles) Destroy(p);
     }
 
+    void ClearDeadUnits()
+    {
+        foreach (var k in FindObjectsByType<Knight>(FindObjectsSortMode.None)) if (k.CompareTag("Untagged")) Destroy(k.gameObject);
+        foreach (var a in FindObjectsByType<Archer>(FindObjectsSortMode.None)) if (a.CompareTag("Untagged")) Destroy(a.gameObject);
+        foreach (var s in FindObjectsByType<Spearman>(FindObjectsSortMode.None)) if (s.CompareTag("Untagged")) Destroy(s.gameObject);
+    }
+
+    void ClearDeadEnemies()
+    {
+        foreach (var e in FindObjectsByType<EnemyStats>(FindObjectsSortMode.None)) if (e.CompareTag("Untagged")) Destroy(e.gameObject);
+    }
+
+    IEnumerator RecalculateUnitsNextFrame()
+    {
+        yield return null;
+        RecalculateUnits();
+        UpdateUI();
+    }
+
     public void Defeat() 
     { 
         Time.timeScale = 0; 
@@ -872,6 +891,8 @@ public class GameManager : MonoBehaviour
         // Зупиняємо спавн і ховаємо панель перед очищенням
         if (spawner != null) spawner.StopSpawning(); 
         if (spawner != null) spawner.ClearEnemies(); 
+        ClearDeadEnemies();
+        ClearDeadUnits();
         
         if (castle == null) castle = FindFirstObjectByType<Castle>();
         if (castle != null) castle.HealMax(); 
@@ -914,6 +935,8 @@ public class GameManager : MonoBehaviour
         
         UpdateUI(); 
         UpdateBarracksStateUI(); 
+
+        StartCoroutine(RecalculateUnitsNextFrame());
     }
 
     // === SAVE / LOAD ===
