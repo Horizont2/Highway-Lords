@@ -114,7 +114,9 @@ public class EnemySpearman : MonoBehaviour
         }
     }
 
-    void FindTarget()
+    
+"bool HasAnyDefenders()`n    {`n        return FindObjectsByType<Knight>(FindObjectsSortMode.None).Length -gt 0`n            -or FindObjectsByType<Spearman>(FindObjectsSortMode.None).Length -gt 0`n            -or FindObjectsByType<Archer>(FindObjectsSortMode.None).Length -gt 0;`n    }`n`n    void FindTarget()"
+
     {
         float minDistance = Mathf.Infinity;
         Transform closestTarget = null;

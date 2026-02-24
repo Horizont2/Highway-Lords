@@ -852,7 +852,7 @@ public class GameManager : MonoBehaviour
     public void Defeat() 
     { 
         Time.timeScale = 0; 
-        if(defeatPanel) defeatPanel.SetActive(true); 
+        if( $args[0].Value + "`n        ClearProjectiles();`n" 
         SaveGame(); 
         if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.defeat); 
     }
