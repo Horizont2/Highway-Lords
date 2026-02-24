@@ -288,7 +288,7 @@ public class GameManager : MonoBehaviour
         SetupAllButtons(); 
         ResolvePanelRefs();
         CacheNewPanelsUI();
-        if (autoWirePanels) WirePanelButtons();
+        WirePanelButtons();
         if (logUnwiredButtons) LogUnwiredButtons();
 
         RecalculateUnits();
@@ -1461,6 +1461,23 @@ public class GameManager : MonoBehaviour
             HookButtonByName("Continue", settingsMenu.CloseSettings);
             HookButtonByName("ExitGame", settingsMenu.QuitGame);
         }
+
+        // Core buttons in panels
+        if (buildBarracksBtnInMenu) { buildBarracksBtnInMenu.onClick.RemoveAllListeners(); buildBarracksBtnInMenu.onClick.AddListener(BuildOrUpgradeBarracks); }
+        if (buildMineButton) { buildMineButton.onClick.RemoveAllListeners(); buildMineButton.onClick.AddListener(BuildOrUpgradeMine); }
+        if (buildSpikesButton) { buildSpikesButton.onClick.RemoveAllListeners(); buildSpikesButton.onClick.AddListener(BuildSpikes); }
+        if (towerButton) { towerButton.onClick.RemoveAllListeners(); towerButton.onClick.AddListener(UpgradeDamage); }
+
+        if (upgradeKnightButton) { upgradeKnightButton.onClick.RemoveAllListeners(); upgradeKnightButton.onClick.AddListener(UpgradeKnights); }
+        if (upgradeArcherButton) { upgradeArcherButton.onClick.RemoveAllListeners(); upgradeArcherButton.onClick.AddListener(UpgradeArchers); }
+        if (upgradeSpearmanButton) { upgradeSpearmanButton.onClick.RemoveAllListeners(); upgradeSpearmanButton.onClick.AddListener(UpgradeSpearmen); }
+
+        if (upgradeLimitButton) { upgradeLimitButton.onClick.RemoveAllListeners(); upgradeLimitButton.onClick.AddListener(BuyUnitLimitUpgrade); }
+        if (unlockSpearmanButton) { unlockSpearmanButton.onClick.RemoveAllListeners(); unlockSpearmanButton.onClick.AddListener(UnlockSpearman); }
+
+        if (hireKnightButton) { hireKnightButton.onClick.RemoveAllListeners(); hireKnightButton.onClick.AddListener(HireKnight); }
+        if (hireArcherButton) { hireArcherButton.onClick.RemoveAllListeners(); hireArcherButton.onClick.AddListener(HireArcher); }
+        if (hireSpearmanButton) { hireSpearmanButton.onClick.RemoveAllListeners(); hireSpearmanButton.onClick.AddListener(HireSpearman); }
 
         // Close buttons inside panels
         HookButtonByName("CloseButton", ToggleConstructionMenu, constructionPanelNew != null ? constructionPanelNew : constructionPanel);
