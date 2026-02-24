@@ -3897,6 +3897,7 @@ RectTransform:
   m_LocalScale: {x: 0, y: 0, z: 0}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 890668567}
   - {fileID: 581305697}
   - {fileID: 625965653}
   - {fileID: 103094320}
@@ -3917,7 +3918,6 @@ RectTransform:
   - {fileID: 1546591662}
   - {fileID: 1224864164}
   - {fileID: 864400606}
-  - {fileID: 890668567}
   - {fileID: 728804237}
   - {fileID: 993023596}
   - {fileID: 582325106}
@@ -6907,9 +6907,9 @@ MonoBehaviour:
   goldIcon: {fileID: -7036362436464933428, guid: 33e73d4f57bf3a74b8a69cb3776af965, type: 3}
   woodIcon: {fileID: -4488245520254838237, guid: 4b888f911732d374b9fda742a7e498ad, type: 3}
   stoneIcon: {fileID: -6209883028411514933, guid: c65ce7c7e7bf38946ac8b6ed29e066bd, type: 3}
-  gold: 0
-  wood: 0
-  stone: 0
+  gold: 9999
+  wood: 9999
+  stone: 9999
   goldText: {fileID: 1022281373}
   woodText: {fileID: 372600758}
   stoneText: {fileID: 725299162}
@@ -6930,14 +6930,15 @@ MonoBehaviour:
   knightUpgradeCost: 100
   archerUpgradeCost: 120
   spearmanUpgradeCost: 110
-  isSpearmanUnlocked: 0
+  isSpearmanUnlocked: 1
   spearmanUnlockCost: 500
   maxUnits: 5
   currentUnits: 0
+  isResettingUnits: 0
   towerLevel: 1
   towerWoodCost: 50
   towerStoneCost: 20
-  currentWave: 1
+  currentWave: 16
   baseGoldReward: 15
   baseEnemyHealth: 40
 --- !u!4 &759783796
@@ -16264,6 +16265,8 @@ MonoBehaviour:
     isCart: 0
     spawnWeight: 35
     baseGoldReward: 15
+  bossEscortMin: 3
+  bossEscortMax: 5
   spawnPoints:
   - {fileID: 1613524197}
   timeBetweenSpawns: 3

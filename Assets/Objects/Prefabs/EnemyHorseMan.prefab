@@ -133,7 +133,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyHorse
   healthBar: {fileID: 3497889831417478688}
-  speed: 3
+  speed: 2.5
   attackRange: 1.8
   attackCooldown: 2
   damage: 25
