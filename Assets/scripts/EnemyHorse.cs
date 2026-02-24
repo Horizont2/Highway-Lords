@@ -8,7 +8,7 @@ public class EnemyHorse : MonoBehaviour
     public HealthBar healthBar;
 
     [Header("Характеристики")]
-    public float speed = 4.0f;          // Швидше за піхоту
+    public float speed = 3.4f;          // Трохи повільніше за піхоту
     public float attackRange = 1.8f;    // Трохи більша дальність через спис
     public float attackCooldown = 2.0f; // Довша перезарядка між атаками
     public int damage = 25;             // Високий урон (Charge)
@@ -142,6 +142,8 @@ public class EnemyHorse : MonoBehaviour
     void MoveTowards(Vector3 destination)
     {
         if (animator) animator.SetBool("IsRunning", true);
+
+        FaceDirection(destination);
         
         Vector2 direction = (destination - transform.position).normalized;
 
@@ -160,6 +162,15 @@ public class EnemyHorse : MonoBehaviour
     {
         rb.linearVelocity = Vector2.zero;
         if (animator) animator.SetBool("IsRunning", false);
+    }
+
+    void FaceDirection(Vector3 targetPos)
+    {
+        float absX = Mathf.Abs(originalScale.x);
+        if (targetPos.x < transform.position.x)
+            transform.localScale = new Vector3(-absX, originalScale.y, originalScale.z);
+        else
+            transform.localScale = new Vector3(absX, originalScale.y, originalScale.z);
     }
 
     void Attack()

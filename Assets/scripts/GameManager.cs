@@ -849,10 +849,17 @@ public class GameManager : MonoBehaviour
             SoundManager.Instance.PlaySFX(SoundManager.Instance.coinPickup); 
     }
 
+    void ClearProjectiles()
+    {
+        GameObject[] projectiles = GameObject.FindGameObjectsWithTag("Projectile");
+        foreach (var p in projectiles) Destroy(p);
+    }
+
     public void Defeat() 
     { 
         Time.timeScale = 0; 
-        if( $args[0].Value + "`n        ClearProjectiles();`n" 
+        if(defeatPanel) defeatPanel.SetActive(true); 
+        ClearProjectiles();
         SaveGame(); 
         if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.defeat); 
     }
@@ -874,6 +881,8 @@ public class GameManager : MonoBehaviour
 
         manualTarget = null;
         if(targetIndicator) targetIndicator.Hide();
+
+        ClearProjectiles();
 
         // === Під час ресету не рахуємо OnDestroy() як смерть юніта ===
         isResettingUnits = true;

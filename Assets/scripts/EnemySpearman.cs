@@ -74,8 +74,9 @@ public class EnemySpearman : MonoBehaviour
         }
 
         // 2. ПОШУК ЦІЛІ (Якщо її немає)
-        if (target == null)
+        if (target == null || (target.GetComponent<Castle>() != null && HasAnyDefenders()))
         {
+            target = null;
             FindTarget();
         }
 
@@ -114,9 +115,14 @@ public class EnemySpearman : MonoBehaviour
         }
     }
 
-    
-"bool HasAnyDefenders()`n    {`n        return FindObjectsByType<Knight>(FindObjectsSortMode.None).Length -gt 0`n            -or FindObjectsByType<Spearman>(FindObjectsSortMode.None).Length -gt 0`n            -or FindObjectsByType<Archer>(FindObjectsSortMode.None).Length -gt 0;`n    }`n`n    void FindTarget()"
+    bool HasAnyDefenders()
+    {
+        return FindObjectsByType<Knight>(FindObjectsSortMode.None).Length > 0
+            || FindObjectsByType<Spearman>(FindObjectsSortMode.None).Length > 0
+            || FindObjectsByType<Archer>(FindObjectsSortMode.None).Length > 0;
+    }
 
+    void FindTarget()
     {
         float minDistance = Mathf.Infinity;
         Transform closestTarget = null;
