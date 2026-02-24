@@ -1,0 +1,87 @@
+diff --git a/Assets/scripts/GameManager.cs b/Assets/scripts/GameManager.cs
+index 4a7455e..134f07a 100644
+--- a/Assets/scripts/GameManager.cs
++++ b/Assets/scripts/GameManager.cs
+@@ -80,6 +80,11 @@ public class GameManager : MonoBehaviour
+     public GameObject barracksUpgradePanel;
+     public GameObject shopPanel;
+ 
++    [Header("UI: Панелі (fallback поля)")]
++    public GameObject constructionPanelNew;
++    public GameObject barracksPanelNew;
++    public GameObject shopPanelNew;
++
+     [Header("UI: Кнопки відкриття (ПРИВ'ЯЗАТИ В ІНСПЕКТОРІ)")]
+     public Button hammerButton;
+     public Button barracksIconButton;
+@@ -260,6 +265,7 @@ public class GameManager : MonoBehaviour
+     public int baseEnemyHealth = 50;
+ 
+     private bool isWaveInProgress = false;
++    private int _lastHireFrame = -1;
+ 
+     void Awake()
+     {
+@@ -323,7 +329,13 @@ public class GameManager : MonoBehaviour
+         if (hireArcherButton == null) hireArcherButton = FindUIButton("HireArcher");
+         if (hireSpearmanButton == null) hireSpearmanButton = FindUIButton("HireSpearman");
+ 
+-        // Panels: prefer new if set
++        // HUD texts
++        if (goldText == null) goldText = FindTMP("GoldText");
++        if (woodText == null) woodText = FindTMP("WoodText");
++        if (stoneText == null) stoneText = FindTMP("StoneText");
++        if (waveText == null) waveText = FindTMP("WaveText");
++
++        // Panels: prefer set panel, fallback to *_New
+         var construction = constructionPanel != null ? constructionPanel : constructionPanelNew;
+         var barracks = barracksUpgradePanel != null ? barracksUpgradePanel : barracksPanelNew;
+         var shop = shopPanel != null ? shopPanel : shopPanelNew;
+@@ -357,6 +369,13 @@ public class GameManager : MonoBehaviour
+         return go != null ? go.GetComponent<Button>() : null;
+     }
+ 
++    TMP_Text FindTMP(string name)
++    {
++        var go = GameObject.Find(name);
++        if (go == null) return null;
++        return go.GetComponent<TMP_Text>();
++    }
++
+     Button FindUIButtonInPanel(GameObject panel, string name)
+     {
+         if (panel == null) return null;
+@@ -504,10 +523,10 @@ public class GameManager : MonoBehaviour
+             buildSpikesButton.onClick.AddListener(BuildSpikes);
+         }
+ 
+-        if (towerButton != null) 
++        if (towerButton != null)
+         {
+-            towerButton.onClick.RemoveAllListeners(); 
+-            towerButton.onClick.AddListener(UpgradeDamage); 
++            towerButton.onClick.RemoveAllListeners();
++            towerButton.onClick.AddListener(UpgradeDamage);
+         }
+ 
+         if (castleUpgradeButton != null)
+@@ -1002,7 +1021,8 @@ public class GameManager : MonoBehaviour
+ 
+     void UpdateBarracksStateUI()
+     {
+-        if (barracksIconButton) barracksIconButton.gameObject.SetActive(barracksLevel > 0);
++        if (barracksIconButton == null) barracksIconButton = FindUIButton("BarracksButton");
++        if (barracksIconButton) barracksIconButton.gameObject.SetActive(barracksLevel > 0); 
+ 
+         if (buildBarracksBtnInMenu)
+         {
+@@ -1165,6 +1185,9 @@ public class GameManager : MonoBehaviour
+ 
+     private void TryHireUnit(GameObject prefab, int cost)
+     {
++        if (_lastHireFrame == Time.frameCount) return; // захист від подвійного кліку
++        _lastHireFrame = Time.frameCount;
++
+         if(currentUnits >= maxUnits || gold < cost) return;
+ 
+         gold -= cost;
