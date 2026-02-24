@@ -1426,8 +1426,24 @@ public class GameManager : MonoBehaviour
             }
         }
 
+        if (btn == null && (scope != null || GameObject.Find(objectName) != null))
+        {
+            // якщо є GameObject без Button — додаємо компонент
+            var go = scope != null ? FindChildByName(scope.transform, objectName)?.gameObject : GameObject.Find(objectName);
+            if (go != null)
+            {
+                btn = go.GetComponent<Button>();
+                if (btn == null) btn = go.AddComponent<Button>();
+            }
+        }
+
         if (btn != null)
         {
+            if (btn.targetGraphic == null)
+            {
+                var img = btn.GetComponent<Image>();
+                if (img != null) btn.targetGraphic = img;
+            }
             btn.onClick.RemoveAllListeners();
             btn.onClick.AddListener(action);
         }
