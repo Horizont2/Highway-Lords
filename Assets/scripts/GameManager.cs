@@ -96,6 +96,10 @@ public class GameManager : MonoBehaviour
     public TMP_Text[] barracksPanelTexts;
     public TMP_Text[] shopPanelTexts;
     public TMP_Text[] settingsPanelTexts;
+
+    [Header("UI: Автопідключення кнопок")]
+    public bool autoWirePanels = true;
+    public bool logUnwiredButtons = true;
     
     public Button hammerButton;             
     public Button barracksIconButton;       
@@ -279,6 +283,8 @@ public class GameManager : MonoBehaviour
     {
         SetupAllButtons(); 
         CacheNewPanelsUI();
+        if (autoWirePanels) WirePanelButtons();
+        if (logUnwiredButtons) LogUnwiredButtons();
 
         RecalculateUnits();
         
@@ -1365,6 +1371,66 @@ public class GameManager : MonoBehaviour
 
         buttons = panel.GetComponentsInChildren<Button>(true);
         texts = panel.GetComponentsInChildren<TMP_Text>(true);
+    }
+
+    void WirePanelButtons()
+    {
+        // Openers
+        HookButtonByName("BuildButton", ToggleConstructionMenu);   // Construction
+        HookButtonByName("BarracksButton", ToggleBarracksUpgradeMenu); // Barracks
+        HookButtonByName("ForgeButton", ToggleShop);               // Shop/Forge
+
+        // Settings open/close via SettingsMenu
+        var settingsMenu = FindFirstObjectByType<SettingsMenu>();
+        if (settingsMenu != null)
+        {
+            HookButtonByName("SettingsManager", settingsMenu.OpenSettings);
+            HookButtonByName("Continue", settingsMenu.CloseSettings);
+            HookButtonByName("ExitGame", settingsMenu.QuitGame);
+        }
+
+        // Close buttons inside panels
+        HookButtonByName("CloseButton", ToggleConstructionMenu, constructionPanelNew);
+        HookButtonByName("CloseButton", ToggleBarracksUpgradeMenu, barracksPanelNew);
+        HookButtonByName("CloseButton", ToggleShop, shopPanelNew);
+    }
+
+    void HookButtonByName(string objectName, UnityEngine.Events.UnityAction action, GameObject scope = null)
+    {
+        Button btn = null;
+        if (scope != null)
+        {
+            var t = FindChildByName(scope.transform, objectName);
+            if (t != null) btn = t.GetComponent<Button>();
+        }
+        else
+        {
+            var go = GameObject.Find(objectName);
+            if (go != null) btn = go.GetComponent<Button>();
+        }
+
+        if (btn != null)
+        {
+            btn.onClick.RemoveAllListeners();
+            btn.onClick.AddListener(action);
+        }
+    }
+
+    Transform FindChildByName(Transform root, string name)
+    {
+        foreach (Transform t in root.GetComponentsInChildren<Transform>(true))
+            if (t.name == name) return t;
+        return null;
+    }
+
+    void LogUnwiredButtons()
+    {
+        Button[] allButtons = FindObjectsByType<Button>(FindObjectsSortMode.None);
+        foreach (var btn in allButtons)
+        {
+            if (btn.onClick.GetPersistentEventCount() == 0)
+                Debug.LogWarning("[UI] Button has no persistent listeners: " + btn.name, btn);
+        }
     }
 
     void SetupAllButtons()
