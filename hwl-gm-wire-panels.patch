@@ -1,0 +1,132 @@
+diff --git a/Assets/scripts/GameManager.cs b/Assets/scripts/GameManager.cs
+index 62adfdf..cf65d79 100644
+--- a/Assets/scripts/GameManager.cs
++++ b/Assets/scripts/GameManager.cs
+@@ -77,6 +77,29 @@ public class GameManager : MonoBehaviour
+     [Header("=== UI: СИСТЕМА БУДІВНИЦТВА (НОВА) ===")]
+     public GameObject constructionPanel;    
+     public GameObject barracksUpgradePanel; 
++
++    // НОВІ ПАНЕЛІ (літерні/оновлені prefab)
++    [Header("UI: Нові панелі (Construction/Barracks/Shop/Settings)")]
++    public GameObject constructionPanelNew;
++    public GameObject barracksPanelNew;
++    public GameObject shopPanelNew;
++    public GameObject settingsPanelNew;
++
++    [Header("UI: Нові панелі — кнопки (автозбір)")]
++    public Button[] constructionPanelButtons;
++    public Button[] barracksPanelButtons;
++    public Button[] shopPanelButtons;
++    public Button[] settingsPanelButtons;
++
++    [Header("UI: Нові панелі — тексти (автозбір)")]
++    public TMP_Text[] constructionPanelTexts;
++    public TMP_Text[] barracksPanelTexts;
++    public TMP_Text[] shopPanelTexts;
++    public TMP_Text[] settingsPanelTexts;
++
++    [Header("UI: Автопідключення кнопок")]
++    public bool autoWirePanels = true;
++    public bool logUnwiredButtons = true;
+     
+     public Button hammerButton;             
+     public Button barracksIconButton;       
+@@ -259,6 +282,9 @@ public class GameManager : MonoBehaviour
+     void Start()
+     {
+         SetupAllButtons(); 
++        CacheNewPanelsUI();
++        if (autoWirePanels) WirePanelButtons();
++        if (logUnwiredButtons) LogUnwiredButtons();
+ 
+         RecalculateUnits();
+         
+@@ -1326,6 +1352,87 @@ public class GameManager : MonoBehaviour
+     }
+ 
+     // === АВТОМАТИЧНЕ НАЛАШТУВАННЯ КНОПОК ===
++    void CacheNewPanelsUI()
++    {
++        CollectPanelUI(constructionPanelNew, out constructionPanelButtons, out constructionPanelTexts);
++        CollectPanelUI(barracksPanelNew, out barracksPanelButtons, out barracksPanelTexts);
++        CollectPanelUI(shopPanelNew, out shopPanelButtons, out shopPanelTexts);
++        CollectPanelUI(settingsPanelNew, out settingsPanelButtons, out settingsPanelTexts);
++    }
++
++    void CollectPanelUI(GameObject panel, out Button[] buttons, out TMP_Text[] texts)
++    {
++        if (panel == null)
++        {
++            buttons = new Button[0];
++            texts = new TMP_Text[0];
++            return;
++        }
++
++        buttons = panel.GetComponentsInChildren<Button>(true);
++        texts = panel.GetComponentsInChildren<TMP_Text>(true);
++    }
++
++    void WirePanelButtons()
++    {
++        // Openers
++        HookButtonByName("BuildButton", ToggleConstructionMenu);   // Construction
++        HookButtonByName("BarracksButton", ToggleBarracksUpgradeMenu); // Barracks
++        HookButtonByName("ForgeButton", ToggleShop);               // Shop/Forge
++
++        // Settings open/close via SettingsMenu
++        var settingsMenu = FindFirstObjectByType<SettingsMenu>();
++        if (settingsMenu != null)
++        {
++            HookButtonByName("SettingsManager", settingsMenu.OpenSettings);
++            HookButtonByName("Continue", settingsMenu.CloseSettings);
++            HookButtonByName("ExitGame", settingsMenu.QuitGame);
++        }
++
++        // Close buttons inside panels
++        HookButtonByName("CloseButton", ToggleConstructionMenu, constructionPanelNew);
++        HookButtonByName("CloseButton", ToggleBarracksUpgradeMenu, barracksPanelNew);
++        HookButtonByName("CloseButton", ToggleShop, shopPanelNew);
++    }
++
++    void HookButtonByName(string objectName, UnityEngine.Events.UnityAction action, GameObject scope = null)
++    {
++        Button btn = null;
++        if (scope != null)
++        {
++            var t = FindChildByName(scope.transform, objectName);
++            if (t != null) btn = t.GetComponent<Button>();
++        }
++        else
++        {
++            var go = GameObject.Find(objectName);
++            if (go != null) btn = go.GetComponent<Button>();
++        }
++
++        if (btn != null)
++        {
++            btn.onClick.RemoveAllListeners();
++            btn.onClick.AddListener(action);
++        }
++    }
++
++    Transform FindChildByName(Transform root, string name)
++    {
++        foreach (Transform t in root.GetComponentsInChildren<Transform>(true))
++            if (t.name == name) return t;
++        return null;
++    }
++
++    void LogUnwiredButtons()
++    {
++        Button[] allButtons = FindObjectsByType<Button>(FindObjectsSortMode.None);
++        foreach (var btn in allButtons)
++        {
++            if (btn.onClick.GetPersistentEventCount() == 0)
++                Debug.LogWarning("[UI] Button has no persistent listeners: " + btn.name, btn);
++        }
++    }
++
+     void SetupAllButtons()
+     {
+         Button[] allButtons = FindObjectsByType<Button>(FindObjectsSortMode.None);
