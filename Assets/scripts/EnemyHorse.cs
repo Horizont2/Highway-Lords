@@ -126,7 +126,10 @@ public class EnemyHorse : MonoBehaviour
 
         void Check(Transform t)
         {
-            if (t == null || !t.gameObject.activeInHierarchy || t.CompareTag("Untagged")) return;
+            if (t == null || !t.gameObject.activeInHierarchy) return;
+            bool isDefender = t.GetComponent<Knight>() != null || t.GetComponent<Archer>() != null || t.GetComponent<Spearman>() != null;
+            bool isStructure = t.GetComponent<Spikes>() != null || t.GetComponent<Castle>() != null;
+            if (!isDefender && !isStructure && t.CompareTag("Untagged")) return;
             float dist = Vector2.Distance(transform.position, t.position);
             if (dist < minDistance) { minDistance = dist; closestTarget = t; }
         }
@@ -141,10 +144,15 @@ public class EnemyHorse : MonoBehaviour
         Archer[] archers = FindObjectsByType<Archer>(FindObjectsSortMode.None);
         foreach (var a in archers) Check(a.transform);
 
-        // Якщо нікого немає, атакуємо шипи або замок
+        // Барикада (Spikes) має пріоритет
+        if (GameManager.Instance != null && GameManager.Instance.currentSpikes != null)
+        {
+            Check(GameManager.Instance.currentSpikes.transform);
+        }
+
+        // Якщо нікого немає, атакуємо замок
         if (closestTarget == null && GameManager.Instance != null)
         {
-            if (GameManager.Instance.currentSpikes != null) Check(GameManager.Instance.currentSpikes.transform);
             if (GameManager.Instance.castle != null) Check(GameManager.Instance.castle.transform);
         }
 

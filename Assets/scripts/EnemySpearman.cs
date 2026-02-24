@@ -132,7 +132,11 @@ public class EnemySpearman : MonoBehaviour
         void Check(Transform t)
         {
             if (t == null || !t.gameObject.activeInHierarchy) return;
-            if (t.CompareTag("Untagged")) return;
+
+            // Дозволяємо цілі навіть якщо тег Untagged, якщо це захисник/барикада/замок
+            bool isDefender = t.GetComponent<Knight>() != null || t.GetComponent<Archer>() != null || t.GetComponent<Spearman>() != null;
+            bool isStructure = t.GetComponent<Spikes>() != null || t.GetComponent<Castle>() != null;
+            if (!isDefender && !isStructure && t.CompareTag("Untagged")) return;
             
             float dist = Vector2.Distance(transform.position, t.position);
             if (dist < minDistance) { minDistance = dist; closestTarget = t; }
@@ -147,6 +151,12 @@ public class EnemySpearman : MonoBehaviour
 
         Archer[] archers = FindObjectsByType<Archer>(FindObjectsSortMode.None);
         foreach (var a in archers) Check(a.transform);
+
+        // Барикада (Spikes) має пріоритет
+        if (GameManager.Instance != null && GameManager.Instance.currentSpikes != null)
+        {
+            Check(GameManager.Instance.currentSpikes.transform);
+        }
 
         // Якщо захисників немає - шукаємо ЗАМОК
         if (closestTarget == null)
