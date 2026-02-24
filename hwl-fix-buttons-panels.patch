@@ -1,0 +1,226 @@
+diff --git a/Assets/Objects/Prefabs/Canvas.prefab b/Assets/Objects/Prefabs/Canvas.prefab
+index c86ee6a..3473dbf 100644
+--- a/Assets/Objects/Prefabs/Canvas.prefab
++++ b/Assets/Objects/Prefabs/Canvas.prefab
+@@ -12,7 +12,8 @@ GameObject:
+   - component: {fileID: 4372317236499483352}
+   - component: {fileID: 6331733041894494211}
+   - component: {fileID: 5079747018263111842}
+-  m_Layer: 5
++    - component: {fileID: 9206541413262990906}
++m_Layer: 5
+   m_Name: BuildButton
+   m_TagString: Untagged
+   m_Icon: {fileID: 0}
+@@ -14532,3 +14533,48 @@ RectTransform:
+   m_CorrespondingSourceObject: {fileID: 8317754479114069970, guid: 911817b72ac6f5849b7779217fb2e500, type: 3}
+   m_PrefabInstance: {fileID: 8664182400493816629}
+   m_PrefabAsset: {fileID: 0}
++
++--- !u!114 &9206541413262990906
++MonoBehaviour:
++  m_ObjectHideFlags: 0
++  m_CorrespondingSourceObject: {fileID: 0}
++  m_PrefabInstance: {fileID: 0}
++  m_PrefabAsset: {fileID: 0}
++  m_GameObject: {fileID: 55420588075547578}
++  m_Enabled: 1
++  m_EditorHideFlags: 0
++  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
++  m_Name: 
++  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
++  m_Navigation:
++    m_Mode: 3
++    m_WrapAround: 0
++    m_SelectOnUp: {fileID: 0}
++    m_SelectOnDown: {fileID: 0}
++    m_SelectOnLeft: {fileID: 0}
++    m_SelectOnRight: {fileID: 0}
++  m_Transition: 1
++  m_Colors:
++    m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
++    m_HighlightedColor: {r: 0.7882353, g: 0.7882353, b: 0.7882353, a: 1}
++    m_PressedColor: {r: 0.6, g: 0.6, b: 0.6, a: 1}
++    m_SelectedColor: {r: 0.7882353, g: 0.7882353, b: 0.7882353, a: 1}
++    m_DisabledColor: {r: 0.4, g: 0.4, b: 0.4, a: 1}
++    m_ColorMultiplier: 1
++    m_FadeDuration: 0.1
++  m_SpriteState:
++    m_HighlightedSprite: {fileID: 0}
++    m_PressedSprite: {fileID: 0}
++    m_SelectedSprite: {fileID: 0}
++    m_DisabledSprite: {fileID: 0}
++  m_AnimationTriggers:
++    m_NormalTrigger: Normal
++    m_HighlightedTrigger: Highlighted
++    m_PressedTrigger: Pressed
++    m_SelectedTrigger: Selected
++    m_DisabledTrigger: Disabled
++  m_Interactable: 1
++  m_TargetGraphic: {fileID: 6331733041894494211}
++  m_OnClick:
++    m_PersistentCalls:
++      m_Calls: []
+diff --git a/Assets/Panels/BarracksPanel_New.prefab b/Assets/Panels/BarracksPanel_New.prefab
+index 2d47f40..6ad6a8f 100644
+--- a/Assets/Panels/BarracksPanel_New.prefab
++++ b/Assets/Panels/BarracksPanel_New.prefab
+@@ -12,7 +12,8 @@ GameObject:
+   - component: {fileID: 8809135538674000734}
+   - component: {fileID: 553527861931958487}
+   - component: {fileID: 2860917879459018268}
+-  m_Layer: 0
++    - component: {fileID: 9117128285056360315}
++m_Layer: 0
+   m_Name: Icon
+   m_TagString: Untagged
+   m_Icon: {fileID: 0}
+@@ -6588,3 +6589,48 @@ MonoBehaviour:
+   m_FlexibleWidth: 0
+   m_FlexibleHeight: 0
+   m_LayoutPriority: 1
++
++--- !u!114 &9117128285056360315
++MonoBehaviour:
++  m_ObjectHideFlags: 0
++  m_CorrespondingSourceObject: {fileID: 0}
++  m_PrefabInstance: {fileID: 0}
++  m_PrefabAsset: {fileID: 0}
++  m_GameObject: {fileID: 291422555924330097}
++  m_Enabled: 1
++  m_EditorHideFlags: 0
++  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
++  m_Name: 
++  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
++  m_Navigation:
++    m_Mode: 3
++    m_WrapAround: 0
++    m_SelectOnUp: {fileID: 0}
++    m_SelectOnDown: {fileID: 0}
++    m_SelectOnLeft: {fileID: 0}
++    m_SelectOnRight: {fileID: 0}
++  m_Transition: 1
++  m_Colors:
++    m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
++    m_HighlightedColor: {r: 0.7882353, g: 0.7882353, b: 0.7882353, a: 1}
++    m_PressedColor: {r: 0.6, g: 0.6, b: 0.6, a: 1}
++    m_SelectedColor: {r: 0.7882353, g: 0.7882353, b: 0.7882353, a: 1}
++    m_DisabledColor: {r: 0.4, g: 0.4, b: 0.4, a: 1}
++    m_ColorMultiplier: 1
++    m_FadeDuration: 0.1
++  m_SpriteState:
++    m_HighlightedSprite: {fileID: 0}
++    m_PressedSprite: {fileID: 0}
++    m_SelectedSprite: {fileID: 0}
++    m_DisabledSprite: {fileID: 0}
++  m_AnimationTriggers:
++    m_NormalTrigger: Normal
++    m_HighlightedTrigger: Highlighted
++    m_PressedTrigger: Pressed
++    m_SelectedTrigger: Selected
++    m_DisabledTrigger: Disabled
++  m_Interactable: 1
++  m_TargetGraphic: {fileID: 553527861931958487}
++  m_OnClick:
++    m_PersistentCalls:
++      m_Calls: []
+diff --git a/Assets/Panels/ConstructionPanel_New.prefab b/Assets/Panels/ConstructionPanel_New.prefab
+index f9b7fc3..653a541 100644
+--- a/Assets/Panels/ConstructionPanel_New.prefab
++++ b/Assets/Panels/ConstructionPanel_New.prefab
+@@ -12,7 +12,8 @@ GameObject:
+   - component: {fileID: 6196342333813104933}
+   - component: {fileID: 9134122385177701014}
+   - component: {fileID: 2024169028757745071}
+-  m_Layer: 0
++    - component: {fileID: 9216216343588929448}
++m_Layer: 0
+   m_Name: CostIcon
+   m_TagString: Untagged
+   m_Icon: {fileID: 0}
+@@ -6588,3 +6589,48 @@ MonoBehaviour:
+   m_FlexibleWidth: -1
+   m_FlexibleHeight: -1
+   m_LayoutPriority: 1
++
++--- !u!114 &9216216343588929448
++MonoBehaviour:
++  m_ObjectHideFlags: 0
++  m_CorrespondingSourceObject: {fileID: 0}
++  m_PrefabInstance: {fileID: 0}
++  m_PrefabAsset: {fileID: 0}
++  m_GameObject: {fileID: 53278849046176668}
++  m_Enabled: 1
++  m_EditorHideFlags: 0
++  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
++  m_Name: 
++  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
++  m_Navigation:
++    m_Mode: 3
++    m_WrapAround: 0
++    m_SelectOnUp: {fileID: 0}
++    m_SelectOnDown: {fileID: 0}
++    m_SelectOnLeft: {fileID: 0}
++    m_SelectOnRight: {fileID: 0}
++  m_Transition: 1
++  m_Colors:
++    m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
++    m_HighlightedColor: {r: 0.7882353, g: 0.7882353, b: 0.7882353, a: 1}
++    m_PressedColor: {r: 0.6, g: 0.6, b: 0.6, a: 1}
++    m_SelectedColor: {r: 0.7882353, g: 0.7882353, b: 0.7882353, a: 1}
++    m_DisabledColor: {r: 0.4, g: 0.4, b: 0.4, a: 1}
++    m_ColorMultiplier: 1
++    m_FadeDuration: 0.1
++  m_SpriteState:
++    m_HighlightedSprite: {fileID: 0}
++    m_PressedSprite: {fileID: 0}
++    m_SelectedSprite: {fileID: 0}
++    m_DisabledSprite: {fileID: 0}
++  m_AnimationTriggers:
++    m_NormalTrigger: Normal
++    m_HighlightedTrigger: Highlighted
++    m_PressedTrigger: Pressed
++    m_SelectedTrigger: Selected
++    m_DisabledTrigger: Disabled
++  m_Interactable: 1
++  m_TargetGraphic: {fileID: 9134122385177701014}
++  m_OnClick:
++    m_PersistentCalls:
++      m_Calls: []
+diff --git a/Assets/scripts/GameManager.cs b/Assets/scripts/GameManager.cs
+index 3277da4..39e0d4c 100644
+--- a/Assets/scripts/GameManager.cs
++++ b/Assets/scripts/GameManager.cs
+@@ -288,7 +288,7 @@ public class GameManager : MonoBehaviour
+         SetupAllButtons(); 
+         ResolvePanelRefs();
+         CacheNewPanelsUI();
+-        if (autoWirePanels) WirePanelButtons();
++        WirePanelButtons();
+         if (logUnwiredButtons) LogUnwiredButtons();
+ 
+         RecalculateUnits();
+@@ -1462,6 +1462,23 @@ public class GameManager : MonoBehaviour
+             HookButtonByName("ExitGame", settingsMenu.QuitGame);
+         }
+ 
++        // Core buttons in panels
++        if (buildBarracksBtnInMenu) { buildBarracksBtnInMenu.onClick.RemoveAllListeners(); buildBarracksBtnInMenu.onClick.AddListener(BuildOrUpgradeBarracks); }
++        if (buildMineButton) { buildMineButton.onClick.RemoveAllListeners(); buildMineButton.onClick.AddListener(BuildOrUpgradeMine); }
++        if (buildSpikesButton) { buildSpikesButton.onClick.RemoveAllListeners(); buildSpikesButton.onClick.AddListener(BuildSpikes); }
++        if (towerButton) { towerButton.onClick.RemoveAllListeners(); towerButton.onClick.AddListener(UpgradeDamage); }
++
++        if (upgradeKnightButton) { upgradeKnightButton.onClick.RemoveAllListeners(); upgradeKnightButton.onClick.AddListener(UpgradeKnights); }
++        if (upgradeArcherButton) { upgradeArcherButton.onClick.RemoveAllListeners(); upgradeArcherButton.onClick.AddListener(UpgradeArchers); }
++        if (upgradeSpearmanButton) { upgradeSpearmanButton.onClick.RemoveAllListeners(); upgradeSpearmanButton.onClick.AddListener(UpgradeSpearmen); }
++
++        if (upgradeLimitButton) { upgradeLimitButton.onClick.RemoveAllListeners(); upgradeLimitButton.onClick.AddListener(BuyUnitLimitUpgrade); }
++        if (unlockSpearmanButton) { unlockSpearmanButton.onClick.RemoveAllListeners(); unlockSpearmanButton.onClick.AddListener(UnlockSpearman); }
++
++        if (hireKnightButton) { hireKnightButton.onClick.RemoveAllListeners(); hireKnightButton.onClick.AddListener(HireKnight); }
++        if (hireArcherButton) { hireArcherButton.onClick.RemoveAllListeners(); hireArcherButton.onClick.AddListener(HireArcher); }
++        if (hireSpearmanButton) { hireSpearmanButton.onClick.RemoveAllListeners(); hireSpearmanButton.onClick.AddListener(HireSpearman); }
++
+         // Close buttons inside panels
+         HookButtonByName("CloseButton", ToggleConstructionMenu, constructionPanelNew != null ? constructionPanelNew : constructionPanel);
+         HookButtonByName("CloseButton", ToggleBarracksUpgradeMenu, barracksPanelNew != null ? barracksPanelNew : barracksUpgradePanel);

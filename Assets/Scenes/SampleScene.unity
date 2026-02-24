@@ -136,14 +136,14 @@ GameObject:
   - component: {fileID: 103094323}
   - component: {fileID: 103094322}
   - component: {fileID: 103094321}
-    - component: {fileID: 9184356920934030360}
-m_Layer: 5
-  m_Name: GoldResourcePanel
+  - component: {fileID: 9184356920934030360}
+  m_Layer: 0
+  m_Name: 
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &103094320
 RectTransform:
   m_ObjectHideFlags: 0
@@ -310,19 +310,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 104321357}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 759783795}
-        m_TargetAssemblyTypeName: GameManager, Assembly-CSharp
-        m_MethodName: ToggleBarracksUpgradeMenu
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
 --- !u!114 &104321357
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3552,19 +3540,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 581305699}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 759783795}
-        m_TargetAssemblyTypeName: GameManager, Assembly-CSharp
-        m_MethodName: ToggleShop
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
 --- !u!114 &581305699
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4978,19 +4954,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 683413342}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 759783795}
-        m_TargetAssemblyTypeName: GameManager, Assembly-CSharp
-        m_MethodName: ToggleConstructionMenu
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
 --- !u!114 &683413342
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5748,23 +5712,17 @@ MonoBehaviour:
   autoStartWaves: 1
   constructionPanel: {fileID: 1533259552}
   barracksUpgradePanel: {fileID: 55858803}
-  constructionPanelNew: {fileID: 1533259552}
-  barracksPanelNew: {fileID: 55858803}
-  shopPanelNew: {fileID: 1297042851}
-  settingsPanelNew: {fileID: 1281806425}
-  constructionPanelButtons: []
-  barracksPanelButtons: []
-  shopPanelButtons: []
-  settingsPanelButtons: []
-  constructionPanelTexts: []
-  barracksPanelTexts: []
-  shopPanelTexts: []
-  settingsPanelTexts: []
-  autoWirePanels: 0
-  logUnwiredButtons: 0
+  shopPanel: {fileID: 1297042851}
   hammerButton: {fileID: 683413341}
   barracksIconButton: {fileID: 1962385186}
+  openShopButton: {fileID: 581305698}
+  closeConstructionBtn: {fileID: 1675025438}
+  closeBarracksBtn: {fileID: 104321356}
+  closeShopBtn: {fileID: 2064675648}
   buildBarracksBtnInMenu: {fileID: 508488601}
+  buildSpikesButton: {fileID: 919979898}
+  buildMineButton: {fileID: 1879094714}
+  towerButton: {fileID: 625965654}
   barracksCostUI:
     icon1: {fileID: 1255725280}
     text1: {fileID: 597923192}
@@ -5797,29 +5755,6 @@ MonoBehaviour:
     text1: {fileID: 196223160}
     icon2: {fileID: 0}
     text2: {fileID: 0}
-  estimatedIncomeText: {fileID: 1275269570}
-  barracksPrefab: {fileID: 6764874580450039627, guid: ce119f0dd6efc464984a5c99b1c8cb54, type: 3}
-  barracksSpawnPoint: {fileID: 1109546991}
-  barracksLevel: 0
-  barracksBaseCap: 5
-  slotsPerLevel: 3
-  barracksCostGold: 200
-  barracksCostWood: 100
-  minePrefab: {fileID: 3127021747346868609, guid: c43e6f2966f93f94f98a479303d10cf4, type: 3}
-  mineSpawnPoint: {fileID: 399198600}
-  buildMineButton: {fileID: 1879094714}
-  mineLevel: 0
-  mineBuildCostWood: 150
-  mineBuildCostStone: 50
-  mineUpgradeBaseWood: 200
-  mineUpgradeBaseStone: 100
-  spikesPrefab: {fileID: 1637251208081240976, guid: ecfbbab9a6a112a419f8e6e02d148efc, type: 3}
-  spikesSpawnPoint: {fileID: 639652870}
-  spikesWoodCost: 100
-  buildSpikesButton: {fileID: 919979898}
-  currentSpikes: {fileID: 0}
-  shopPanel: {fileID: 1297042851}
-  spearmanForgeRow: {fileID: 1156858786}
   upgradeKnightButton: {fileID: 418019788}
   upgradeArcherButton: {fileID: 837228288}
   upgradeSpearmanButton: {fileID: 441665783}
@@ -5841,11 +5776,31 @@ MonoBehaviour:
     text1: {fileID: 1739140384}
     icon2: {fileID: 0}
     text2: {fileID: 0}
+  spearmanRowGroup: {fileID: 1156858790}
+  spearmanLockIcon: {fileID: 1688961978189773737, guid: 3d7a84eb977f47a4f8aa4dd49358f95f, type: 3}
+  dimSpearmanWhenLocked: 1
+  estimatedIncomeText: {fileID: 1275269570}
+  barracksPrefab: {fileID: 6764874580450039627, guid: ce119f0dd6efc464984a5c99b1c8cb54, type: 3}
+  barracksSpawnPoint: {fileID: 1109546991}
+  barracksLevel: 0
+  barracksBaseCap: 5
+  slotsPerLevel: 3
+  barracksCostGold: 200
+  barracksCostWood: 100
+  minePrefab: {fileID: 3127021747346868609, guid: c43e6f2966f93f94f98a479303d10cf4, type: 3}
+  mineSpawnPoint: {fileID: 399198600}
+  mineLevel: 0
+  mineBuildCostWood: 150
+  mineBuildCostStone: 50
+  mineUpgradeBaseWood: 200
+  mineUpgradeBaseStone: 100
+  spikesPrefab: {fileID: 1637251208081240976, guid: ecfbbab9a6a112a419f8e6e02d148efc, type: 3}
+  spikesSpawnPoint: {fileID: 639652870}
+  spikesWoodCost: 100
+  currentSpikes: {fileID: 0}
   hireKnightButton: {fileID: 1682400193}
   hireArcherButton: {fileID: 145825455}
   hireSpearmanButton: {fileID: 988355627}
-  openShopButton: {fileID: 581305698}
-  towerButton: {fileID: 625965654}
   waveTimerBar: {fileID: 1650169701}
   nextWaveButton: {fileID: 0}
   enemiesAlive: 0
@@ -5874,6 +5829,7 @@ MonoBehaviour:
   waveText: {fileID: 1603029673}
   hirePriceText: {fileID: 0}
   limitText: {fileID: 890668568}
+  towerLevelText: {fileID: 0}
   knightPrefab: {fileID: 8626055746089502767, guid: 5879e71269cba99459411e60463d02d6, type: 3}
   archerPrefab: {fileID: 366371821858485913, guid: 5bc220bde36627c42aff37933cf7ae0a, type: 3}
   spearmanPrefab: {fileID: 8626055746089502767, guid: 65d8f5d12d42ae64bb511f05b5044df7, type: 3}
@@ -5887,7 +5843,7 @@ MonoBehaviour:
   knightUpgradeCost: 100
   archerUpgradeCost: 120
   spearmanUpgradeCost: 110
-  isSpearmanUnlocked: 1
+  isSpearmanUnlocked: 0
   spearmanUnlockCost: 500
   maxUnits: 5
   currentUnits: 0
@@ -9657,6 +9613,18 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 8730152402138158285, guid: edf0f77fae2ddcf409161c8206cdda0b, type: 3}
   m_PrefabInstance: {fileID: 1341793961}
   m_PrefabAsset: {fileID: 0}
+--- !u!225 &1156858790
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1156858786}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!114 &1176934516 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 6509542880084826638, guid: edf0f77fae2ddcf409161c8206cdda0b, type: 3}
@@ -12522,7 +12490,10 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 4687738146512861360, guid: edf0f77fae2ddcf409161c8206cdda0b, type: 3}
       insertIndex: -1
       addedObject: {fileID: 227854986}
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 8730152402138158285, guid: edf0f77fae2ddcf409161c8206cdda0b, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1156858790}
   m_SourcePrefab: {fileID: 100100000, guid: edf0f77fae2ddcf409161c8206cdda0b, type: 3}
 --- !u!224 &1341793962 stripped
 RectTransform:
@@ -14367,19 +14338,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1675025439}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 759783795}
-        m_TargetAssemblyTypeName: GameManager, Assembly-CSharp
-        m_MethodName: ToggleConstructionMenu
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
 --- !u!114 &1675025439
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -15913,7 +15872,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3840985954225716025, guid: edf0f77fae2ddcf409161c8206cdda0b, type: 3}
       propertyPath: m_fontSize
-      value: 13.9
+      value: 18.7
       objectReference: {fileID: 0}
     - target: {fileID: 3840985954225716025, guid: edf0f77fae2ddcf409161c8206cdda0b, type: 3}
       propertyPath: m_fontColor.b
@@ -17663,19 +17622,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1962385187}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 759783795}
-        m_TargetAssemblyTypeName: GameManager, Assembly-CSharp
-        m_MethodName: ToggleBarracksUpgradeMenu
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
 --- !u!114 &1962385187
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -17790,81 +17737,16 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1964640552}
   m_CullTransparentMesh: 1
---- !u!1 &1968902885
+--- !u!1 &1968902885 stripped
 GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
+  m_CorrespondingSourceObject: {fileID: 1688961978189773737, guid: 3d7a84eb977f47a4f8aa4dd49358f95f, type: 3}
+  m_PrefabInstance: {fileID: 4506160841471262949}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1968902886}
-  - component: {fileID: 1968902888}
-  - component: {fileID: 1968902887}
-  m_Layer: 5
-  m_Name: Lock
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!224 &1968902886
+--- !u!224 &1968902886 stripped
 RectTransform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
+  m_CorrespondingSourceObject: {fileID: 797250613384602138, guid: 3d7a84eb977f47a4f8aa4dd49358f95f, type: 3}
+  m_PrefabInstance: {fileID: 4506160841471262949}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1968902885}
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 728804237}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -40, y: -97.918}
-  m_SizeDelta: {x: 66.0018, y: 83.235}
-  m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &1968902887
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1968902885}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
-  m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_RaycastTarget: 0
-  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
-  m_Maskable: 1
-  m_OnCullStateChanged:
-    m_PersistentCalls:
-      m_Calls: []
-  m_Sprite: {fileID: -7670485267309540912, guid: df2dd1255026fc94b9875c89b68cbc42, type: 3}
-  m_Type: 0
-  m_PreserveAspect: 0
-  m_FillCenter: 1
-  m_FillMethod: 4
-  m_FillAmount: 1
-  m_FillClockwise: 1
-  m_FillOrigin: 0
-  m_UseSpriteMesh: 0
-  m_PixelsPerUnitMultiplier: 1
---- !u!222 &1968902888
-CanvasRenderer:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1968902885}
-  m_CullTransparentMesh: 1
 --- !u!1 &1999285258
 GameObject:
   m_ObjectHideFlags: 0
@@ -18303,19 +18185,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 2064675649}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 759783795}
-        m_TargetAssemblyTypeName: GameManager, Assembly-CSharp
-        m_MethodName: ToggleShop
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
 --- !u!114 &2064675649
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -21003,6 +20873,103 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2121153241}
   m_CullTransparentMesh: 1
+--- !u!1001 &4506160841471262949
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 728804237}
+    m_Modifications:
+    - target: {fileID: 797250613384602138, guid: 3d7a84eb977f47a4f8aa4dd49358f95f, type: 3}
+      propertyPath: m_Pivot.x
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 797250613384602138, guid: 3d7a84eb977f47a4f8aa4dd49358f95f, type: 3}
+      propertyPath: m_Pivot.y
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 797250613384602138, guid: 3d7a84eb977f47a4f8aa4dd49358f95f, type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 797250613384602138, guid: 3d7a84eb977f47a4f8aa4dd49358f95f, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 797250613384602138, guid: 3d7a84eb977f47a4f8aa4dd49358f95f, type: 3}
+      propertyPath: m_AnchorMin.x
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 797250613384602138, guid: 3d7a84eb977f47a4f8aa4dd49358f95f, type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 797250613384602138, guid: 3d7a84eb977f47a4f8aa4dd49358f95f, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 66.0018
+      objectReference: {fileID: 0}
+    - target: {fileID: 797250613384602138, guid: 3d7a84eb977f47a4f8aa4dd49358f95f, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 83.235
+      objectReference: {fileID: 0}
+    - target: {fileID: 797250613384602138, guid: 3d7a84eb977f47a4f8aa4dd49358f95f, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 797250613384602138, guid: 3d7a84eb977f47a4f8aa4dd49358f95f, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 797250613384602138, guid: 3d7a84eb977f47a4f8aa4dd49358f95f, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 797250613384602138, guid: 3d7a84eb977f47a4f8aa4dd49358f95f, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 797250613384602138, guid: 3d7a84eb977f47a4f8aa4dd49358f95f, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 797250613384602138, guid: 3d7a84eb977f47a4f8aa4dd49358f95f, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 797250613384602138, guid: 3d7a84eb977f47a4f8aa4dd49358f95f, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 797250613384602138, guid: 3d7a84eb977f47a4f8aa4dd49358f95f, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: -40
+      objectReference: {fileID: 0}
+    - target: {fileID: 797250613384602138, guid: 3d7a84eb977f47a4f8aa4dd49358f95f, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: -97.918
+      objectReference: {fileID: 0}
+    - target: {fileID: 797250613384602138, guid: 3d7a84eb977f47a4f8aa4dd49358f95f, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 797250613384602138, guid: 3d7a84eb977f47a4f8aa4dd49358f95f, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 797250613384602138, guid: 3d7a84eb977f47a4f8aa4dd49358f95f, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1688961978189773737, guid: 3d7a84eb977f47a4f8aa4dd49358f95f, type: 3}
+      propertyPath: m_Name
+      value: Lock
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 3d7a84eb977f47a4f8aa4dd49358f95f, type: 3}
 --- !u!1001 &5952903596110094774
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -21207,31 +21174,6 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 2051167357}
   m_SourcePrefab: {fileID: 100100000, guid: eac12fb7dd9811a45823ae87ffd97c7d, type: 3}
---- !u!1660057539 &9223372036854775807
-SceneRoots:
-  m_ObjectHideFlags: 0
-  m_Roots:
-  - {fileID: 519420032}
-  - {fileID: 619394802}
-  - {fileID: 903275440}
-  - {fileID: 534937587}
-  - {fileID: 759783796}
-  - {fileID: 2082535972}
-  - {fileID: 5952903596110094774}
-  - {fileID: 2045128151}
-  - {fileID: 9035987974943683118}
-  - {fileID: 1941727469}
-  - {fileID: 1891317073}
-  - {fileID: 416963314}
-  - {fileID: 1046192093}
-  - {fileID: 1109546991}
-  - {fileID: 399198600}
-  - {fileID: 1613524197}
-  - {fileID: 639652870}
-  - {fileID: 526542133}
-  - {fileID: 2050959515}
-  - {fileID: 1501899386}
-
 --- !u!114 &9184356920934030360
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -21272,7 +21214,31 @@ MonoBehaviour:
     m_SelectedTrigger: Selected
     m_DisabledTrigger: Disabled
   m_Interactable: 1
-  m_TargetGraphic: {fileID: 103094321}
+  m_TargetGraphic: {fileID: 0}
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!1660057539 &9223372036854775807
+SceneRoots:
+  m_ObjectHideFlags: 0
+  m_Roots:
+  - {fileID: 519420032}
+  - {fileID: 619394802}
+  - {fileID: 903275440}
+  - {fileID: 534937587}
+  - {fileID: 759783796}
+  - {fileID: 2082535972}
+  - {fileID: 5952903596110094774}
+  - {fileID: 2045128151}
+  - {fileID: 9035987974943683118}
+  - {fileID: 1941727469}
+  - {fileID: 1891317073}
+  - {fileID: 416963314}
+  - {fileID: 1046192093}
+  - {fileID: 1109546991}
+  - {fileID: 399198600}
+  - {fileID: 1613524197}
+  - {fileID: 639652870}
+  - {fileID: 526542133}
+  - {fileID: 2050959515}
+  - {fileID: 1501899386}
