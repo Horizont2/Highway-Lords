@@ -161,6 +161,11 @@ public class GameManager : MonoBehaviour
     [Header("UI: Магазин (Кузня)")]
     public GameObject shopPanel;
     public GameObject spearmanForgeRow; 
+
+    [Header("UI: Spearman lock")]
+    public CanvasGroup spearmanRowGroup;
+    public Image spearmanLockIcon;
+    public bool dimSpearmanWhenLocked = true;
     
     public Button upgradeKnightButton;     
     public Button upgradeArcherButton;
@@ -308,6 +313,7 @@ public class GameManager : MonoBehaviour
         }
 
         UpdateBarracksStateUI();
+        UpdateSpearmanLockUI();
 
         if (autoStartWaves)
         {
@@ -803,6 +809,24 @@ public class GameManager : MonoBehaviour
         {
             UpdateCostUIGroup(unlockSpearmanCostUI, ResourceType.Gold, spearmanUnlockCost);
         }
+
+        UpdateSpearmanLockUI();
+    }
+
+    void UpdateSpearmanLockUI()
+    {
+        bool unlocked = isSpearmanUnlocked;
+
+        if (spearmanLockIcon != null)
+            spearmanLockIcon.gameObject.SetActive(!unlocked);
+
+        if (spearmanRowGroup != null)
+        {
+            if (dimSpearmanWhenLocked)
+                spearmanRowGroup.alpha = unlocked ? 1f : 0.45f;
+            spearmanRowGroup.interactable = unlocked;
+            spearmanRowGroup.blocksRaycasts = unlocked;
+        }
     }
 
     public void UnlockSpearman()
@@ -819,6 +843,7 @@ public class GameManager : MonoBehaviour
             SaveGame();
             UpdateUI(); 
             UpdateUpgradeMenuPrice();
+            UpdateSpearmanLockUI();
         }
         else
         {
