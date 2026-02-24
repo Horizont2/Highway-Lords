@@ -1,0 +1,56 @@
+diff --git a/Assets/scripts/GameManager.cs b/Assets/scripts/GameManager.cs
+index 07c2da4..0aa9fa2 100644
+--- a/Assets/scripts/GameManager.cs
++++ b/Assets/scripts/GameManager.cs
+@@ -265,6 +265,7 @@ public class GameManager : MonoBehaviour
+     public int baseEnemyHealth = 50;
+ 
+     private bool isWaveInProgress = false;
++    private int _lastHireFrame = -1;
+ 
+     void Awake()
+     {
+@@ -328,6 +329,11 @@ public class GameManager : MonoBehaviour
+         if (hireArcherButton == null) hireArcherButton = FindUIButton("HireArcher");
+         if (hireSpearmanButton == null) hireSpearmanButton = FindUIButton("HireSpearman");
+ 
++        if (goldText == null) goldText = FindTMP("GoldText");
++        if (woodText == null) woodText = FindTMP("WoodText");
++        if (stoneText == null) stoneText = FindTMP("StoneText");
++        if (waveText == null) waveText = FindTMP("WaveText");
++
+         // Panels: prefer set panel, fallback to *_New
+         var construction = constructionPanel != null ? constructionPanel : constructionPanelNew;
+         var barracks = barracksUpgradePanel != null ? barracksUpgradePanel : barracksPanelNew;
+@@ -362,6 +368,13 @@ public class GameManager : MonoBehaviour
+         return go != null ? go.GetComponent<Button>() : null;
+     }
+ 
++    TMP_Text FindTMP(string name)
++    {
++        var go = GameObject.Find(name);
++        if (go == null) return null;
++        return go.GetComponent<TMP_Text>();
++    }
++
+     Button FindUIButtonInPanel(GameObject panel, string name)
+     {
+         if (panel == null) return null;
+@@ -1007,6 +1020,7 @@ public class GameManager : MonoBehaviour
+ 
+     void UpdateBarracksStateUI()
+     {
++        if (barracksIconButton == null) barracksIconButton = FindUIButton("BarracksButton");
+         if (barracksIconButton) barracksIconButton.gameObject.SetActive(barracksLevel > 0);
+ 
+         if (buildBarracksBtnInMenu)
+@@ -1170,6 +1184,9 @@ public class GameManager : MonoBehaviour
+ 
+     private void TryHireUnit(GameObject prefab, int cost)
+     {
++        if (_lastHireFrame == Time.frameCount) return;
++        _lastHireFrame = Time.frameCount;
++
+         if(currentUnits >= maxUnits || gold < cost) return;
+ 
+         gold -= cost;
