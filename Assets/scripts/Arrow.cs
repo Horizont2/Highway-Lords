@@ -43,8 +43,11 @@ public class Arrow : MonoBehaviour
         transform.position = Vector2.MoveTowards(transform.position, target.position, speed * Time.deltaTime);
     }
 
+    private bool hasHit = false;
+
     void OnTriggerEnter2D(Collider2D hitInfo)
     {
+        if (hasHit) return;
         // Ігноруємо колізії зі своїми та іншими стрілами
         if (hitInfo.CompareTag("Projectile")) return;
         if (hitInfo.CompareTag("Player") || hitInfo.CompareTag("PlayerUnit")) return;
@@ -59,6 +62,7 @@ public class Arrow : MonoBehaviour
         // Влучання у ворога
         if (hitInfo.CompareTag("Enemy"))
         {
+            if (hitInfo.CompareTag("Untagged")) return;
             bool hit = false; 
 
             if (hitInfo.TryGetComponent<Guard>(out Guard g)) 
@@ -87,7 +91,11 @@ public class Arrow : MonoBehaviour
             }
 
             // Якщо влучили - знищуємо стрілу
-            if (hit) Destroy(gameObject);
+            if (hit)
+            {
+                hasHit = true;
+                Destroy(gameObject);
+            }
         }
         
         // Влучання в землю (якщо промахнулись або зачепили декорації)

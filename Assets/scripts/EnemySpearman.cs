@@ -68,7 +68,7 @@ public class EnemySpearman : MonoBehaviour
 
         // 1. ПЕРЕВІРКА ЦІЛІ
         // Якщо ціль зникла або вимкнена - забуваємо її
-        if (target != null && (!target.gameObject.activeInHierarchy))
+        if (target != null && (!target.gameObject.activeInHierarchy || target.CompareTag("Untagged")))
         {
             target = null;
         }
@@ -122,7 +122,7 @@ public class EnemySpearman : MonoBehaviour
         void Check(Transform t)
         {
             if (t == null || !t.gameObject.activeInHierarchy) return;
-            // Ігноруємо тег "Untagged", щоб випадково не скинути ціль
+            if (t.CompareTag("Untagged")) return;
             
             float dist = Vector2.Distance(transform.position, t.position);
             if (dist < minDistance) { minDistance = dist; closestTarget = t; }

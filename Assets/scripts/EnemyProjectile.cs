@@ -35,8 +35,11 @@ public class EnemyProjectile : MonoBehaviour
         }
     }
 
+    private bool hasHit = false;
+
     void OnTriggerEnter2D(Collider2D collision)
     {
+        if (hasHit) return;
         // Ігноруємо ворогів (своїх) та інші стріли
         if (collision.CompareTag("Enemy") || collision.CompareTag("Projectile")) return;
 
@@ -77,6 +80,10 @@ public class EnemyProjectile : MonoBehaviour
         }
 
         // Якщо в щось влучили - знищуємо
-        if (hit) Destroy(gameObject);
+        if (hit)
+        {
+            hasHit = true;
+            Destroy(gameObject);
+        }
     }
 }

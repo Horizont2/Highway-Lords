@@ -79,8 +79,11 @@ public class Projectile : MonoBehaviour
         transform.Translate(moveDir * speed * Time.deltaTime, Space.World);
     }
 
+    private bool hasHit = false;
+
     void OnTriggerEnter2D(Collider2D other)
     {
+        if (hasHit) return;
         // Ігноруємо стріли та свої юніти (якщо це стріла гравця)
         if (other.CompareTag("Projectile") || other.CompareTag("Player") || other.CompareTag("PlayerUnit")) return;
         
@@ -94,8 +97,10 @@ public class Projectile : MonoBehaviour
         if (other.CompareTag("Enemy"))
         {
             // Перевіряємо, чи це не труп
+            if (other.CompareTag("Untagged")) return;
             if (other.GetComponent<Guard>() && other.GetComponent<Guard>().enabled == false) return;
 
+            hasHit = true;
             HitTarget(other.gameObject);
         }
         

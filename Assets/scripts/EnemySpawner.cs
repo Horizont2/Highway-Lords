@@ -21,6 +21,13 @@ public class EnemySpawner : MonoBehaviour
     [Header("Налаштування Всіх Ворогів")]
     public List<EnemyConfig> allEnemies = new List<EnemyConfig>();
 
+    [Header("Бос-хвилі")]
+    public int bossEscortMin = 3;
+    public int bossEscortMax = 5;
+
+    private EnemyConfig bossConfig;
+    private bool isBossWave = false;
+
     [Header("Налаштування Хвилі")]
     public Transform[] spawnPoints;      
     public float timeBetweenSpawns = 2.5f; 
@@ -51,27 +58,38 @@ public class EnemySpawner : MonoBehaviour
         // Оновлюємо UI строго після формування пулу
         UpdateWaveUI(); 
 
+        isBossWave = (waveNumber % 10 == 0);
         enemiesToSpawn = Mathf.RoundToInt(5 + (waveNumber * 1.5f));
-        if (waveNumber % 10 == 0) enemiesToSpawn = 1; // Бос
+
+        if (isBossWave)
+        {
+            int escorts = Random.Range(bossEscortMin, bossEscortMax + 1);
+            enemiesToSpawn = 1 + escorts; // 1 бос + ескорт
+        }
 
         enemiesSpawned = 0;
         spawning = true;
+
+        if (isBossWave && bossConfig != null)
+        {
+            SpawnEnemy(bossConfig); // спавнимо боса одразу
+        }
+
+        if (GameManager.Instance != null) GameManager.Instance.InitWaveProgress(enemiesToSpawn);
+
         StartCoroutine(SpawnRoutine());
     }
 
     void PrepareEnemyPool(int currentWave)
     {
         currentWavePool.Clear();
+        bossConfig = null;
+        isBossWave = (currentWave % 10 == 0);
 
-        // 1. БОС
-        if (currentWave % 10 == 0)
+        // 1. БОС (спавнимо окремо, щоб не дублювався)
+        if (isBossWave)
         {
-            EnemyConfig boss = allEnemies.Find(e => e.isBoss);
-            if (boss != null)
-            {
-                currentWavePool.Add(boss);
-                return; 
-            }
+            bossConfig = allEnemies.Find(e => e.isBoss);
         }
 
         // 2. Доступні вороги (без босів і возів)
@@ -107,8 +125,8 @@ public class EnemySpawner : MonoBehaviour
             currentWavePool.Add(enemy);
         }
 
-        // 5. ВІЗОК (Бонус) - додається понад ліміт
-        if (currentWave % 3 == 0) 
+        // 5. ВІЗОК (Бонус) - додається понад ліміт (не на босс-хвилі)
+        if (!isBossWave && currentWave % 3 == 0) 
         {
             EnemyConfig cart = allEnemies.Find(e => e.isCart && e.unlockWave <= currentWave);
             if (cart != null) currentWavePool.Add(cart);
@@ -161,7 +179,14 @@ public class EnemySpawner : MonoBehaviour
             if (spawnSquad)
             {
                 // Загін: вибираємо один тип ворога для всієї групи
-                EnemyConfig squadType = GetWeightedRandomEnemy(); 
+                EnemyConfig squadType = GetWeightedRandomEnemy(false); 
+                if (squadType != null && squadType.isCart)
+                {
+                    // Вози не можуть спавнитись "загоном"
+                    SpawnEnemy(squadType);
+                    continue;
+                }
+
                 int currentSquadSize = Random.Range(minSquadSize, maxSquadSize + 1);
                 if (currentSquadSize > remaining) currentSquadSize = remaining;
 
@@ -174,7 +199,7 @@ public class EnemySpawner : MonoBehaviour
             else
             {
                 // Одинак
-                SpawnEnemy(GetWeightedRandomEnemy());
+                SpawnEnemy(GetWeightedRandomEnemy(true));
             }
             
             float delay = Random.Range(timeBetweenSpawns * 0.8f, timeBetweenSpawns * 1.2f);
@@ -200,23 +225,26 @@ public class EnemySpawner : MonoBehaviour
         if (GameManager.Instance != null) GameManager.Instance.RegisterEnemy();
     }
 
-    EnemyConfig GetWeightedRandomEnemy()
+    EnemyConfig GetWeightedRandomEnemy(bool allowCarts)
     {
         if (currentWavePool.Count == 0) return null;
 
+        var pool = allowCarts ? currentWavePool : currentWavePool.Where(e => !e.isCart).ToList();
+        if (pool.Count == 0) pool = currentWavePool;
+
         int totalWeight = 0;
-        foreach (var e in currentWavePool) totalWeight += e.spawnWeight;
+        foreach (var e in pool) totalWeight += e.spawnWeight;
 
         int randomValue = Random.Range(0, totalWeight);
         int currentWeight = 0;
 
-        foreach (var e in currentWavePool)
+        foreach (var e in pool)
         {
             currentWeight += e.spawnWeight;
             if (randomValue < currentWeight)
                 return e;
         }
-        return currentWavePool[0];
+        return pool[0];
     }
 
     public void StopSpawning()
