@@ -80,6 +80,11 @@ public class GameManager : MonoBehaviour
     public GameObject barracksUpgradePanel;
     public GameObject shopPanel;
 
+    [Header("UI: Панелі (fallback поля)")]
+    public GameObject constructionPanelNew;
+    public GameObject barracksPanelNew;
+    public GameObject shopPanelNew;
+
     [Header("UI: Кнопки відкриття (ПРИВ'ЯЗАТИ В ІНСПЕКТОРІ)")]
     public Button hammerButton;
     public Button barracksIconButton;
@@ -323,7 +328,7 @@ public class GameManager : MonoBehaviour
         if (hireArcherButton == null) hireArcherButton = FindUIButton("HireArcher");
         if (hireSpearmanButton == null) hireSpearmanButton = FindUIButton("HireSpearman");
 
-        // Panels: prefer new if set
+        // Panels: prefer set panel, fallback to *_New
         var construction = constructionPanel != null ? constructionPanel : constructionPanelNew;
         var barracks = barracksUpgradePanel != null ? barracksUpgradePanel : barracksPanelNew;
         var shop = shopPanel != null ? shopPanel : shopPanelNew;
