@@ -73,6 +73,14 @@ public class Arrow : MonoBehaviour
             { 
                 ea.TakeDamage(damage); hit = true; 
             }
+            else if (hitInfo.TryGetComponent<EnemySpearman>(out EnemySpearman es))
+            {
+                es.TakeDamage(damage); hit = true;
+            }
+            else if (hitInfo.TryGetComponent<EnemyHorse>(out EnemyHorse eh))
+            {
+                eh.TakeDamage(damage); hit = true;
+            }
             else if (hitInfo.TryGetComponent<Boss>(out Boss b)) 
             { 
                 b.TakeDamage(damage); hit = true; 

@@ -118,6 +118,8 @@ public class Projectile : MonoBehaviour
             if (hitObj.TryGetComponent<Guard>(out Guard g)) g.TakeDamage(damage);
             else if (hitObj.TryGetComponent<Cart>(out Cart c)) c.TakeDamage(damage);
             else if (hitObj.TryGetComponent<EnemyArcher>(out EnemyArcher ea)) ea.TakeDamage(damage);
+            else if (hitObj.TryGetComponent<EnemySpearman>(out EnemySpearman es)) es.TakeDamage(damage);
+            else if (hitObj.TryGetComponent<EnemyHorse>(out EnemyHorse eh)) eh.TakeDamage(damage);
             else if (hitObj.TryGetComponent<Boss>(out Boss b)) b.TakeDamage(damage);
         }
         

@@ -222,6 +222,7 @@ public class GameManager : MonoBehaviour
     [Header("Ліміт військ")]
     public int maxUnits = 5;          
     public int currentUnits = 0;      
+    [HideInInspector] public bool isResettingUnits = false;
 
     [Header("Баланс: Вежа")]
     public int towerLevel = 1; 
@@ -873,6 +874,9 @@ public class GameManager : MonoBehaviour
 
         manualTarget = null;
         if(targetIndicator) targetIndicator.Hide();
+
+        // === Під час ресету не рахуємо OnDestroy() як смерть юніта ===
+        isResettingUnits = true;
         
         var units = FindObjectsByType<Knight>(FindObjectsSortMode.None); 
         foreach(var u in units) Destroy(u.gameObject); 
@@ -888,6 +892,7 @@ public class GameManager : MonoBehaviour
 
         currentUnits = 0; 
         enemiesAlive = 0; 
+        isResettingUnits = false;
         
         if (waveTimerBar != null)
         {

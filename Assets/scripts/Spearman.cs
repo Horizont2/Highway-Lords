@@ -98,7 +98,7 @@ public class Spearman : MonoBehaviour
 
     void OnDestroy()
     {
-        if (GameManager.Instance != null && !isDead)
+        if (GameManager.Instance != null && !isDead && !GameManager.Instance.isResettingUnits)
         {
             GameManager.Instance.currentUnits--;
             GameManager.Instance.UpdateUI();

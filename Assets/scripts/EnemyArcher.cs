@@ -154,19 +154,26 @@ public class EnemyArcher : MonoBehaviour
     {
         if (target != null && !target.CompareTag("Untagged"))
         {
-             if (target.GetComponent<Castle>())
-             {
-                 if (GameManager.Instance != null && GameManager.Instance.currentSpikes != null)
-                 {
-                     float distToSpikes = Vector2.Distance(transform.position, GameManager.Instance.currentSpikes.transform.position);
-                     if (distToSpikes < attackRange) 
-                     {
-                         target = GameManager.Instance.currentSpikes.transform;
-                         return;
-                     }
-                 }
-             }
-             return;
+            // Якщо ціль — замок, спершу перевіряємо шипи, але НЕ робимо ранній return,
+            // щоб можна було перелочитись на ближчих юнітів.
+            if (target.GetComponent<Castle>())
+            {
+                if (GameManager.Instance != null && GameManager.Instance.currentSpikes != null)
+                {
+                    float distToSpikes = Vector2.Distance(transform.position, GameManager.Instance.currentSpikes.transform.position);
+                    if (distToSpikes < attackRange) 
+                    {
+                        target = GameManager.Instance.currentSpikes.transform;
+                        return;
+                    }
+                }
+            }
+            else
+            {
+                // Якщо вже є валідна ціль у радіусі — можемо її тримати
+                float distToCurrent = Vector2.Distance(transform.position, target.position);
+                if (distToCurrent <= attackRange) return;
+            }
         }
 
         float minDistance = Mathf.Infinity;
