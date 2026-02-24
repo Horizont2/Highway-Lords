@@ -865,6 +865,11 @@ public class GameManager : MonoBehaviour
     void ClearDeadEnemies()
     {
         foreach (var e in FindObjectsByType<EnemyStats>(FindObjectsSortMode.None)) if (e.CompareTag("Untagged")) Destroy(e.gameObject);
+        foreach (var go in GameObject.FindGameObjectsWithTag("Untagged"))
+        {
+            if (go.GetComponent<EnemySpearman>() || go.GetComponent<EnemyHorse>() || go.GetComponent<EnemyArcher>() || go.GetComponent<Guard>() || go.GetComponent<Boss>() || go.GetComponent<Cart>())
+                Destroy(go);
+        }
     }
 
     IEnumerator RecalculateUnitsNextFrame()

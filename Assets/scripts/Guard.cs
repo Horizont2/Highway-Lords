@@ -221,13 +221,19 @@ public class Guard : MonoBehaviour
 
     void StartAttack()
     {
+        hasHitThisAttack = false;
         if (animator) animator.SetTrigger("Attack");
     }
+
+    private bool hasHitThisAttack = false;
 
     public void Hit()
     {
         if (isDead) return;
         if (target == null) return; 
+        if (hasHitThisAttack) return;
+
+        hasHitThisAttack = true;
 
         if (Vector2.Distance(transform.position, target.position) > attackRange + 0.5f) return;
 

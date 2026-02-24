@@ -29,6 +29,7 @@ public class EnemyHorse : MonoBehaviour
 
     private Transform target;
     private float nextAttackTime = 0f;
+    private bool hasHitThisAttack = false;
 
     // Кешування статів для системи контр-піків
     private UnitStats myStats;
@@ -187,6 +188,7 @@ public class EnemyHorse : MonoBehaviour
     void Attack()
     {
         // Запускаємо анімацію. Урон наноситься через Event "Hit" в анімації
+        hasHitThisAttack = false;
         if (animator) animator.SetTrigger("Attack");
     }
 
@@ -194,6 +196,9 @@ public class EnemyHorse : MonoBehaviour
     public void Hit()
     {
         if (isDead || target == null) return;
+        if (hasHitThisAttack) return;
+
+        hasHitThisAttack = true;
 
         if (SoundManager.Instance != null) 
              SoundManager.Instance.PlaySFX(SoundManager.Instance.swordHit); 

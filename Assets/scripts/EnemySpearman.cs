@@ -28,6 +28,7 @@ public class EnemySpearman : MonoBehaviour
 
     private Transform target;
     private float nextAttackTime = 0f;
+    private bool hasHitThisAttack = false;
     private UnitStats myStats;
 
     void Start()
@@ -94,6 +95,7 @@ public class EnemySpearman : MonoBehaviour
                 StopMoving();
                 if (Time.time >= nextAttackTime)
                 {
+                    hasHitThisAttack = false;
                     if (animator) animator.SetTrigger("Attack");
                     nextAttackTime = Time.time + attackCooldown;
                 }
@@ -217,7 +219,10 @@ public class EnemySpearman : MonoBehaviour
     public void Hit()
     {
         if (isDead || target == null) return;
+        if (hasHitThisAttack) return;
         if (Vector2.Distance(transform.position, target.position) > attackRange + 1.0f) return;
+
+        hasHitThisAttack = true;
         
         if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.swordHit);
 
