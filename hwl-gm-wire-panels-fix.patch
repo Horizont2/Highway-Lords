@@ -1,0 +1,26 @@
+diff --git a/Assets/scripts/GameManager.cs b/Assets/scripts/GameManager.cs
+index cf65d79..3506c0c 100644
+--- a/Assets/scripts/GameManager.cs
++++ b/Assets/scripts/GameManager.cs
+@@ -1405,8 +1405,21 @@ public class GameManager : MonoBehaviour
+         }
+         else
+         {
++            // GameObject.Find не бачить неактивні обʼєкти — тому fallback через Resources
+             var go = GameObject.Find(objectName);
+             if (go != null) btn = go.GetComponent<Button>();
++            if (btn == null)
++            {
++                var allButtons = Resources.FindObjectsOfTypeAll<Button>();
++                foreach (var b in allButtons)
++                {
++                    if (b != null && b.name == objectName)
++                    {
++                        btn = b;
++                        break;
++                    }
++                }
++            }
+         }
+ 
+         if (btn != null)
