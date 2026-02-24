@@ -89,6 +89,7 @@ GameObject:
   - component: {fileID: 5152619563505957817}
   - component: {fileID: 2922825187524092143}
   - component: {fileID: -3494268141185776747}
+  - component: {fileID: 5842268905076710556}
   m_Layer: 6
   m_Name: Archer
   m_TagString: Player
@@ -105,7 +106,7 @@ Transform:
   m_GameObject: {fileID: 366371821858485913}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -3.455295, y: -2.153965, z: 0}
+  m_LocalPosition: {x: -1.4870439, y: -0.14334762, z: 0}
   m_LocalScale: {x: 1.4, y: 1.3, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -211,6 +212,11 @@ MonoBehaviour:
   attackRange: 8
   attackRate: 0.8
   maxHealth: 30
+  obstacleLayer:
+    serializedVersion: 2
+    m_Bits: 256
+  checkDistance: 1.5
+  avoidanceForce: 2
   arrowPrefab: {fileID: 1112989244787787666, guid: 6c5a1610ebf70b34483395be036d1e36, type: 3}
   firePoint: {fileID: 4229325192365878726}
   animator: {fileID: 0}
@@ -254,7 +260,7 @@ CapsuleCollider2D:
   m_Enabled: 1
   serializedVersion: 3
   m_Density: 1
-  m_Material: {fileID: 6200000, guid: 2e9feab265637034aa860b831a82d0c7, type: 2}
+  m_Material: {fileID: 6200000, guid: 01fd429fe3751984b8e20952460b2a2b, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -281,6 +287,19 @@ CapsuleCollider2D:
   m_Offset: {x: 0.026509082, y: -0.17208064}
   m_Size: {x: 0.41562626, y: 0.4475975}
   m_Direction: 0
+--- !u!114 &5842268905076710556
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 366371821858485913}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cee56501453cf354aa2932f39abe1833, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UnitStats
+  category: 1
 --- !u!1 &3819205139818351308
 GameObject:
   m_ObjectHideFlags: 0

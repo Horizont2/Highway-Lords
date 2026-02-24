@@ -2,69 +2,81 @@ using UnityEngine;
 
 public class EnemyProjectile : MonoBehaviour
 {
-    [Header("Налаштування")]
-    public float speed = 9f;
-    public int damage = 10;
-    public float lifeTime = 4f;
-
-    private Vector3 moveDirection;
-    private bool isInitialized = false;
+    private Vector3 startPosition;
+    private int damage;
+    private float maxRange = 15f; 
+    private float speed = 10f; 
 
     public void Initialize(Vector3 targetPos, int dmg)
     {
         damage = dmg;
-        moveDirection = (targetPos - transform.position).normalized;
+        startPosition = transform.position;
 
-        float angle = Mathf.Atan2(moveDirection.y, moveDirection.x) * Mathf.Rad2Deg;
+        Vector3 direction = (targetPos - transform.position).normalized;
+        float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
         transform.rotation = Quaternion.Euler(0, 0, angle);
 
-        isInitialized = true;
-        Destroy(gameObject, lifeTime);
+        Rigidbody2D rb = GetComponent<Rigidbody2D>();
+        if (rb != null)
+        {
+            rb.linearVelocity = direction * speed; 
+        }
+
+        // === ВАЖЛИВА ЗМІНА: Знищити через 1.5 секунди ===
+        Destroy(gameObject, 1.0f);
     }
 
     void Update()
     {
-        if (!isInitialized) return;
-        transform.Translate(moveDirection * speed * Time.deltaTime, Space.World);
-    }
-
-    void OnTriggerEnter2D(Collider2D hitInfo)
-    {
-        // Ігноруємо інші ворожі стріли та самих ворогів
-        if (hitInfo.CompareTag("Projectile") || hitInfo.CompareTag("Enemy")) return;
-
-        // === ВАЖЛИВО: Знищення об границі ===
-        if (hitInfo.CompareTag("Boundary"))
+        // Додаткова перевірка дальності (якщо раптом 1.5 сек не вистачить)
+        if (Vector3.Distance(startPosition, transform.position) > maxRange)
         {
             Destroy(gameObject);
-            return;
+        }
+    }
+
+    void OnTriggerEnter2D(Collider2D collision)
+    {
+        // Ігноруємо ворогів (своїх) та інші стріли
+        if (collision.CompareTag("Enemy") || collision.CompareTag("Projectile")) return;
+
+        bool hit = false;
+
+        // 1. Влучили в Барикаду (Spikes)
+        if (collision.TryGetComponent<Spikes>(out Spikes spikes))
+        {
+            spikes.TakeDamage(damage);
+            hit = true; 
+        }
+        // 2. Влучили в Замок
+        else if (collision.TryGetComponent<Castle>(out Castle c))
+        {
+            c.TakeDamage(damage);
+            hit = true;
+        }
+        // 3. Влучили в Юнітів гравця
+        else if (collision.TryGetComponent<Knight>(out Knight k))
+        {
+            k.TakeDamage(damage);
+            hit = true;
+        }
+        else if (collision.TryGetComponent<Archer>(out Archer a))
+        {
+            a.TakeDamage(damage);
+            hit = true;
+        }
+        else if (collision.TryGetComponent<Spearman>(out Spearman s))
+        {
+            s.TakeDamage(damage);
+            hit = true;
+        }
+        // 4. Влучили в землю або межі карти
+        else if (collision.CompareTag("Ground") || collision.CompareTag("Boundary"))
+        {
+            hit = true;
         }
 
-        // 1. Лицар
-        if (hitInfo.TryGetComponent<Knight>(out Knight knight)) 
-        { 
-            knight.TakeDamage(damage); 
-            Destroy(gameObject); 
-            return; 
-        }
-
-        // 2. Лучник
-        if (hitInfo.TryGetComponent<Archer>(out Archer archer)) 
-        { 
-            archer.TakeDamage(damage); 
-            Destroy(gameObject); 
-            return; 
-        }
-
-        // 3. Замок
-        if (hitInfo.TryGetComponent<Castle>(out Castle castle)) 
-        { 
-            castle.TakeDamage(damage); 
-            Destroy(gameObject); 
-            return; 
-        }
-
-        // 4. Земля
-        if (hitInfo.CompareTag("Ground")) { Destroy(gameObject); }
+        // Якщо в щось влучили - знищуємо
+        if (hit) Destroy(gameObject);
     }
 }

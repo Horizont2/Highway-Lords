@@ -181,6 +181,8 @@ GameObject:
   - component: {fileID: 5142474997283871533}
   - component: {fileID: 1954897457908756503}
   - component: {fileID: -7487562341955783808}
+  - component: {fileID: 8480252692733628112}
+  - component: {fileID: 8386267328693790027}
   m_Layer: 7
   m_Name: Maincart
   m_TagString: Enemy
@@ -303,7 +305,6 @@ MonoBehaviour:
   speed: 2
   maxHealth: 40
   healthBarFill: {fileID: 6348252556352604713}
-  goldAmount: 15
   woodChance: 70
   woodAmount: 10
   stoneChance: 50
@@ -394,6 +395,33 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c67b7f205f38acb49a2cc2444d6ba5c2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemySelector
+--- !u!114 &8480252692733628112
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7094710359589817124}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cee56501453cf354aa2932f39abe1833, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UnitStats
+  category: 4
+--- !u!114 &8386267328693790027
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7094710359589817124}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e24c8a0e4c32de341be2bc8c90c77f1c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyStats
+  baseGoldReward: 50
+  currentGoldReward: 0
 --- !u!1 &7827070450437089323
 GameObject:
   m_ObjectHideFlags: 0
@@ -646,7 +674,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 0.066037595, g: 1, b: 0.2473657, a: 1}
+  m_Color: {r: 1, g: 0.16302866, b: 0.06666666, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1

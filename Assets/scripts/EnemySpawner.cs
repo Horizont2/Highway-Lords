@@ -1,188 +1,234 @@
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq; 
 
-// Перелік типів ворогів для зручності
-public enum EnemyType { Guard, Archer, Cart, Boss }
-
-// Клас, що описує один загін (групу ворогів)
 [System.Serializable]
-public class Squad
+public class EnemyConfig
 {
-    public string squadName;        // Назва (напр. "Охорона Воза")
-    public List<EnemyType> units;   // Послідовність виходу юнітів
-    public float delayBetweenUnits = 0.8f; // Пауза між юнітами в загоні
-    public int costInBudget = 10;   // Скільки "балів" коштує цей загін
+    public string name;           
+    public GameObject prefab;     
+    public Sprite icon;           
+    public int unlockWave = 1;    
+    public bool isBoss = false;   
+    public bool isCart = false;   
+    [Range(1, 100)] public int spawnWeight = 50; 
+    public int baseGoldReward = 15; 
 }
 
 public class EnemySpawner : MonoBehaviour
 {
-    [Header("Префаби")]
-    public GameObject guardPrefab;
-    public GameObject enemyArcherPrefab;
-    public GameObject cartPrefab;
-    public GameObject bossPrefab;
+    [Header("Налаштування Всіх Ворогів")]
+    public List<EnemyConfig> allEnemies = new List<EnemyConfig>();
 
-    [Header("Налаштування")]
-    public float timeBetweenSquads = 4f; // Час відпочинку між групами ворогів
-    public Transform spawnPoint;
+    [Header("Налаштування Хвилі")]
+    public Transform[] spawnPoints;      
+    public float timeBetweenSpawns = 2.5f; 
 
-    // Список можливих шаблонів загонів
-    private List<Squad> squadTemplates;
+    [Header("Налаштування Загонів")]
+    [Range(0f, 1f)] public float squadChance = 0.3f; 
+    public int minSquadSize = 3; 
+    public int maxSquadSize = 5; 
+    public float fastSpawnDelay = 0.4f; 
+    
+    [Header("UI")]
+    public WaveInfoPanel waveInfoPanel;  
 
-    void Awake()
-    {
-        InitializeSquadTemplates();
-    }
+    // Внутрішні змінні
+    private List<EnemyConfig> currentWavePool = new List<EnemyConfig>(); 
+    private int enemiesToSpawn;
+    private int enemiesSpawned;
+    private bool spawning = false;
+    private int currentWaveNumber; 
 
-    // Тут ми прописуємо "рецепти" загонів
-    void InitializeSquadTemplates()
-    {
-        squadTemplates = new List<Squad>();
-
-        // 1. Звичайний патруль (Дешевий)
-        Squad infantry = new Squad();
-        infantry.squadName = "Infantry Patrol";
-        infantry.units = new List<EnemyType> { EnemyType.Guard, EnemyType.Guard };
-        infantry.costInBudget = 10;
-        squadTemplates.Add(infantry);
-
-        // 2. Підтримка лучників (Середній)
-        Squad ranged = new Squad();
-        ranged.squadName = "Archer Support";
-        ranged.units = new List<EnemyType> { EnemyType.Guard, EnemyType.Archer };
-        ranged.costInBudget = 15;
-        squadTemplates.Add(ranged);
-
-        // 3. КАРАВАН З ВОЗОМ (Дорогий і захищений)
-        // Порядок: Гвардієць -> Віз -> Лучник
-        Squad cartEscort = new Squad();
-        cartEscort.squadName = "Cart Caravan";
-        cartEscort.units = new List<EnemyType> { EnemyType.Guard, EnemyType.Guard, EnemyType.Cart, EnemyType.Archer };
-        cartEscort.delayBetweenUnits = 1.2f; 
-        cartEscort.costInBudget = 40; // Коштує багато бюджету
-        squadTemplates.Add(cartEscort);
-    }
-
-    // Викликається з GameManager
     public void StartWave(int waveNumber)
     {
         StopAllCoroutines();
-        StartCoroutine(SpawnWaveRoutine(waveNumber));
+        currentWaveNumber = waveNumber;
+
+        PrepareEnemyPool(waveNumber);
+        
+        // Оновлюємо UI строго після формування пулу
+        UpdateWaveUI(); 
+
+        enemiesToSpawn = Mathf.RoundToInt(5 + (waveNumber * 1.5f));
+        if (waveNumber % 10 == 0) enemiesToSpawn = 1; // Бос
+
+        enemiesSpawned = 0;
+        spawning = true;
+        StartCoroutine(SpawnRoutine());
+    }
+
+    void PrepareEnemyPool(int currentWave)
+    {
+        currentWavePool.Clear();
+
+        // 1. БОС
+        if (currentWave % 10 == 0)
+        {
+            EnemyConfig boss = allEnemies.Find(e => e.isBoss);
+            if (boss != null)
+            {
+                currentWavePool.Add(boss);
+                return; 
+            }
+        }
+
+        // 2. Доступні вороги (без босів і возів)
+        List<EnemyConfig> available = allEnemies
+            .Where(e => e.unlockWave <= currentWave && !e.isBoss && !e.isCart)
+            .ToList();
+
+        if (available.Count == 0 && allEnemies.Count > 0)
+            available.Add(allEnemies[0]); // Fallback
+
+        // 3. ГАРАНТІЯ НОВОГО ЮНІТА
+        // Сортуємо: спочатку нові (високий UnlockWave)
+        available.Sort((a, b) => b.unlockWave.CompareTo(a.unlockWave));
+
+        if (available.Count > 0)
+        {
+            // Додаємо найсильнішого/нового ворога першим
+            currentWavePool.Add(available[0]); 
+            available.RemoveAt(0); // Прибираємо зі списку доступних, щоб не дублювати
+        }
+
+        // 4. ВИПАДКОВИЙ РОЗМІР ПУЛУ (2 або 3 типи)
+        // Random.Range(2, 4) поверне 2 або 3
+        int targetTypeCount = Random.Range(2, 4); 
+
+        // Перемішуємо залишок доступних ворогів
+        available = available.OrderBy(x => Random.value).ToList();
+
+        // Добираємо ворогів до цільової кількості
+        foreach (var enemy in available)
+        {
+            if (currentWavePool.Count >= targetTypeCount) break;
+            currentWavePool.Add(enemy);
+        }
+
+        // 5. ВІЗОК (Бонус) - додається понад ліміт
+        if (currentWave % 3 == 0) 
+        {
+            EnemyConfig cart = allEnemies.Find(e => e.isCart && e.unlockWave <= currentWave);
+            if (cart != null) currentWavePool.Add(cart);
+        }
+    }
+
+    void UpdateWaveUI()
+    {
+        if (waveInfoPanel != null)
+        {
+            List<Sprite> icons = new List<Sprite>();
+            // Беремо іконки ТІЛЬКИ з поточного пулу
+            foreach (var enemy in currentWavePool)
+            {
+                if (enemy.icon != null && !icons.Contains(enemy.icon))
+                {
+                    icons.Add(enemy.icon);
+                }
+            }
+            waveInfoPanel.ShowWaveEnemies(icons);
+        }
+    }
+
+    public int GetEstimatedGoldFromEnemies()
+    {
+        if (currentWavePool.Count == 0) return 0;
+        
+        float totalWeight = 0f;
+        float weightedGoldSum = 0f;
+        float waveMultiplier = 1.0f + (currentWaveNumber * 0.1f);
+
+        foreach (var enemy in currentWavePool)
+        {
+            float reward = enemy.baseGoldReward * waveMultiplier;
+            weightedGoldSum += reward * enemy.spawnWeight;
+            totalWeight += enemy.spawnWeight;
+        }
+
+        if (totalWeight == 0) return 0;
+        return Mathf.RoundToInt((weightedGoldSum / totalWeight) * enemiesToSpawn);
+    }
+
+    IEnumerator SpawnRoutine()
+    {
+        while (enemiesSpawned < enemiesToSpawn && spawning)
+        {
+            int remaining = enemiesToSpawn - enemiesSpawned;
+            bool spawnSquad = (Random.value < squadChance) && (remaining >= minSquadSize) && (enemiesToSpawn > 5);
+
+            if (spawnSquad)
+            {
+                // Загін: вибираємо один тип ворога для всієї групи
+                EnemyConfig squadType = GetWeightedRandomEnemy(); 
+                int currentSquadSize = Random.Range(minSquadSize, maxSquadSize + 1);
+                if (currentSquadSize > remaining) currentSquadSize = remaining;
+
+                for (int i = 0; i < currentSquadSize; i++)
+                {
+                    SpawnEnemy(squadType); 
+                    yield return new WaitForSeconds(fastSpawnDelay);
+                }
+            }
+            else
+            {
+                // Одинак
+                SpawnEnemy(GetWeightedRandomEnemy());
+            }
+            
+            float delay = Random.Range(timeBetweenSpawns * 0.8f, timeBetweenSpawns * 1.2f);
+            yield return new WaitForSeconds(delay);
+        }
+        spawning = false;
+    }
+
+    void SpawnEnemy(EnemyConfig config)
+    {
+        if (config == null || config.prefab == null) return;
+
+        Vector3 pos = transform.position; 
+        if (spawnPoints != null && spawnPoints.Length > 0)
+        {
+            pos = spawnPoints[Random.Range(0, spawnPoints.Length)].position;
+        }
+        
+        pos += new Vector3(Random.Range(-0.5f, 0.5f), Random.Range(-0.5f, 0.5f), 0);
+        Instantiate(config.prefab, pos, Quaternion.identity);
+
+        enemiesSpawned++;
+        if (GameManager.Instance != null) GameManager.Instance.RegisterEnemy();
+    }
+
+    EnemyConfig GetWeightedRandomEnemy()
+    {
+        if (currentWavePool.Count == 0) return null;
+
+        int totalWeight = 0;
+        foreach (var e in currentWavePool) totalWeight += e.spawnWeight;
+
+        int randomValue = Random.Range(0, totalWeight);
+        int currentWeight = 0;
+
+        foreach (var e in currentWavePool)
+        {
+            currentWeight += e.spawnWeight;
+            if (randomValue < currentWeight)
+                return e;
+        }
+        return currentWavePool[0];
     }
 
     public void StopSpawning()
     {
+        spawning = false;
         StopAllCoroutines();
-    }
-
-    IEnumerator SpawnWaveRoutine(int waveNumber)
-    {
-        // 1. Розрахунок бюджету (Економіка складності)
-        // Хвиля 1 = 35 балів, Хвиля 10 = 170 балів і т.д.
-        int waveBudget = 20 + (waveNumber * 15); 
-        
-        List<Squad> squadsToSpawn = new List<Squad>();
-
-        // 2. ЛОГІКА БОСА (Кожні 10 хвиль)
-        if (waveNumber % 10 == 0)
-        {
-            SpawnUnit(EnemyType.Boss);
-            yield return new WaitForSeconds(2f);
-            
-            // На хвилях боса бюджет подвоюється для м'яса
-            waveBudget *= 2; 
-        }
-
-        // 3. ЛОГІКА ВОЗА (Гарантований віз кожні 3 хвилі)
-        // Якщо це 3, 6, 9 хвиля... то обов'язково додаємо Караван першим
-        if (waveNumber % 3 == 0)
-        {
-            Squad cartSquad = squadTemplates.Find(x => x.squadName == "Cart Caravan");
-            if (cartSquad != null)
-            {
-                squadsToSpawn.Add(cartSquad);
-                waveBudget -= cartSquad.costInBudget;
-            }
-        }
-
-        // 4. ЗАПОВНЕННЯ ЗАЛИШКУ БЮДЖЕТУ
-        // Купуємо випадкові загони, поки є гроші
-        int safetyCounter = 0;
-        while (waveBudget > 5 && safetyCounter < 100)
-        {
-            // Знаходимо всі загони, які можемо дозволити
-            List<Squad> affordable = squadTemplates.FindAll(x => x.costInBudget <= waveBudget);
-            
-            if (affordable.Count == 0) break; 
-
-            // Вибираємо випадковий
-            Squad picked = affordable[Random.Range(0, affordable.Count)];
-            squadsToSpawn.Add(picked);
-            waveBudget -= picked.costInBudget;
-            safetyCounter++;
-        }
-
-        // 5. ПРОЦЕС СПАВНУ
-        foreach (Squad squad in squadsToSpawn)
-        {
-            // Спавнимо кожного юніта в загоні по черзі
-            foreach (EnemyType type in squad.units)
-            {
-                SpawnUnit(type);
-                // Чекаємо перед наступним членом загону
-                yield return new WaitForSeconds(squad.delayBetweenUnits);
-            }
-
-            // Загін вийшов повністю. Чекаємо перед наступною групою.
-            yield return new WaitForSeconds(timeBetweenSquads);
-        }
-    }
-
-    void SpawnUnit(EnemyType type)
-    {
-        GameObject prefab = null;
-        Vector3 pos = spawnPoint.position;
-
-        switch (type)
-        {
-            case EnemyType.Guard: 
-                prefab = guardPrefab; 
-                // Невеликий розкид по Y, щоб не злипались
-                pos += new Vector3(0, Random.Range(-0.3f, 0.3f), 0);
-                break;
-            case EnemyType.Archer: 
-                prefab = enemyArcherPrefab; 
-                // Лучники трохи позаду
-                pos += new Vector3(0.5f, Random.Range(-0.3f, 0.3f), 0);
-                break;
-            case EnemyType.Cart: 
-                prefab = cartPrefab; 
-                // Віз їде по центру
-                pos += Vector3.zero; 
-                break;
-            case EnemyType.Boss: 
-                prefab = bossPrefab; 
-                break;
-        }
-
-        if (prefab != null)
-        {
-            Instantiate(prefab, pos, Quaternion.identity);
-        }
+        if (waveInfoPanel != null) waveInfoPanel.Hide();
     }
 
     public void ClearEnemies()
     {
-        // Знаходимо всіх ворогів за їх компонентами і видаляємо
-        // Це надійніше, ніж за тегами при рестарті
-        MonoBehaviour[] allScripts = FindObjectsByType<MonoBehaviour>(FindObjectsSortMode.None);
-        foreach (var script in allScripts)
-        {
-            if (script is Guard || script is Cart || script is EnemyArcher || script is Boss || script is EnemyProjectile)
-            {
-                Destroy(script.gameObject);
-            }
-        }
+        GameObject[] enemies = GameObject.FindGameObjectsWithTag("Enemy");
+        foreach (GameObject enemy in enemies) Destroy(enemy);
     }
 }

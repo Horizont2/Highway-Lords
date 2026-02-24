@@ -1,6 +1,7 @@
 using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody2D))]
+[RequireComponent(typeof(EnemyStats))] // Автоматично додасть скрипт статистики
 public class Guard : MonoBehaviour
 {
     [Header("UI")]
@@ -10,14 +11,17 @@ public class Guard : MonoBehaviour
     public float speed = 1.5f;
     public float attackRange = 1.2f; 
     public int damage = 15;
-    public int health = 60;
-    public int goldReward = 15;
+    public int health = 60; // Початкове здоров'я
+    // public int goldReward = 15; // ВИДАЛЕНО: Тепер це в EnemyStats
+
+    [Header("Навігація (Обхід)")]
+    public LayerMask obstacleLayer; 
+    public float avoidanceForce = 2.0f;
 
     [Header("Атака")]
     public float attackCooldown = 1.5f;
     private float nextAttackTime = 0f;
 
-    // Компоненти
     private Animator animator;
     private Rigidbody2D rb; 
     private SpriteRenderer spriteRenderer;
@@ -25,17 +29,22 @@ public class Guard : MonoBehaviour
     private bool isDead = false;
     private Vector3 originalScale;
 
-    // Логіка руху
     private Transform target; 
     private Transform myCart;
     private float laneOffset; 
     private float cartSafetyRadius = 2.5f; 
+
+    // Кешування статів
+    private UnitStats myStats;
 
     void Start()
     {
         animator = GetComponent<Animator>();
         rb = GetComponent<Rigidbody2D>();
         spriteRenderer = GetComponent<SpriteRenderer>();
+        
+        myStats = GetComponent<UnitStats>();
+
         originalScale = transform.localScale;
 
         rb.bodyType = RigidbodyType2D.Dynamic;
@@ -47,7 +56,7 @@ public class Guard : MonoBehaviour
 
         if (GameManager.Instance != null)
         {
-            health += (GameManager.Instance.currentWave - 1) * 10;
+            health = GameManager.Instance.GetDifficultyHealth();
             GameManager.Instance.RegisterEnemy();
         }
 
@@ -67,14 +76,13 @@ public class Guard : MonoBehaviour
     {
         if (isDead) return;
 
-        // Перевірка на "зникнення" цілі
-        if (target == null || target.CompareTag("Untagged")) 
+        if (target == null || target.CompareTag("Untagged") || !target.gameObject.activeInHierarchy) 
         {
             target = null;
-            FindTarget(); // Шукаємо нову
+            FindTarget();
         }
 
-        // === 1. АТАКА ===
+        // 1. АТАКА
         if (target != null)
         {
             float distance = Vector2.Distance(transform.position, target.position);
@@ -84,21 +92,21 @@ public class Guard : MonoBehaviour
                 StopMoving();
                 if (Time.time >= nextAttackTime)
                 {
-                    Attack();
+                    StartAttack(); 
                     nextAttackTime = Time.time + attackCooldown;
                 }
                 return; 
             }
         }
 
-        // === 2. УХИЛЕННЯ ВІД ВОЗА ===
+        // 2. УХИЛЕННЯ ВІД ВОЗА
         if (IsCartTooClose())
         {
             DodgeCart();
             return; 
         }
 
-        // === 3. РУХ ДО ЦІЛІ ===
+        // 3. РУХ
         if (target != null)
         {
             FaceTarget(target.position);
@@ -106,7 +114,6 @@ public class Guard : MonoBehaviour
             Vector3 dest = target.position;
             float distance = Vector2.Distance(transform.position, target.position);
 
-            // Якщо далеко - тримаємо смугу. Якщо близько - йдемо напролом
             if (distance > 3.5f) 
             {
                 dest.y += laneOffset;
@@ -130,37 +137,29 @@ public class Guard : MonoBehaviour
         float minDistance = Mathf.Infinity;
         Transform closestTarget = null;
 
-        // 1. Шукаємо Лицарів
-        Knight[] knights = FindObjectsByType<Knight>(FindObjectsSortMode.None);
-        foreach (Knight k in knights)
+        void CheckDistance(Transform t)
         {
-            if (k.CompareTag("Untagged")) continue; 
-            float dist = Vector2.Distance(transform.position, k.transform.position);
-            if (dist < minDistance) { minDistance = dist; closestTarget = k.transform; }
-        }
-
-        // 2. Шукаємо Лучників
-        Archer[] archers = FindObjectsByType<Archer>(FindObjectsSortMode.None);
-        foreach (Archer a in archers)
-        {
-            if (a.CompareTag("Untagged")) continue;
-            float dist = Vector2.Distance(transform.position, a.transform.position);
-            if (dist < minDistance) { minDistance = dist; closestTarget = a.transform; }
-        }
-
-        // 3. === НОВЕ: Пріоритет атаки на Колючки ===
-        if (GameManager.Instance != null && GameManager.Instance.currentSpikes != null)
-        {
-            float distToSpikes = Vector2.Distance(transform.position, GameManager.Instance.currentSpikes.transform.position);
-            // Якщо колючки ближче, ніж будь-який лицар (або якщо лицарів немає)
-            if (distToSpikes < minDistance)
+            if (t == null || !t.gameObject.activeInHierarchy || t.CompareTag("Untagged")) return;
+            float dist = Vector2.Distance(transform.position, t.position);
+            if (dist < minDistance)
             {
-                closestTarget = GameManager.Instance.currentSpikes.transform;
-                minDistance = distToSpikes;
+                minDistance = dist;
+                closestTarget = t;
             }
         }
 
-        // 4. Шукаємо Замок (якщо нікого іншого)
+        Knight[] knights = FindObjectsByType<Knight>(FindObjectsSortMode.None);
+        foreach (Knight k in knights) CheckDistance(k.transform);
+
+        Archer[] archers = FindObjectsByType<Archer>(FindObjectsSortMode.None);
+        foreach (Archer a in archers) CheckDistance(a.transform);
+        
+        Spearman[] spearmen = FindObjectsByType<Spearman>(FindObjectsSortMode.None); 
+        foreach (Spearman s in spearmen) CheckDistance(s.transform);
+
+        if (GameManager.Instance != null && GameManager.Instance.currentSpikes != null)
+            CheckDistance(GameManager.Instance.currentSpikes.transform);
+
         if (closestTarget == null && GameManager.Instance != null && GameManager.Instance.castle != null)
         {
             closestTarget = GameManager.Instance.castle.transform;
@@ -172,7 +171,16 @@ public class Guard : MonoBehaviour
     void MoveTowards(Vector3 destination)
     {
         if (animator) animator.SetBool("IsRunning", true);
+        
         Vector2 direction = (destination - transform.position).normalized;
+
+        RaycastHit2D hit = Physics2D.Raycast(transform.position, direction, 1.5f, obstacleLayer);
+        if (hit.collider != null)
+        {
+            direction += hit.normal * avoidanceForce;
+            direction.Normalize();
+        }
+
         rb.linearVelocity = direction * speed; 
     }
 
@@ -211,29 +219,47 @@ public class Guard : MonoBehaviour
             transform.localScale = new Vector3(-absX, originalScale.y, originalScale.z); 
     }
 
-    void Attack()
+    void StartAttack()
     {
         if (animator) animator.SetTrigger("Attack");
+    }
+
+    public void Hit()
+    {
+        if (isDead) return;
+        if (target == null) return; 
+
+        if (Vector2.Distance(transform.position, target.position) > attackRange + 0.5f) return;
 
         if (SoundManager.Instance != null) 
              SoundManager.Instance.PlaySFX(SoundManager.Instance.swordHit);
 
-        if (target != null)
+        // === РОЗРАХУНОК УРОНУ ===
+        int finalDamage = damage;
+        
+        if (myStats != null)
         {
-            if (target.TryGetComponent<Knight>(out Knight k)) k.TakeDamage(damage);
-            else if (target.TryGetComponent<Archer>(out Archer a)) a.TakeDamage(damage);
-            else if (target.TryGetComponent<Castle>(out Castle c))
+            UnitStats targetStats = target.GetComponent<UnitStats>();
+            if (targetStats != null)
             {
-                c.TakeDamage(damage);
-                if (CameraShake.Instance != null) CameraShake.Instance.Shake(0.1f, 0.2f); 
-                if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.castleDamage);
+                float multiplier = GameManager.GetDamageMultiplier(myStats.category, targetStats.category);
+                finalDamage = Mathf.RoundToInt(damage * multiplier);
             }
-            // === НОВЕ: Атака колючок ===
-            else if (target.TryGetComponent<Spikes>(out Spikes spikes))
-            {
-                spikes.TakeDamage(damage);
-                if (CameraShake.Instance != null) CameraShake.Instance.Shake(0.05f, 0.1f);
-            }
+        }
+
+        if (target.TryGetComponent<Knight>(out Knight k)) k.TakeDamage(finalDamage);
+        else if (target.TryGetComponent<Archer>(out Archer a)) a.TakeDamage(finalDamage);
+        else if (target.TryGetComponent<Spearman>(out Spearman s)) s.TakeDamage(finalDamage);
+        else if (target.TryGetComponent<Castle>(out Castle c))
+        {
+            c.TakeDamage(finalDamage);
+            if (CameraShake.Instance != null) CameraShake.Instance.Shake(0.1f, 0.2f); 
+            if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.castleDamage);
+        }
+        else if (target.TryGetComponent<Spikes>(out Spikes spikes))
+        {
+            spikes.TakeDamage(finalDamage);
+            if (CameraShake.Instance != null) CameraShake.Instance.Shake(0.05f, 0.1f);
         }
     }
 
@@ -242,7 +268,9 @@ public class Guard : MonoBehaviour
         if (isDead) return;
         health -= damageAmount;
         if (healthBar != null) healthBar.SetHealth(health, _maxHealth);
-        if (GameManager.Instance != null) GameManager.Instance.ShowDamage(damageAmount, transform.position);
+        
+        GameManager.CreateDamagePopup(transform.position, damageAmount);
+        
         if (health <= 0) Die();
     }
 
@@ -250,23 +278,35 @@ public class Guard : MonoBehaviour
     {
         if (isDead) return;
         isDead = true;
+        
         gameObject.tag = "Untagged"; 
 
         if (healthBar != null) healthBar.gameObject.SetActive(false);
         Transform shadow = transform.Find("Shadow");
         if (shadow != null) shadow.gameObject.SetActive(false);
 
-        if (GameManager.Instance != null)
+        // === ОНОВЛЕНО: ВИКОРИСТАННЯ EnemyStats ===
+        // Викликаємо метод GiveGold(), який сам нарахує гроші, покаже Popup і зніме ворога з обліку
+        if (TryGetComponent<EnemyStats>(out EnemyStats stats))
         {
-            GameManager.Instance.UnregisterEnemy();
-            GameManager.Instance.AddResource(ResourceType.Gold, goldReward);
-            GameManager.Instance.ShowResourcePopup(ResourceType.Gold, goldReward, transform.position);
+            stats.GiveGold();
         }
+        else
+        {
+            // Резервний варіант, якщо забули додати скрипт EnemyStats
+            if (GameManager.Instance != null) GameManager.Instance.UnregisterEnemy();
+        }
+        // ==========================================
         
         if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.enemyDeath);
 
-        if (animator) animator.enabled = false;
-        
+        if (animator)
+        {
+            animator.Rebind();
+            animator.Update(0f);
+            animator.enabled = false;
+        }
+
         if (rb) { rb.linearVelocity = Vector2.zero; rb.bodyType = RigidbodyType2D.Static; }
         
         Collider2D col = GetComponent<Collider2D>();
@@ -276,6 +316,6 @@ public class Guard : MonoBehaviour
         if (spriteRenderer != null) { spriteRenderer.color = new Color(0.6f, 0.6f, 0.6f); spriteRenderer.sortingOrder = 0; }
 
         this.enabled = false;
-        Destroy(gameObject, 10f);
+        Destroy(gameObject, 5f);
     }
 }

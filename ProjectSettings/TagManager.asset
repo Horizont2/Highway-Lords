@@ -9,6 +9,7 @@ TagManager:
   - Projectile
   - Boundary
   - PlayerUnit
+  - Castle
   layers:
   - Default
   - TransparentFX
@@ -18,10 +19,10 @@ TagManager:
   - UI
   - PlayerUnit
   - EnemyUnit
-  - 
-  - 
-  - 
-  - 
+  - Building
+  - TeamPlayer
+  - TeamEnemy
+  - VFX
   - 
   - 
   - 
@@ -45,6 +46,9 @@ TagManager:
   m_SortingLayers:
   - name: Default
     uniqueID: 0
+    locked: 0
+  - name: VFX
+    uniqueID: 3999567041
     locked: 0
   m_RenderingLayers:
   - Default

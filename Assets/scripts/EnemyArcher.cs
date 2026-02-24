@@ -1,6 +1,7 @@
 using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody2D))]
+[RequireComponent(typeof(EnemyStats))] // Автоматично додасть скрипт статистики
 public class EnemyArcher : MonoBehaviour
 {
     [Header("UI")]
@@ -11,11 +12,18 @@ public class EnemyArcher : MonoBehaviour
     public float attackRange = 6.5f;
     public float timeBetweenShots = 2.0f;
     public int damage = 10;
-    public int maxHealth = 40;
-    public int goldReward = 15;
+    public int maxHealth = 40; 
+    // public int goldReward = 15; // ВИДАЛЕНО: Тепер це в EnemyStats
     
-    // Дистанція за спиною Гвардійця
+    [Header("Навігація")]
+    public LayerMask obstacleLayer; 
+    public float avoidanceForce = 2.0f;
+
+    [Header("Поведінка")]
     private float safeDistanceBehindTank = 2.0f;
+    // Максимальна відстань, на якій ми ще чекаємо танка. 
+    // Якщо танк далі ніж 15 метрів позаду, ми не будемо його чекати.
+    private float maxTankWaitDistance = 15.0f; 
 
     [Header("Стрільба")]
     public GameObject arrowPrefab;
@@ -34,17 +42,25 @@ public class EnemyArcher : MonoBehaviour
 
     private Transform myCart;
 
+    // Кешування статів
+    private UnitStats myStats;
+
     void Start()
     {
         animator = GetComponent<Animator>();
         rb = GetComponent<Rigidbody2D>();
         spriteRenderer = GetComponent<SpriteRenderer>();
+        
+        // Отримуємо свої стати (Ranged)
+        myStats = GetComponent<UnitStats>();
+
         originalScale = transform.localScale;
 
+        // === БАЛАНС ===
         if (GameManager.Instance != null)
         {
-            maxHealth += (GameManager.Instance.currentWave - 1) * 5;
-            damage += (GameManager.Instance.currentWave - 1) * 2;
+            maxHealth = GameManager.Instance.GetDifficultyHealth();
+            damage = Mathf.RoundToInt(damage * Mathf.Pow(1.08f, GameManager.Instance.currentWave - 1));
             GameManager.Instance.RegisterEnemy();
         }
         
@@ -65,11 +81,11 @@ public class EnemyArcher : MonoBehaviour
     {
         if (isDead) return;
 
-        if (target != null && target.CompareTag("Untagged")) target = null;
+        if (target != null && (target.CompareTag("Untagged") || !target.gameObject.activeInHierarchy)) 
+            target = null;
 
         FindTarget();
 
-        // За замовчуванням стоїмо
         Vector2 finalVelocity = Vector2.zero;
         bool shouldMove = false;
 
@@ -80,35 +96,17 @@ public class EnemyArcher : MonoBehaviour
 
             if (distance > attackRange)
             {
-                // Ціль далеко - треба йти
-                // 1. ПЕРЕВІРКА: Чи не обганяємо ми Гвардійця?
                 if (ShouldWaitForTank())
                 {
-                    // Стоїмо, чекаємо танка
                     finalVelocity = Vector2.zero;
                     shouldMove = false;
-                    
-                    // Але якщо ВІЗ їде на нас - ухиляємось навіть стоячи!
-                    if (IsBlockingCart())
-                    {
-                         Vector2 evadeDir = (transform.position.y > myCart.position.y) ? Vector2.up : Vector2.down;
-                         finalVelocity = evadeDir * speed;
-                         shouldMove = true;
-                    }
+                    if (IsBlockingCart()) { finalVelocity = GetDodgeVector(); shouldMove = true; }
                 }
                 else
                 {
-                    // Ідемо до цілі
                     Vector2 direction = (target.position - transform.position).normalized;
-                    
-                    // Ухилення від воза
-                    if (IsBlockingCart())
-                    {
-                        float yDiff = transform.position.y - myCart.position.y;
-                        float avoidY = yDiff > 0 ? 1f : -1f;
-                        direction.y += avoidY * 2.5f;
-                        direction.Normalize();
-                    }
+                    if (IsBlockingCart()) direction = ApplyCartAvoidance(direction);
+                    direction = ApplyWallAvoidance(direction);
 
                     finalVelocity = direction * speed;
                     shouldMove = true;
@@ -117,11 +115,9 @@ public class EnemyArcher : MonoBehaviour
             }
             else
             {
-                // В радіусі атаки. Стоїмо і стріляємо.
                 if (IsBlockingCart())
                 {
-                    Vector2 evadeDir = (transform.position.y > myCart.position.y) ? Vector2.up : Vector2.down;
-                    finalVelocity = evadeDir * speed;
+                    finalVelocity = GetDodgeVector();
                     shouldMove = true;
                 }
                 else
@@ -137,113 +133,176 @@ public class EnemyArcher : MonoBehaviour
         }
         else
         {
-            // Рух до замку (немає цілей)
-            if (ShouldWaitForTank())
-            {
-                 // Навіть якщо немає цілей, не обганяємо танка
-                 finalVelocity = Vector2.zero;
-                 shouldMove = false;
-            }
-            else
+            if (!ShouldWaitForTank())
             {
                 Vector3 destination = transform.position + Vector3.left;
                 FaceTarget(destination);
                 Vector2 direction = (destination - transform.position).normalized;
-                
-                if (IsBlockingCart())
-                {
-                    float yDiff = transform.position.y - myCart.position.y;
-                    float avoidY = yDiff > 0 ? 1f : -1f;
-                    direction.y += avoidY * 2.5f;
-                    direction.Normalize();
-                }
+                if (IsBlockingCart()) direction = ApplyCartAvoidance(direction);
+                direction = ApplyWallAvoidance(direction);
 
                 finalVelocity = direction * speed;
                 shouldMove = true;
             }
         }
 
-        rb.linearVelocity = finalVelocity;
+        rb.linearVelocity = finalVelocity; // Використовуємо velocity для сумісності
         if (animator) animator.SetBool("IsRunning", shouldMove);
-    }
-
-    // === НОВА ЛОГІКА ПОЗИЦІОНУВАННЯ ДЛЯ ВОРОГА ===
-    bool ShouldWaitForTank()
-    {
-        // Шукаємо Гвардійців
-        Guard[] guards = FindObjectsByType<Guard>(FindObjectsSortMode.None);
-        
-        // Вороги йдуть вліво, тому "передній" край - це найменший X
-        float forwardMostX = 9999f; 
-        bool hasTank = false;
-
-        foreach (Guard g in guards)
-        {
-            if (g.CompareTag("Untagged")) continue;
-
-            if (g.transform.position.x < forwardMostX)
-            {
-                forwardMostX = g.transform.position.x;
-                hasTank = true;
-            }
-        }
-
-        if (hasTank)
-        {
-            // Якщо ми стоїмо лівіше (попереду) точки "Спина Гвардійця"
-            // Точка спини = Позиція Гвардійця + Безпечна дистанція (бо рух вліво)
-            if (transform.position.x < (forwardMostX + safeDistanceBehindTank))
-            {
-                return true; // Треба чекати
-            }
-        }
-
-        return false; 
-    }
-
-    bool IsBlockingCart()
-    {
-        if (myCart == null) return false;
-        if (transform.position.x < myCart.position.x && Vector2.Distance(transform.position, myCart.position) < 3.5f)
-        {
-            if (Mathf.Abs(transform.position.y - myCart.position.y) < 1.2f) return true;
-        }
-        return false;
     }
 
     void FindTarget()
     {
-        if (target != null && !target.CompareTag("Untagged")) return;
+        if (target != null && !target.CompareTag("Untagged"))
+        {
+             if (target.GetComponent<Castle>())
+             {
+                 if (GameManager.Instance != null && GameManager.Instance.currentSpikes != null)
+                 {
+                     float distToSpikes = Vector2.Distance(transform.position, GameManager.Instance.currentSpikes.transform.position);
+                     if (distToSpikes < attackRange) 
+                     {
+                         target = GameManager.Instance.currentSpikes.transform;
+                         return;
+                     }
+                 }
+             }
+             return;
+        }
 
         float minDistance = Mathf.Infinity;
         Transform closestTarget = null;
 
         Knight[] knights = FindObjectsByType<Knight>(FindObjectsSortMode.None);
-        foreach (Knight k in knights) {
-            float dist = Vector2.Distance(transform.position, k.transform.position);
-            if (dist < minDistance) { minDistance = dist; closestTarget = k.transform; }
-        }
+        foreach (Knight k in knights) { float d = Vector2.Distance(transform.position, k.transform.position); if (d < minDistance) { minDistance = d; closestTarget = k.transform; } }
 
         Archer[] archers = FindObjectsByType<Archer>(FindObjectsSortMode.None);
-        foreach (Archer a in archers) {
-            float dist = Vector2.Distance(transform.position, a.transform.position);
-            if (dist < minDistance) { minDistance = dist; closestTarget = a.transform; }
+        foreach (Archer a in archers) { float d = Vector2.Distance(transform.position, a.transform.position); if (d < minDistance) { minDistance = d; closestTarget = a.transform; } }
+        
+        // + Додаємо Списоносців як ціль
+        Spearman[] spearmen = FindObjectsByType<Spearman>(FindObjectsSortMode.None);
+        foreach (Spearman s in spearmen) { float d = Vector2.Distance(transform.position, s.transform.position); if (d < minDistance) { minDistance = d; closestTarget = s.transform; } }
+
+        if (GameManager.Instance != null && GameManager.Instance.currentSpikes != null)
+        {
+            float distToSpikes = Vector2.Distance(transform.position, GameManager.Instance.currentSpikes.transform.position);
+            if (distToSpikes < minDistance)
+            {
+                minDistance = distToSpikes;
+                closestTarget = GameManager.Instance.currentSpikes.transform;
+            }
         }
 
         if (closestTarget == null && GameManager.Instance != null && GameManager.Instance.castle != null)
         {
             closestTarget = GameManager.Instance.castle.transform;
         }
+        
         target = closestTarget;
+    }
+
+    public void ShootArrow()
+    {
+        if (target == null) return;
+
+        float dist = Vector2.Distance(transform.position, target.position);
+        if (dist > attackRange + 1.5f) return;
+
+        if (arrowPrefab != null && firePoint != null)
+        {
+            AimAtTarget(); 
+            GameObject arrowObj = Instantiate(arrowPrefab, firePoint.position, firePoint.rotation);
+            EnemyProjectile p = arrowObj.GetComponent<EnemyProjectile>();
+            
+            if (p != null)
+            {
+                // === НОВА ЛОГІКА УРОНУ ===
+                int finalDamage = damage;
+                
+                if (myStats != null)
+                {
+                    UnitStats targetStats = target.GetComponent<UnitStats>();
+                    if (targetStats != null)
+                    {
+                        float multiplier = GameManager.GetDamageMultiplier(myStats.category, targetStats.category);
+                        finalDamage = Mathf.RoundToInt(damage * multiplier);
+                    }
+                }
+                // =========================
+
+                p.Initialize(target.position, finalDamage);
+            }
+            
+            if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.arrowShoot);
+        }
+    }
+
+    Vector2 GetDodgeVector()
+    {
+        Vector2 evadeDir = (transform.position.y > myCart.position.y) ? Vector2.up : Vector2.down;
+        return evadeDir * speed;
+    }
+
+    Vector2 ApplyCartAvoidance(Vector2 dir)
+    {
+        float yDiff = transform.position.y - myCart.position.y;
+        float avoidY = yDiff > 0 ? 1f : -1f;
+        dir.y += avoidY * 2.5f;
+        return dir.normalized;
+    }
+
+    Vector2 ApplyWallAvoidance(Vector2 dir)
+    {
+        RaycastHit2D hit = Physics2D.Raycast(transform.position, dir, 1.5f, obstacleLayer);
+        if (hit.collider != null)
+        {
+            dir += hit.normal * avoidanceForce;
+            return dir.normalized;
+        }
+        return dir;
+    }
+
+    // === ВИПРАВЛЕНИЙ МЕТОД ОЧІКУВАННЯ ТАНКА ===
+    bool ShouldWaitForTank()
+    {
+        Guard[] guards = FindObjectsByType<Guard>(FindObjectsSortMode.None);
+        
+        float myX = transform.position.x;
+        float forwardMostX = 9999f; 
+        bool hasRelevantTank = false;
+
+        foreach (Guard g in guards) 
+        {
+            if (g.CompareTag("Untagged")) continue;
+
+            float guardX = g.transform.position.x;
+            float distanceToGuard = Mathf.Abs(myX - guardX);
+
+            // Якщо танк знаходиться лівіше (попереду) від нас
+            // І відстань до нього менша за допустиму (він не на іншому кінці карти)
+            if (guardX < myX && distanceToGuard < maxTankWaitDistance) 
+            { 
+                if (guardX < forwardMostX) forwardMostX = guardX; 
+                hasRelevantTank = true; 
+            }
+        }
+
+        // Чекаємо тільки якщо є "актуальний" танк поруч, і ми підійшли до нього надто близько
+        return hasRelevantTank && myX < (forwardMostX + safeDistanceBehindTank);
+    }
+
+    bool IsBlockingCart()
+    {
+        if (myCart == null) return false;
+        if (transform.position.x < myCart.position.x && Vector2.Distance(transform.position, myCart.position) < 3.5f)
+            if (Mathf.Abs(transform.position.y - myCart.position.y) < 1.2f) return true;
+        return false;
     }
 
     void FaceTarget(Vector3 targetPos)
     {
         float absX = Mathf.Abs(originalScale.x);
-        if (targetPos.x > transform.position.x)
-            transform.localScale = new Vector3(absX, originalScale.y, originalScale.z); 
-        else
-            transform.localScale = new Vector3(-absX, originalScale.y, originalScale.z); 
+        if (targetPos.x > transform.position.x) transform.localScale = new Vector3(absX, originalScale.y, originalScale.z); 
+        else transform.localScale = new Vector3(-absX, originalScale.y, originalScale.z); 
     }
 
     void AimAtTarget()
@@ -257,25 +316,15 @@ public class EnemyArcher : MonoBehaviour
         }
     }
 
-    public void ShootArrow()
-    {
-        if (target == null) return;
-        if (arrowPrefab != null && firePoint != null)
-        {
-            AimAtTarget(); 
-            GameObject arrowObj = Instantiate(arrowPrefab, firePoint.position, firePoint.rotation);
-            EnemyProjectile p = arrowObj.GetComponent<EnemyProjectile>();
-            if (p != null) p.Initialize(target.position, damage);
-            if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.arrowShoot);
-        }
-    }
-
     public void TakeDamage(int damageAmount)
     {
         if (isDead) return;
         currentHealth -= damageAmount;
         if (healthBar != null) healthBar.SetHealth(currentHealth, _maxHealth);
-        if (GameManager.Instance != null) GameManager.Instance.ShowDamage(damageAmount, transform.position);
+        
+        // === POPUP замість ShowDamage ===
+        GameManager.CreateDamagePopup(transform.position, damageAmount);
+        
         if (currentHealth <= 0) Die();
     }
 
@@ -283,34 +332,43 @@ public class EnemyArcher : MonoBehaviour
     {
         if (isDead) return;
         isDead = true;
+        
         gameObject.tag = "Untagged";
         
         if (healthBar != null) healthBar.gameObject.SetActive(false);
         Transform shadow = transform.Find("Shadow");
         if (shadow != null) shadow.gameObject.SetActive(false);
-
-        if (GameManager.Instance != null)
+        
+        // === ОНОВЛЕНО: ВИКОРИСТАННЯ EnemyStats ===
+        // Викликаємо метод GiveGold(), який сам нарахує гроші, покаже Popup і зніме ворога з обліку
+        if (TryGetComponent<EnemyStats>(out EnemyStats stats))
         {
-            GameManager.Instance.UnregisterEnemy();
-            GameManager.Instance.AddResource(ResourceType.Gold, goldReward);
-            GameManager.Instance.ShowResourcePopup(ResourceType.Gold, goldReward, transform.position);
+            stats.GiveGold();
         }
+        else
+        {
+            // Резервний варіант, якщо забули додати скрипт EnemyStats
+            if (GameManager.Instance != null) GameManager.Instance.UnregisterEnemy();
+        }
+        // ==========================================
         
         if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.enemyDeath);
-
-        if (animator) animator.enabled = false;
-        if (rb) rb.simulated = false;
-        Collider2D col = GetComponent<Collider2D>();
-        if (col) col.enabled = false;
-
-        transform.Rotate(0, 0, -90);
-
-        if (spriteRenderer != null)
+        
+        if (animator) 
         {
-            spriteRenderer.color = new Color(0.6f, 0.6f, 0.6f);
-            spriteRenderer.sortingOrder = 0; 
+            animator.Rebind(); 
+            animator.Update(0f); 
+            animator.enabled = false;
         }
 
+        if (rb) { rb.linearVelocity = Vector2.zero; rb.bodyType = RigidbodyType2D.Static; }
+        
+        Collider2D col = GetComponent<Collider2D>();
+        if (col) col.enabled = false;
+        
+        transform.Rotate(0, 0, -90);
+        if (spriteRenderer != null) { spriteRenderer.color = new Color(0.6f, 0.6f, 0.6f); spriteRenderer.sortingOrder = 0; }
+        
         this.enabled = false;
         Destroy(gameObject, 10f);
     }

@@ -3,18 +3,25 @@ using UnityEngine;
 public class Enemy : MonoBehaviour
 {
     [Header("Налаштування")]
-    public int baseHealth = 30; // Базове здоров'я (якщо не використовуємо складність)
+    public int baseHealth = 30; // Базове здоров'я
+    
+    // === ВАЖЛИВО: Це змінна, яку шукає EnemySpawner для розрахунку ===
+    public int goldReward = 15; 
+    
     private int currentHealth;
 
     void Start()
     {
         if (GameManager.Instance != null)
         {
-            // 1. Отримуємо здоров'я залежно від хвилі (прогресія складності)
-            // Якщо хочеш фіксоване - просто напиши: currentHealth = baseHealth;
+            // 1. Отримуємо здоров'я залежно від хвилі
             currentHealth = GameManager.Instance.GetDifficultyHealth();
 
-            // 2. ВАЖЛИВО: Реєструємо ворога, щоб заблокувати кнопку "Наступна хвиля"
+            // === НОВЕ: Оновлюємо нагороду відповідно до прогресії гри ===
+            // (Щоб на 10-й хвилі давало більше золота, ніж на 1-й)
+            goldReward = GameManager.Instance.GetGoldReward();
+
+            // 2. Реєструємо ворога
             GameManager.Instance.RegisterEnemy();
         }
         else
@@ -23,20 +30,19 @@ public class Enemy : MonoBehaviour
         }
     }
 
-    // Цей метод викликає Стріла або Лицар
     public void TakeDamage(int damage)
     {
         currentHealth -= damage;
 
-        // 3. Показуємо цифру урону над головою
+        // 3. Показуємо цифру урону
         if (GameManager.Instance != null)
         {
             GameManager.Instance.ShowDamage(damage, transform.position);
         }
         
-        // 4. Звук отримання удару (опціонально)
+        // 4. Звук отримання удару
         if (SoundManager.Instance != null) 
-             SoundManager.Instance.PlaySFX(SoundManager.Instance.swordHit); // Або інший звук
+             SoundManager.Instance.PlaySFX(SoundManager.Instance.swordHit);
 
         if (currentHealth <= 0)
         {
@@ -46,13 +52,12 @@ public class Enemy : MonoBehaviour
 
     void Die()
     {
-        // 5. ВАЖЛИВО: Повідомляємо менеджеру, що ворог помер
+        // 5. Повідомляємо менеджеру, що ворог помер
         if (GameManager.Instance != null)
         {
             GameManager.Instance.UnregisterEnemy();
 
-            // 6. Даємо гравцю золото за вбивство
-            int goldReward = GameManager.Instance.GetGoldReward();
+            // 6. Даємо гравцю золото (використовуємо нашу змінну)
             GameManager.Instance.AddResource(ResourceType.Gold, goldReward);
             
             // Показуємо іконку +монетки
@@ -63,9 +68,6 @@ public class Enemy : MonoBehaviour
         if (SoundManager.Instance != null) 
             SoundManager.Instance.PlaySFX(SoundManager.Instance.enemyDeath);
 
-        // Тут можна додати анімацію смерті перед Destroy, якщо є аніматор
-        // GetComponent<Animator>().SetTrigger("Death");
-        
         Destroy(gameObject); 
     }
 }

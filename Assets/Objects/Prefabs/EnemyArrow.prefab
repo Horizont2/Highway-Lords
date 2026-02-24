@@ -15,7 +15,7 @@ GameObject:
   - component: {fileID: 7437373239881652353}
   m_Layer: 0
   m_Name: EnemyArrow
-  m_TagString: Untagged
+  m_TagString: Projectile
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -106,9 +106,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 589cf655b1483ca42a928f932ca5123c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyProjectile
-  speed: 10
-  damage: 10
-  lifeTime: 3
 --- !u!50 &1034535308101945558
 Rigidbody2D:
   serializedVersion: 5

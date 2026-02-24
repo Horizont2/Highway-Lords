@@ -291,3 +291,4 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DamagePopup
   iconSprite: {fileID: 460574486064860089}
+  resourceIconOffset: {x: 0.5, y: 0, z: 0}

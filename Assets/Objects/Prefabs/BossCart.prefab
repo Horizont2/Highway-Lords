@@ -15,6 +15,8 @@ GameObject:
   - component: {fileID: 8308370141495067914}
   - component: {fileID: -1030058147471789214}
   - component: {fileID: 8529373104960530153}
+  - component: {fileID: 3734196125569696418}
+  - component: {fileID: 6771155020629366135}
   m_Layer: 7
   m_Name: BossCart
   m_TagString: Enemy
@@ -135,7 +137,6 @@ MonoBehaviour:
   speed: 1.5
   maxHealth: 300
   healthBarFill: {fileID: 1351862025453716701}
-  goldAmount: 150
   woodChance: 100
   woodAmount: 50
   stoneChance: 100
@@ -226,6 +227,33 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c67b7f205f38acb49a2cc2444d6ba5c2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemySelector
+--- !u!114 &3734196125569696418
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1746554694460533465}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cee56501453cf354aa2932f39abe1833, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UnitStats
+  category: 4
+--- !u!114 &6771155020629366135
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1746554694460533465}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e24c8a0e4c32de341be2bc8c90c77f1c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyStats
+  baseGoldReward: 150
+  currentGoldReward: 0
 --- !u!1 &3966743509972369711
 GameObject:
   m_ObjectHideFlags: 0
@@ -238,7 +266,7 @@ GameObject:
   - component: {fileID: 1202555080164547193}
   - component: {fileID: 6371079305182092966}
   m_Layer: 7
-  m_Name: Background
+  m_Name: Border
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -260,8 +288,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 0}
   m_AnchorMax: {x: 1, y: 0}
-  m_AnchoredPosition: {x: -262, y: -196}
-  m_SizeDelta: {x: 250, y: 30}
+  m_AnchoredPosition: {x: -261.83, y: -195.91}
+  m_SizeDelta: {x: 266.17, y: 43.1}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &1202555080164547193
 CanvasRenderer:
@@ -284,14 +312,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 0.554717, g: 0.12873617, b: 0.12873617, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 7482667652216324306, guid: 10fba06c99c32884994d984a75ea0fd3, type: 3}
+  m_Sprite: {fileID: -8852995704630408839, guid: c3f9115ca415e814babf9c08fa3e74c0, type: 3}
   m_Type: 3
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -462,7 +490,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 0.066037595, g: 1, b: 0.2473657, a: 1}
+  m_Color: {r: 1, g: 0.16440928, b: 0.06666666, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1

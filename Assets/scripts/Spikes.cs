@@ -2,48 +2,87 @@ using UnityEngine;
 
 public class Spikes : MonoBehaviour
 {
+    [Header("UI")]
+    public HealthBar healthBar; // Не забудь перетягнути сюди HealthBarCanvas з префабу
+
     [Header("Характеристики")]
-    public int maxHealth = 300;
-    public int currentHealth;
+    public int health = 300; 
+    private int maxHealth;
+
+    [Header("Ефекти")]
+    public GameObject destroyEffect; // Опціонально: ефект вибуху/трісок
 
     void Start()
     {
-        currentHealth = maxHealth;
-        
-        // Реєструємося в менеджері, щоб всі знали, що колючки існують
+        maxHealth = health;
+
+        // 1. Реєструємось у GameManager
         if (GameManager.Instance != null)
         {
+            // Якщо раптом стара барикада ще існує - видаляємо її
+            if (GameManager.Instance.currentSpikes != null && GameManager.Instance.currentSpikes != this)
+            {
+                Destroy(GameManager.Instance.currentSpikes.gameObject);
+            }
             GameManager.Instance.currentSpikes = this;
-            GameManager.Instance.UpdateUI(); // Оновлюємо кнопки (блокуємо кнопку будівництва)
+        }
+
+        // 2. Налаштовуємо Health Bar
+        if (healthBar != null)
+        {
+            healthBar.targetTransform = transform; // Прив'язуємо бар до барикади
+            healthBar.SetHealth(health, maxHealth);
         }
     }
 
     public void TakeDamage(int damage)
     {
-        currentHealth -= damage;
-        
+        health -= damage;
+
+        // Оновлюємо смужку життя
+        if (healthBar != null)
+        {
+            healthBar.SetHealth(health, maxHealth);
+        }
+
+        // Показуємо цифри шкоди
         if (GameManager.Instance != null)
         {
             GameManager.Instance.ShowDamage(damage, transform.position);
         }
-
-        if (currentHealth <= 0)
+        
+        // Легка тряска камери
+        if (CameraShake.Instance != null) 
         {
-            Die();
+            CameraShake.Instance.Shake(0.05f, 0.1f);
+        }
+
+        if (health <= 0)
+        {
+            BreakSpikes();
         }
     }
 
-    void Die()
+    void BreakSpikes()
     {
-        // Повідомляємо менеджеру, що колючок більше немає
+        // Повідомляємо менеджеру, що барикади більше немає
         if (GameManager.Instance != null)
         {
             GameManager.Instance.currentSpikes = null;
-            GameManager.Instance.UpdateUI(); // Розблокуємо кнопку будівництва
+            GameManager.Instance.UpdateUI(); // Оновлюємо кнопку, щоб можна було будувати знову
         }
 
-        if (SoundManager.Instance != null) 
-            SoundManager.Instance.PlaySFX(SoundManager.Instance.woodBreak); 
+        // Звук руйнування (використовуємо castleDamage, щоб не було помилок)
+        if (SoundManager.Instance != null)
+        {
+            SoundManager.Instance.PlaySFX(SoundManager.Instance.castleDamage);
+        }
+
+        // Ефект руйнування
+        if (destroyEffect != null)
+        {
+            Instantiate(destroyEffect, transform.position, Quaternion.identity);
+        }
 
         Destroy(gameObject);
     }

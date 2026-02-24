@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 
 [RequireComponent(typeof(Rigidbody2D))]
+[RequireComponent(typeof(EnemyStats))] // Інтеграція зі статистикою
 public class Cart : MonoBehaviour
 {
     [Header("Статус")]
@@ -15,8 +16,7 @@ public class Cart : MonoBehaviour
     [Header("UI")]
     public Image healthBarFill; 
 
-    [Header("Нагорода (Золото)")]
-    public int goldAmount = 50; 
+    // goldAmount видалено звідси, бо тепер це керується EnemyStats
     
     [Header("Ресурси (Дерево)")]
     [Range(0, 100)] public int woodChance = 50; 
@@ -31,22 +31,25 @@ public class Cart : MonoBehaviour
     
     // Компоненти
     private Rigidbody2D rb;
-    private Animator animator; // === НОВЕ: Аніматор ===
+    private Animator animator;
+    private EnemyStats enemyStats; // Посилання на статистику
 
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
-        animator = GetComponent<Animator>(); // Отримуємо аніматор
+        animator = GetComponent<Animator>();
+        enemyStats = GetComponent<EnemyStats>();
 
-        // === ВАЖЛИВО: Фізика щоб не падав ===
+        // Фізика
         rb.gravityScale = 0; 
         rb.freezeRotation = true; 
         
         int difficultyHealth = 50;
+        
         if (GameManager.Instance != null)
         {
             difficultyHealth = GameManager.Instance.GetDifficultyHealth();
-            goldAmount = GameManager.Instance.GetGoldReward();
+            // goldAmount тепер автоматично підтягується в EnemyStats через GameManager
         }
 
         if (isBoss)
@@ -54,6 +57,9 @@ public class Cart : MonoBehaviour
             maxHealth = difficultyHealth * 5; 
             transform.localScale = transform.localScale * 1.5f; 
             speed = speed * 0.7f; 
+            
+            // Якщо це бос, збільшуємо нагороду в статистиці
+            if (enemyStats != null) enemyStats.baseGoldReward *= 3;
         }
         else
         {
@@ -99,8 +105,8 @@ public class Cart : MonoBehaviour
     {
         currentHealth -= damage;
         
-        if (GameManager.Instance != null)
-            GameManager.Instance.ShowDamage(damage, transform.position);
+        // Popup
+        GameManager.CreateDamagePopup(transform.position, damage);
             
         UpdateHealthBar(); 
         
@@ -126,10 +132,18 @@ public class Cart : MonoBehaviour
 
         if (GameManager.Instance != null)
         {
-            int finalGold = isBoss ? goldAmount * 3 : goldAmount;
-            GameManager.Instance.AddResource(ResourceType.Gold, finalGold);
-            GameManager.Instance.ShowResourcePopup(ResourceType.Gold, finalGold, transform.position + Vector3.up * 0.5f);
+            // 1. ЗОЛОТО (через EnemyStats)
+            if (enemyStats != null)
+            {
+                enemyStats.GiveGold();
+            }
+            else
+            {
+                // Резерв (якщо раптом статів немає)
+                GameManager.Instance.AddResource(ResourceType.Gold, 50); 
+            }
 
+            // 2. ДЕРЕВО (Додатковий дроп)
             if (isBoss || Random.Range(0, 100) < woodChance)
             {
                 GameManager.Instance.AddResource(ResourceType.Wood, woodAmount);
@@ -137,6 +151,7 @@ public class Cart : MonoBehaviour
                 GameManager.Instance.ShowResourcePopup(ResourceType.Wood, woodAmount, woodPos);
             }
 
+            // 3. КАМІНЬ (Додатковий дроп)
             if (isBoss || Random.Range(0, 100) < stoneChance)
             {
                 GameManager.Instance.AddResource(ResourceType.Stone, stoneAmount);

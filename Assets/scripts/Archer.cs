@@ -1,5 +1,4 @@
 using UnityEngine;
-using System.Collections;
 
 [RequireComponent(typeof(Rigidbody2D))]
 public class Archer : MonoBehaviour
@@ -13,31 +12,36 @@ public class Archer : MonoBehaviour
     public float attackRate = 0.8f;
     public int maxHealth = 80;
 
+    [Header("Навігація")]
+    public LayerMask obstacleLayer; 
+    public float checkDistance = 1.5f; 
+    public float avoidanceForce = 2.0f; 
+
     [Header("Стрільба")]
     public GameObject arrowPrefab;
     public Transform firePoint;
-    public float arrowSpawnDelay = 0.3f; // Затримка для синхронізації з анімацією
 
     [Header("Компоненти")]
     public Animator animator;
     public SpriteRenderer spriteRenderer;
 
     public int currentHealth;
-
     private int myDamage;
     private float nextAttackTime = 0f;
     private Vector3 originalScale;
-
     private Transform target; 
     private Rigidbody2D rb; 
     private bool isDead = false;
 
-    // === ПАТРУЛЬ ===
+    // Патруль
     private Vector3 startPoint;
     public float patrolRadius = 2.5f;
     private Vector3 currentPatrolTarget;
     private float patrolWaitTimer = 0f;
     private bool isWaiting = false;
+
+    // Кешування статів
+    private UnitStats myStats;
 
     void Start()
     {
@@ -46,10 +50,11 @@ public class Archer : MonoBehaviour
         rb.gravityScale = 0; 
         rb.freezeRotation = true; 
 
-        // === АВТОМАТИЧНЕ ПІДКЛЮЧЕННЯ КОМПОНЕНТІВ ===
         if(spriteRenderer == null) spriteRenderer = GetComponent<SpriteRenderer>();
         if(animator == null) animator = GetComponent<Animator>(); 
-        // ============================================
+        
+        // Отримуємо свої стати (категорію Ranged)
+        myStats = GetComponent<UnitStats>();
 
         startPoint = transform.position;
         originalScale = transform.localScale;
@@ -64,6 +69,7 @@ public class Archer : MonoBehaviour
             healthBar.SetHealth(currentHealth, maxHealth);
         }
 
+        // Отримуємо базовий урон (враховуючи рівень і Бойовий Ріг)
         if (GameManager.Instance != null)
         {
             myDamage = GameManager.Instance.GetArcherDamage();
@@ -82,6 +88,12 @@ public class Archer : MonoBehaviour
     void Update()
     {
         if (isDead) return;
+        
+        // Оновлюємо урон щокадру, щоб врахувати активацію Рогу (GlobalDamageMultiplier)
+        if (GameManager.Instance != null)
+        {
+            myDamage = GameManager.Instance.GetArcherDamage();
+        }
         
         if (target != null && (target.CompareTag("Untagged") || !target.gameObject.activeInHierarchy)) 
             target = null;
@@ -106,13 +118,12 @@ public class Archer : MonoBehaviour
 
         if (distance <= attackRange)
         {
-            // Повна зупинка
             rb.linearVelocity = Vector2.zero; 
             if (animator) animator.SetBool("IsMoving", false);
 
             if (Time.time >= nextAttackTime)
             {
-                StartCoroutine(AttackRoutine());
+                StartAttack();
                 nextAttackTime = Time.time + 1f / attackRate;
             }
         }
@@ -122,22 +133,27 @@ public class Archer : MonoBehaviour
         }
     }
 
-    IEnumerator AttackRoutine()
+    void StartAttack()
     {
-        if (target == null) yield break;
+        if (animator != null) animator.SetTrigger("Attack");
+    }
 
-        // === ДІАГНОСТИКА ===
-        if (animator != null)
+    // === ВИКЛИКАЄТЬСЯ З АНІМАЦІЇ ===
+    public void ShootArrow()
+    {
+        if (isDead) return;
+
+        if (target == null || target.CompareTag("Untagged") || !target.gameObject.activeInHierarchy) 
+            return;
+
+        float dist = Vector2.Distance(transform.position, target.position);
+        
+        if (dist > attackRange + 1.5f) 
         {
-            // Debug.Log("⚔️ Спроба анімації Attack!"); // Розкоментуй, якщо хочеш бачити в консолі
-            animator.SetTrigger("Attack");
+            return; 
         }
-        // ===================
 
-        // Чекаємо поки лучник натягне тятиву
-        yield return new WaitForSeconds(arrowSpawnDelay);
-
-        if (target != null && arrowPrefab != null && firePoint != null)
+        if (arrowPrefab != null && firePoint != null)
         {
             if (SoundManager.Instance != null) 
                 SoundManager.Instance.PlaySFX(SoundManager.Instance.arrowShoot);
@@ -147,7 +163,23 @@ public class Archer : MonoBehaviour
             
             if (arrowScript != null)
             {
-                arrowScript.Initialize(target, myDamage);
+                // === НОВА ЛОГІКА РОЗРАХУНКУ УРОНУ ===
+                int finalDamage = myDamage;
+
+                // Перевіряємо бонуси категорій (наприклад, по кавалерії)
+                if (myStats != null)
+                {
+                    UnitStats targetStats = target.GetComponent<UnitStats>();
+                    if (targetStats != null)
+                    {
+                        float multiplier = GameManager.GetDamageMultiplier(myStats.category, targetStats.category);
+                        finalDamage = Mathf.RoundToInt(myDamage * multiplier);
+                    }
+                }
+                // =====================================
+
+                // Передаємо стрілі вже готовий, порахований урон
+                arrowScript.Initialize(target, finalDamage);
             }
         }
     }
@@ -187,9 +219,25 @@ public class Archer : MonoBehaviour
 
     void MoveTo(Vector3 targetPosition)
     {
+        if (Vector2.Distance(transform.position, targetPosition) < 0.1f)
+        {
+            rb.linearVelocity = Vector2.zero;
+            if (animator) animator.SetBool("IsMoving", false);
+            return;
+        }
+
         if (animator) animator.SetBool("IsMoving", true);
         FlipSprite(targetPosition.x);
+
         Vector2 direction = (targetPosition - transform.position).normalized;
+
+        RaycastHit2D hit = Physics2D.Raycast(transform.position, direction, checkDistance, obstacleLayer);
+        if (hit.collider != null)
+        {
+            direction += hit.normal * avoidanceForce;
+            direction.Normalize(); 
+        }
+
         rb.linearVelocity = direction * speed;
     }
 
@@ -204,8 +252,13 @@ public class Archer : MonoBehaviour
 
     void FindNearestTarget()
     {
-        if (target != null && Vector2.Distance(transform.position, target.position) <= attackRange 
-            && target.gameObject.activeInHierarchy && !target.CompareTag("Untagged")) return;
+        if (target != null 
+            && !target.CompareTag("Untagged") 
+            && target.gameObject.activeInHierarchy
+            && Vector2.Distance(transform.position, target.position) <= attackRange) 
+        {
+            return;
+        }
 
         float shortestDist = Mathf.Infinity;
         GameObject[] enemies = GameObject.FindGameObjectsWithTag("Enemy");
@@ -216,7 +269,7 @@ public class Archer : MonoBehaviour
             if (go.CompareTag("Untagged")) continue;
             float dist = Vector2.Distance(transform.position, go.transform.position);
             
-            if (dist < shortestDist && dist <= attackRange * 1.5f) 
+            if (dist < shortestDist && dist <= attackRange * 2.0f) 
             {
                 shortestDist = dist;
                 nearest = go.transform;
@@ -229,8 +282,13 @@ public class Archer : MonoBehaviour
     {
         if (isDead) return;
         currentHealth -= damage;
+        
         if (healthBar != null) healthBar.SetHealth(currentHealth, maxHealth);
-        if (GameManager.Instance != null) GameManager.Instance.ShowDamage(damage, transform.position);
+        
+        // === НОВИЙ ВІЗУАЛ (POPUP) ===
+        // Викликаємо новий метод для тексту
+        GameManager.CreateDamagePopup(transform.position, damage);
+        
         if (currentHealth <= 0) Die();
     }
 
@@ -246,7 +304,13 @@ public class Archer : MonoBehaviour
 
         if (GameManager.Instance != null) { GameManager.Instance.currentUnits--; GameManager.Instance.UpdateUI(); }
         if (healthBar != null) healthBar.gameObject.SetActive(false);
-        if (animator) animator.enabled = false;
+
+        if (animator)
+        {
+            animator.Rebind();
+            animator.Update(0f);
+            animator.enabled = false;
+        }
 
         transform.Rotate(0, 0, -90);
         if (spriteRenderer != null) { spriteRenderer.color = Color.gray; spriteRenderer.sortingOrder = 0; }

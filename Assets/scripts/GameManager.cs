@@ -2,37 +2,63 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using System.Collections; 
-using System.Collections.Generic; // Для списків (List)
+using System.Collections.Generic;
+
+// ПРИМІТКА: Класи GameSaveData та UnitSaveData знаходяться у вашому файлі GameSaveData.cs
 
 public enum ResourceType { Gold, Wood, Stone }
+
+public enum UnitCategory 
+{ 
+    Standard,   // Лицарі, Гвардійці
+    Ranged,     // Лучники
+    Cavalry,    // Кіннота
+    Spearman,   // Списоносці
+    Building    // Замок, Стіни
+}
 
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance;
 
     // ==========================================
-    // === НОВЕ: СИСТЕМА ПРИЦІЛЮВАННЯ ===
+    // === СИСТЕМА ПРИЦІЛЮВАННЯ ===
     // ==========================================
     [Header("Система прицілювання")]
-    public Transform manualTarget; // Ціль, яку вибрав гравець
-    public TargetIndicator targetIndicator; // Посилання на об'єкт курсора (червоний круг)
+    public Transform manualTarget; 
+    public TargetIndicator targetIndicator; 
     
     public void SetManualTarget(Transform target)
     {
         manualTarget = target;
         if (targetIndicator != null) targetIndicator.Show(target);
     }
-    // ==========================================
 
-    [Header("=== БАЛАНС: ЕКОНОМІКА І СКЛАДНІСТЬ ===")]
-    public float enemyHpGrowth = 1.10f;     
+    [Header("=== БАЛАНС (НОВИЙ) ===")]
+    public float enemyHpGrowth = 1.12f;     
     public float goldRewardGrowth = 1.08f;  
     public float upgradeCostGrowth = 1.20f; 
     
-    // Експоненти для сили
-    private float knightPowerExp = 2.1f;    
-    private float archerPowerExp = 1.95f;   
-    private float towerPowerExp = 2.2f;     
+    [HideInInspector] public float globalDamageMultiplier = 1.0f;
+
+    // === МАТРИЦЯ УРОНУ ===
+    public static float GetDamageMultiplier(UnitCategory attacker, UnitCategory defender)
+    {
+        if (attacker == UnitCategory.Spearman && defender == UnitCategory.Cavalry) return 2.0f;
+        if (attacker == UnitCategory.Cavalry && (defender == UnitCategory.Standard || defender == UnitCategory.Ranged)) return 1.5f;
+        if (attacker == UnitCategory.Cavalry && defender == UnitCategory.Spearman) return 0.5f;
+        return 1.0f;
+    }
+
+    public static void CreateDamagePopup(Vector3 position, int damageAmount, bool isCritical = false)
+    {
+        if (Instance != null && Instance.damagePopupPrefab != null)
+        {
+            GameObject popupObj = Instantiate(Instance.damagePopupPrefab, position, Quaternion.identity);
+            DamagePopup popup = popupObj.GetComponent<DamagePopup>();
+            if (popup != null) popup.Setup(damageAmount, isCritical);
+        }
+    }
 
     [Header("=== НАЛАШТУВАННЯ АВТО-СТАРТУ ===")]
     public float timeBetweenWaves = 5.0f; 
@@ -51,39 +77,79 @@ public class GameManager : MonoBehaviour
     public Button upgradeLimitButton;       
     public TMP_Text upgradeLimitPriceText;  
 
+    public Button unlockSpearmanButton;     
+    public TMP_Text unlockSpearmanPriceText;
+
+    [Header("UI: Статистика (НОВЕ)")]
+    public TMP_Text estimatedIncomeText; // Сюди перетягніть текст для відображення доходу
+
     [Header("Налаштування Казарми")]
     public GameObject barracksPrefab;       
     public Transform barracksSpawnPoint;    
+    
+    public int barracksLevel = 0;           
+    public int barracksBaseCap = 5;         
+    public int slotsPerLevel = 3;           
+
     public int barracksCostGold = 200;
     public int barracksCostWood = 100;
     
-    private bool isBarracksBuilt = false;      
-    private GameObject currentBarracksObject;  
+    private bool isBarracksBuilt = false;       
+    private GameObject currentBarracksObject;   
 
-    // === КОЛЮЧКИ (SPIKES) ===
+    [Header("=== ШАХТА (GOLD MINE) ===")]
+    public GameObject minePrefab;           
+    public Transform mineSpawnPoint;        
+    public Button buildMineButton;          
+    public TMP_Text minePriceText;          
+    
+    public int mineLevel = 0; 
+    
+    public int mineBuildCostWood = 150;
+    public int mineBuildCostStone = 50;
+
+    public int mineUpgradeBaseWood = 200;
+    public int mineUpgradeBaseStone = 100;
+    
+    private bool isMineBuilt = false;
+    private GameObject currentMineObject;
+
     [Header("Захисні споруди (Spikes)")]
     public GameObject spikesPrefab;
-    public Transform spikesSpawnPoint; // Точка перед замком
+    public Transform spikesSpawnPoint; 
     public int spikesWoodCost = 100;
-    public Button buildSpikesButton;   // Кнопка в UI
+    public Button buildSpikesButton;   
     public TMP_Text spikesPriceText;
     
-    [HideInInspector] public Spikes currentSpikes; // Посилання на активні колючки
+    [HideInInspector] public Spikes currentSpikes; 
 
     [Header("UI: Магазин (Кузня)")]
-    public GameObject shopPanel;           
+    public GameObject shopPanel;
+    public GameObject spearmanForgeRow; 
+    
     public Button upgradeKnightButton;     
-    public Button upgradeArcherButton;     
+    public Button upgradeArcherButton;
+    public Button upgradeSpearmanButton; 
+    
     public TMP_Text knightLevelText; 
     public TMP_Text knightPriceText; 
     public TMP_Text archerLevelText;
     public TMP_Text archerPriceText; 
+    public TMP_Text spearmanLevelText;   
+    public TMP_Text spearmanPriceText;   
 
     [Header("UI: Головний екран")]
     public Button hireKnightButton; 
     public Button hireArcherButton; 
+    public Button hireSpearmanButton;    
+    
     public Button openShopButton;         
     public Button towerButton;      
+
+    [Header("UI: Прогрес Хвилі")]
+    public Slider waveTimerBar; 
+    private int totalEnemiesInWave = 1; 
+    private int enemiesKilledInWave = 0; 
     
     [Header("Управління Хвилею")]
     public Button nextWaveButton;   
@@ -97,9 +163,10 @@ public class GameManager : MonoBehaviour
     public Transform towerTransform;       
     public EnemySpawner spawner; 
 
-    [Header("Спрайти кнопок")]
-    public Sprite buttonActiveSprite;      
-    public Sprite buttonDisabledSprite;    
+    // === СПРАЙТИ ДЛЯ КНОПОК ===
+    [Header("Спрайти Кнопок")]
+    public Sprite buildButtonSprite;   // Сюди перетягни спрайт "Build"
+    public Sprite upgradeButtonSprite; // Сюди перетягни спрайт "Upgrade"
 
     [Header("Зони")]
     public Transform leftBoundary;
@@ -131,19 +198,26 @@ public class GameManager : MonoBehaviour
     [Header("Баланс: Війська")]
     public GameObject knightPrefab;
     public GameObject archerPrefab; 
+    public GameObject spearmanPrefab; 
     public Transform unitSpawnPoint;
     
-    // === НОВЕ: ФІКСОВАНІ ЦІНИ ===
-    [Header("Ціни на найм (Фіксовані)")]
+    [Header("Ціни на найм")]
     public int knightFixedCost = 50; 
     public int archerFixedCost = 75;
-    // public int unitCost = 50; // СТАРА ЗМІННА (ВИДАЛЕНА/ЗАКОМЕНТОВАНА)
+    public int spearmanFixedCost = 60; 
     
     [Header("Рівні Технологій")]
     public int knightLevel = 1;      
     public int archerLevel = 1;      
+    public int spearmanLevel = 1;      
+    
     public int knightUpgradeCost = 100;
     public int archerUpgradeCost = 120; 
+    public int spearmanUpgradeCost = 110; 
+
+    [Header("Розблокування (Unlock)")]
+    public bool isSpearmanUnlocked = false; 
+    public int spearmanUnlockCost = 500;    
 
     [Header("Ліміт військ")]
     public int maxUnits = 5;          
@@ -157,7 +231,7 @@ public class GameManager : MonoBehaviour
     [Header("Баланс: Хвилі")]
     public int currentWave = 1;
     public int baseGoldReward = 15; 
-    public int baseEnemyHealth = 40; 
+    public int baseEnemyHealth = 50; 
 
     private bool isWaveInProgress = false;
 
@@ -171,6 +245,12 @@ public class GameManager : MonoBehaviour
 
     void Start()
     {
+        // === АВТОМАТИЧНЕ НАЛАШТУВАННЯ КНОПОК ===
+        SetupAllButtons(); 
+        // ======================================
+
+        RecalculateUnits();
+        
         enemiesAlive = 0;
         UpdateUI();
         
@@ -179,21 +259,64 @@ public class GameManager : MonoBehaviour
         if (constructionPanel) constructionPanel.SetActive(false);
         if (barracksUpgradePanel) barracksUpgradePanel.SetActive(false);
         
+        if (waveTimerBar != null)
+        {
+            waveTimerBar.gameObject.SetActive(true);
+            waveTimerBar.maxValue = 1f;
+            waveTimerBar.value = 1f;
+        }
+
         UpdateBarracksStateUI();
 
         if (autoStartWaves)
         {
             StartCoroutine(AutoStartNextWave(3.0f));
         }
+
+        StartCoroutine(WaveWatchdog());
     }
 
-    // =========================================================
-    //              МАТЕМАТИКА БАЛАНСУ
-    // =========================================================
+    IEnumerator WaveWatchdog()
+    {
+        while (true)
+        {
+            yield return new WaitForSeconds(2.0f);
+            if (isWaveInProgress && enemiesAlive > 0)
+            {
+                GameObject[] realEnemies = GameObject.FindGameObjectsWithTag("Enemy");
+                if (realEnemies.Length == 0)
+                {
+                    Debug.LogWarning("Watchdog: Forced wave end.");
+                    enemiesAlive = 0;
+                    UpdateUI();
+                    isWaveInProgress = false;
+                    
+                    // Хвиля завершена через Watchdog
+                    if (spawner != null) spawner.StopSpawning();
 
+                    if (autoStartWaves) StartCoroutine(AutoStartNextWave(timeBetweenWaves));
+                }
+                else if (enemiesAlive != realEnemies.Length)
+                {
+                    enemiesAlive = realEnemies.Length;
+                    UpdateUI();
+                }
+            }
+        }
+    }
+
+    void RecalculateUnits()
+    {
+        var knights = FindObjectsByType<Knight>(FindObjectsSortMode.None);
+        var archers = FindObjectsByType<Archer>(FindObjectsSortMode.None);
+        var spearmen = FindObjectsByType<Spearman>(FindObjectsSortMode.None); 
+        currentUnits = knights.Length + archers.Length + spearmen.Length;
+    }
+
+    // === БАЛАНС ===
     public int GetDifficultyHealth()
     {
-        return Mathf.RoundToInt(baseEnemyHealth * Mathf.Pow(enemyHpGrowth, currentWave));
+        return Mathf.RoundToInt(baseEnemyHealth * Mathf.Pow(enemyHpGrowth, currentWave - 1));
     }
 
     public int GetGoldReward() 
@@ -203,36 +326,87 @@ public class GameManager : MonoBehaviour
 
     public int GetKnightDamage()
     {
-        return 10 + (int)Mathf.Pow(knightLevel, knightPowerExp);
+        int baseDmg = 10 + ((knightLevel - 1) * 5);
+        return Mathf.RoundToInt(baseDmg * globalDamageMultiplier);
     }
 
     public int GetArcherDamage()
     {
-        return 8 + (int)Mathf.Pow(archerLevel, archerPowerExp);
+        int baseDmg = 8 + ((archerLevel - 1) * 3);
+        return Mathf.RoundToInt(baseDmg * globalDamageMultiplier);
+    }
+
+    public int GetSpearmanDamage()
+    {
+        int baseDmg = 12 + ((spearmanLevel - 1) * 6);
+        return Mathf.RoundToInt(baseDmg * globalDamageMultiplier);
     }
 
     public int GetTowerDamage()
     {
-        return 30 + (int)Mathf.Pow(towerLevel, towerPowerExp);
+        int baseDmg = 25 + ((towerLevel - 1) * 8);
+        return Mathf.RoundToInt(baseDmg * globalDamageMultiplier);
     }
 
-    // =========================================================
+    public int GetBarracksCapLimit()
+    {
+        if (barracksLevel == 0) return 0;
+        return barracksBaseCap + ((barracksLevel - 1) * slotsPerLevel);
+    }
 
-    // === УПРАВЛІННЯ ВОРОГАМИ ===
+    public int GetBarracksBuildingUpgradeCost(bool isGold)
+    {
+        float multiplier = Mathf.Pow(1.5f, barracksLevel); 
+        int cost = isGold ? barracksCostGold : barracksCostWood;
+        return Mathf.RoundToInt(cost * multiplier);
+    }
+
+    public int GetMineUpgradeCost(bool isWood)
+    {
+        if (mineLevel == 0) return isWood ? mineBuildCostWood : mineBuildCostStone;
+        else
+        {
+            float multiplier = Mathf.Pow(1.5f, mineLevel - 1);
+            int baseCost = isWood ? mineUpgradeBaseWood : mineUpgradeBaseStone;
+            return Mathf.RoundToInt(baseCost * multiplier);
+        }
+    }
+
+    // === ЛОГІКА ХВИЛІ ===
+    public void InitWaveProgress(int totalEnemies)
+    {
+        totalEnemiesInWave = totalEnemies;
+        enemiesKilledInWave = 0;
+
+        if (waveTimerBar != null)
+        {
+            waveTimerBar.gameObject.SetActive(true);
+            waveTimerBar.maxValue = 1f;
+            waveTimerBar.value = 1f;
+        }
+    }
+
     public void RegisterEnemy() 
     { 
         enemiesAlive++; 
         isWaveInProgress = true;
         UpdateUI(); 
     }
-
+    
     public void UnregisterEnemy() 
     { 
         enemiesAlive--; 
+        enemiesKilledInWave++; 
+        
+        if (waveTimerBar != null && totalEnemiesInWave > 0)
+        {
+            float progress = 1f - ((float)enemiesKilledInWave / totalEnemiesInWave);
+            waveTimerBar.value = progress;
+        }
+
         if(enemiesAlive < 0) enemiesAlive = 0; 
         UpdateUI(); 
 
-        // Якщо ціль, яку ми вибрали, померла - скидаємо вибір
         if (manualTarget != null && !manualTarget.gameObject.activeInHierarchy)
         {
              manualTarget = null;
@@ -241,6 +415,12 @@ public class GameManager : MonoBehaviour
         if (enemiesAlive == 0 && isWaveInProgress)
         {
             isWaveInProgress = false;
+            
+            // Ховаємо панель ворогів, бо хвиля скінчилась
+            if (spawner != null) spawner.StopSpawning();
+
+            if (waveTimerBar != null) waveTimerBar.value = 1f;
+
             if (autoStartWaves)
             {
                 StartCoroutine(AutoStartNextWave(timeBetweenWaves));
@@ -254,7 +434,6 @@ public class GameManager : MonoBehaviour
         NextWave();
     }
 
-    // === ХВИЛІ ===
     public void NextWave()
     {
         if (enemiesAlive > 0) return;
@@ -264,56 +443,65 @@ public class GameManager : MonoBehaviour
              currentWave++;
         }
 
-        if (castle != null) 
-        {
-            castle.HealMax(); 
-        }
+        if (castle != null) castle.HealMax(); 
         
-        // Скидаємо ручну ціль при новій хвилі
         manualTarget = null;
         if(targetIndicator) targetIndicator.Hide();
 
         SaveGame(); 
-        UpdateUI();
         
-        if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.waveStart);
+        if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.waveStart, 0.4f);
         
+        // ВАЖЛИВО: Спочатку запускаємо хвилю (спавнер готує список), потім оновлюємо UI
         if (spawner != null) spawner.StartWave(currentWave);
+        UpdateUI();
         
         isWaveInProgress = true;
     }
 
-    // === БУДІВНИЦТВО КАЗАРМИ ===
+    // === БУДІВНИЦТВО ===
     public void ToggleConstructionMenu()
     {
         if (constructionPanel)
         {
             bool isActive = !constructionPanel.activeSelf;
             constructionPanel.SetActive(isActive);
-            if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.clickSound);
+            if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.clickSound, 2.0f);
 
             if (isActive) 
             { 
                 barracksUpgradePanel.SetActive(false); 
                 shopPanel.SetActive(false); 
+                UpdateBarracksStateUI(); 
             }
         }
     }
 
-    public void BuildBarracks()
+    public void BuildOrUpgradeBarracks()
     {
-        if (isBarracksBuilt) return; 
+        int costG = GetBarracksBuildingUpgradeCost(true);
+        int costW = GetBarracksBuildingUpgradeCost(false);
 
-        if (gold >= barracksCostGold && wood >= barracksCostWood)
+        if (gold >= costG && wood >= costW)
         {
-            gold -= barracksCostGold; 
-            wood -= barracksCostWood;
+            gold -= costG; 
+            wood -= costW;
             
-            SpawnBarracksObject();
-            isBarracksBuilt = true;
+            if (barracksLevel == 0)
+            {
+                SpawnBarracksObject();
+                barracksLevel = 1;
+                maxUnits = barracksBaseCap; 
+                isBarracksBuilt = true;
+            }
+            else
+            {
+                barracksLevel++;
+                if (upgradeEffectPrefab != null && currentBarracksObject != null)
+                    Instantiate(upgradeEffectPrefab, currentBarracksObject.transform.position, Quaternion.identity);
+            }
             
             if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.constructionSound); 
-            if (constructionPanel) constructionPanel.SetActive(false);
             
             SaveGame(); 
             UpdateUI(); 
@@ -325,10 +513,10 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    // === БУДІВНИЦТВО КОЛЮЧОК (SPIKES) ===
+    public void BuildBarracks() { BuildOrUpgradeBarracks(); }
+
     public void BuildSpikes()
     {
-        // Не будуємо, якщо вже є
         if (currentSpikes != null) return; 
 
         if (wood >= spikesWoodCost)
@@ -360,25 +548,84 @@ public class GameManager : MonoBehaviour
         } 
     }
     
+    public void BuildOrUpgradeMine()
+    {
+        int costW = GetMineUpgradeCost(true);
+        int costS = GetMineUpgradeCost(false);
+
+        if (wood >= costW && stone >= costS)
+        {
+            wood -= costW;
+            stone -= costS;
+
+            if (mineLevel == 0)
+            {
+                isMineBuilt = true;
+                mineLevel = 1;
+                SpawnMineObject();
+            }
+            else
+            {
+                mineLevel++;
+                if (upgradeEffectPrefab != null && currentMineObject != null)
+                    Instantiate(upgradeEffectPrefab, currentMineObject.transform.position, Quaternion.identity);
+            }
+
+            if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.constructionSound);
+            
+            SaveGame();
+            UpdateUI();
+        }
+        else
+        {
+            if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.error);
+        }
+    }
+
+    public void BuildMine() { BuildOrUpgradeMine(); }
+
+    void SpawnMineObject()
+    {
+        if (minePrefab && mineSpawnPoint)
+        {
+            if (currentMineObject != null) Destroy(currentMineObject);
+            currentMineObject = Instantiate(minePrefab, mineSpawnPoint.position, Quaternion.identity);
+        }
+    }
+
     void UpdateBarracksStateUI()
     {
-        if (barracksIconButton) barracksIconButton.gameObject.SetActive(isBarracksBuilt); 
+        if (barracksIconButton) barracksIconButton.gameObject.SetActive(barracksLevel > 0); 
         
         if (buildBarracksBtnInMenu) 
         {
-            if (isBarracksBuilt) 
-            { 
-                SetButtonInteractableOnly(buildBarracksBtnInMenu, false); 
-                if (barracksBuildPriceText) barracksBuildPriceText.text = "BUILT"; 
+            int costG = GetBarracksBuildingUpgradeCost(true);
+            int costW = GetBarracksBuildingUpgradeCost(false);
+            
+            bool canAfford = gold >= costG && wood >= costW;
+            UpdateButtonState(buildBarracksBtnInMenu, canAfford);
+
+            // ЗМІНА СПРАЙТА КНОПКИ (BUILD / UPGRADE)
+            Image btnImg = buildBarracksBtnInMenu.GetComponent<Image>();
+            if (btnImg != null)
+            {
+                if (barracksLevel == 0)
+                    btnImg.sprite = buildButtonSprite;
+                else
+                    btnImg.sprite = upgradeButtonSprite;
             }
-            else 
-            { 
-                if (barracksBuildPriceText) barracksBuildPriceText.text = $"{barracksCostGold} G / {barracksCostWood} W"; 
+
+            if (barracksLevel == 0)
+            {
+                if (barracksBuildPriceText) barracksBuildPriceText.text = $"{costG} G / {costW} W";
+            }
+            else
+            {
+                if (barracksBuildPriceText) barracksBuildPriceText.text = $"{costG} G / {costW} W\nMax Cap: {GetBarracksCapLimit() + slotsPerLevel}";
             }
         }
     }
 
-    // === АПГРЕЙД ЛІМІТУ ===
     public void ToggleBarracksUpgradeMenu()
     {
         if (barracksUpgradePanel) 
@@ -386,7 +633,7 @@ public class GameManager : MonoBehaviour
             bool isActive = !barracksUpgradePanel.activeSelf;
             barracksUpgradePanel.SetActive(isActive);
             
-            if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.clickSound);
+            if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.clickSound, 2.0f);
             
             if (isActive) 
             { 
@@ -400,7 +647,14 @@ public class GameManager : MonoBehaviour
 
     public void BuyUnitLimitUpgrade()
     {
-        int cost = GetBarracksUpgradeCost();
+        int currentCap = GetBarracksCapLimit();
+        if (maxUnits >= currentCap)
+        {
+            if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.error);
+            return; 
+        }
+
+        int cost = GetSlotUpgradeCost();
         if (gold >= cost) 
         {
             gold -= cost; 
@@ -418,7 +672,7 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    int GetBarracksUpgradeCost() 
+    int GetSlotUpgradeCost() 
     { 
         int u = maxUnits - 5; 
         if (u < 0) u = 0; 
@@ -427,18 +681,54 @@ public class GameManager : MonoBehaviour
     
     void UpdateUpgradeMenuPrice() 
     { 
-        if (upgradeLimitPriceText) upgradeLimitPriceText.text = $"Limit +1   ({GetBarracksUpgradeCost()} G)"; 
+        if (upgradeLimitPriceText)
+        {
+            int currentCap = GetBarracksCapLimit();
+            if (maxUnits >= currentCap)
+            {
+                upgradeLimitPriceText.text = "MAX"; 
+            }
+            else
+            {
+                upgradeLimitPriceText.text = $"Limit +1   ({GetSlotUpgradeCost()} G)"; 
+            }
+        }
+
+        if (unlockSpearmanPriceText)
+        {
+            unlockSpearmanPriceText.text = $"Unlock Spear ({spearmanUnlockCost} G)";
+        }
     }
 
-    // === МАГАЗИН І АПГРЕЙДИ ===
+    public void UnlockSpearman()
+    {
+        if (isSpearmanUnlocked) return;
+
+        if (gold >= spearmanUnlockCost)
+        {
+            gold -= spearmanUnlockCost;
+            isSpearmanUnlocked = true;
+            
+            if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.constructionSound);
+            
+            SaveGame();
+            UpdateUI(); 
+            UpdateUpgradeMenuPrice();
+        }
+        else
+        {
+            if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.error);
+        }
+    }
+
     public void ToggleShop() 
     { 
-        if (shopPanel) 
+        if (shopPanel)
         {
             bool isActive = !shopPanel.activeSelf;
             shopPanel.SetActive(isActive);
             
-            if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.clickSound);
+            if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.clickSound, 2.0f);
             
             if(isActive) 
             { 
@@ -471,25 +761,37 @@ public class GameManager : MonoBehaviour
             UpdateUI();
         } 
     }
-    
-    // === ОНОВЛЕНО: НАЙМ ВІЙСЬК (Фіксовані ціни) ===
-    public void HireKnight() { TryHireUnit(knightPrefab, knightFixedCost); }
-    public void HireArcher() { TryHireUnit(archerPrefab, archerFixedCost); }
-    
-    private void TryHireUnit(GameObject prefab, int cost) 
+
+    public void UpgradeSpearman() 
     { 
-        if(currentUnits < maxUnits && gold >= cost)
+        if(gold >= spearmanUpgradeCost) 
         { 
-            gold -= cost; 
-            Instantiate(prefab, unitSpawnPoint.position, Quaternion.identity); 
-            currentUnits++; 
-            // МНОЖЕННЯ ЦІНИ ПРИБРАНО!
+            gold -= spearmanUpgradeCost; 
+            spearmanLevel++; 
+            spearmanUpgradeCost = (int)(spearmanUpgradeCost * upgradeCostGrowth); 
             SaveGame(); 
-            UpdateUI();
+            UpdateUI(); 
         } 
     }
     
-    public void UpgradeDamage() // Апгрейд Вежі
+    public void HireKnight() { TryHireUnit(knightPrefab, knightFixedCost); }
+    public void HireArcher() { TryHireUnit(archerPrefab, archerFixedCost); }
+    public void HireSpearman() { TryHireUnit(spearmanPrefab, spearmanFixedCost); } 
+    
+    private void TryHireUnit(GameObject prefab, int cost) 
+    { 
+        if(currentUnits >= maxUnits || gold < cost) return;
+        
+        gold -= cost; 
+        currentUnits++; 
+        UpdateUI();
+
+        Instantiate(prefab, unitSpawnPoint.position, Quaternion.identity); 
+        
+        SaveGame(); 
+    }
+    
+    public void UpgradeDamage() 
     { 
         if(wood >= towerWoodCost && stone >= towerStoneCost)
         { 
@@ -508,11 +810,7 @@ public class GameManager : MonoBehaviour
     // === ЕФЕКТИ ===
     public void ShowDamage(int damageAmount, Vector3 position) 
     { 
-        if (damagePopupPrefab != null) 
-        { 
-            GameObject popup = Instantiate(damagePopupPrefab, position, Quaternion.identity); 
-            popup.GetComponent<DamagePopup>().Setup(damageAmount); 
-        } 
+        CreateDamagePopup(position, damageAmount, false);
     }
     
     public void ShowResourcePopup(ResourceType type, int amount, Vector3 position) 
@@ -550,7 +848,6 @@ public class GameManager : MonoBehaviour
             SoundManager.Instance.PlaySFX(SoundManager.Instance.coinPickup); 
     }
 
-    // === ПРОГРАШ І РЕСТАРТ ===
     public void Defeat() 
     { 
         Time.timeScale = 0; 
@@ -564,16 +861,16 @@ public class GameManager : MonoBehaviour
         Time.timeScale = 1; 
         if(defeatPanel) defeatPanel.SetActive(false); 
         
-        spawner.StopSpawning(); 
-        spawner.ClearEnemies(); 
+        // Зупиняємо спавн і ховаємо панель перед очищенням
+        if (spawner != null) spawner.StopSpawning(); 
+        if (spawner != null) spawner.ClearEnemies(); 
         
-        if(castle) castle.HealMax(); 
+        if (castle == null) castle = FindFirstObjectByType<Castle>();
+        if (castle != null) castle.HealMax(); 
 
-        // Очищаємо колючки
         if (currentSpikes != null) Destroy(currentSpikes.gameObject);
         currentSpikes = null;
 
-        // Очищаємо ціль
         manualTarget = null;
         if(targetIndicator) targetIndicator.Hide();
         
@@ -583,37 +880,57 @@ public class GameManager : MonoBehaviour
         var archs = FindObjectsByType<Archer>(FindObjectsSortMode.None); 
         foreach(var a in archs) Destroy(a.gameObject); 
         
+        var spearmen = FindObjectsByType<Spearman>(FindObjectsSortMode.None); 
+        foreach(var s in spearmen) Destroy(s.gameObject); 
+        
+        if (currentMineObject != null) Destroy(currentMineObject); 
+        if (isMineBuilt) SpawnMineObject(); 
+
         currentUnits = 0; 
         enemiesAlive = 0; 
         
-        spawner.StartWave(currentWave); 
+        if (waveTimerBar != null)
+        {
+            waveTimerBar.gameObject.SetActive(true);
+            waveTimerBar.value = 1f;
+        }
+
+        // Запускаємо нову хвилю (це знову покаже панель)
+        if (spawner != null) spawner.StartWave(currentWave); 
         
         UpdateUI(); 
         UpdateBarracksStateUI(); 
     }
 
-    // === ЗБЕРЕЖЕННЯ І ЗАВАНТАЖЕННЯ ===
+    // === SAVE / LOAD ===
     public void SaveGame()
     {
-        // 1. Стандартні ресурси
         PlayerPrefs.SetInt("SavedGold", gold);
         PlayerPrefs.SetInt("SavedWood", wood);
         PlayerPrefs.SetInt("SavedStone", stone);
         PlayerPrefs.SetInt("SavedWave", currentWave);
+        
         PlayerPrefs.SetInt("SavedKnightLevel", knightLevel);
         PlayerPrefs.SetInt("SavedArcherLevel", archerLevel);
+        PlayerPrefs.SetInt("SavedSpearmanLevel", spearmanLevel); 
+        
         PlayerPrefs.SetInt("SavedKnightCost", knightUpgradeCost);
         PlayerPrefs.SetInt("SavedArcherCost", archerUpgradeCost);
+        PlayerPrefs.SetInt("SavedSpearmanCost", spearmanUpgradeCost); 
         
-        // unitCost БІЛЬШЕ НЕ ЗБЕРІГАЄМО (ціни фіксовані)
-
         PlayerPrefs.SetInt("SavedMaxUnits", maxUnits);
-        PlayerPrefs.SetInt("SavedIsBarracksBuilt", isBarracksBuilt ? 1 : 0);
+        
+        PlayerPrefs.SetInt("SavedBarracksLevel", barracksLevel);
+        PlayerPrefs.SetInt("SavedSpearmanUnlocked", isSpearmanUnlocked ? 1 : 0);
+        PlayerPrefs.SetInt("SavedMineBuilt", isMineBuilt ? 1 : 0);
+        PlayerPrefs.SetInt("SavedMineLevel", mineLevel);
+
+        if (castle != null) PlayerPrefs.SetInt("SavedCastleLevel", castle.castleLevel);
+        
         PlayerPrefs.SetInt("SavedTowerLevel", towerLevel); 
         PlayerPrefs.SetInt("SavedTowerWoodCost", towerWoodCost);
         PlayerPrefs.SetInt("SavedTowerStoneCost", towerStoneCost);
 
-        // 2. === ЗБЕРІГАЄМО АРМІЮ ===
         SaveUnits();
 
         PlayerPrefs.Save();
@@ -647,6 +964,18 @@ public class GameManager : MonoBehaviour
             data.units.Add(u);
         }
 
+        Spearman[] spearmen = FindObjectsByType<Spearman>(FindObjectsSortMode.None);
+        foreach (var s in spearmen)
+        {
+            if (s.CompareTag("Untagged")) continue;
+            UnitSaveData u = new UnitSaveData();
+            u.unitType = "Spearman";
+            u.posX = s.transform.position.x;
+            u.posY = s.transform.position.y;
+            u.currentHealth = s.currentHealth;
+            data.units.Add(u);
+        }
+
         string json = JsonUtility.ToJson(data);
         PlayerPrefs.SetString("SavedArmyData", json);
     }
@@ -657,23 +986,42 @@ public class GameManager : MonoBehaviour
         wood = PlayerPrefs.GetInt("SavedWood", 0);
         stone = PlayerPrefs.GetInt("SavedStone", 0);
         currentWave = PlayerPrefs.GetInt("SavedWave", 1);
+        
         knightLevel = PlayerPrefs.GetInt("SavedKnightLevel", 1);
         archerLevel = PlayerPrefs.GetInt("SavedArcherLevel", 1);
+        spearmanLevel = PlayerPrefs.GetInt("SavedSpearmanLevel", 1); 
+        
         knightUpgradeCost = PlayerPrefs.GetInt("SavedKnightCost", 100);
         archerUpgradeCost = PlayerPrefs.GetInt("SavedArcherCost", 120);
+        spearmanUpgradeCost = PlayerPrefs.GetInt("SavedSpearmanCost", 110); 
         
-        // Ціни на найм беремо з фіксованих змінних, не з PlayerPrefs
-
         maxUnits = PlayerPrefs.GetInt("SavedMaxUnits", 5);
-        isBarracksBuilt = PlayerPrefs.GetInt("SavedIsBarracksBuilt", 0) == 1;
         
+        barracksLevel = PlayerPrefs.GetInt("SavedBarracksLevel", 0);
+        if (barracksLevel > 0) isBarracksBuilt = true; 
+        
+        isSpearmanUnlocked = PlayerPrefs.GetInt("SavedSpearmanUnlocked", 0) == 1;
+        
+        isMineBuilt = PlayerPrefs.GetInt("SavedMineBuilt", 0) == 1;
+        mineLevel = PlayerPrefs.GetInt("SavedMineLevel", 0);
+        if (mineLevel > 0) isMineBuilt = true;
+
         towerLevel = PlayerPrefs.GetInt("SavedTowerLevel", 1);
         towerWoodCost = PlayerPrefs.GetInt("SavedTowerWoodCost", 50);
         towerStoneCost = PlayerPrefs.GetInt("SavedTowerStoneCost", 20);
 
         if (isBarracksBuilt) SpawnBarracksObject();
+        if (isMineBuilt) SpawnMineObject();
 
-        LoadUnits();
+        if (castle == null) castle = FindFirstObjectByType<Castle>();
+        
+        if (castle != null)
+        {
+            int savedCastleLvl = PlayerPrefs.GetInt("SavedCastleLevel", 1);
+            castle.LoadState(savedCastleLvl); 
+        }
+
+        LoadUnits(); 
     }
 
     void LoadUnits()
@@ -690,6 +1038,7 @@ public class GameManager : MonoBehaviour
                 GameObject prefabToSpawn = null;
                 if (u.unitType == "Knight") prefabToSpawn = knightPrefab;
                 else if (u.unitType == "Archer") prefabToSpawn = archerPrefab;
+                else if (u.unitType == "Spearman") prefabToSpawn = spearmanPrefab;
 
                 if (prefabToSpawn != null)
                 {
@@ -698,6 +1047,7 @@ public class GameManager : MonoBehaviour
                     
                     if (u.unitType == "Knight") newUnit.GetComponent<Knight>().LoadState(u.currentHealth);
                     else if (u.unitType == "Archer") newUnit.GetComponent<Archer>().LoadState(u.currentHealth);
+                    else if (u.unitType == "Spearman") newUnit.GetComponent<Spearman>().LoadState(u.currentHealth);
 
                     currentUnits++;
                 }
@@ -708,25 +1058,34 @@ public class GameManager : MonoBehaviour
 
     private void OnApplicationQuit() { SaveGame(); }
     private void OnApplicationPause(bool pauseStatus) { if (pauseStatus) SaveGame(); }
-
+    
     [ContextMenu("Delete Save File")]
     public void DeleteSave()
     {
         PlayerPrefs.DeleteAll();
         gold = 0; wood = 0; stone = 0;
         currentWave = 1; maxUnits = 5;
-        knightLevel = 1; archerLevel = 1; towerLevel = 1;
+        knightLevel = 1; archerLevel = 1; spearmanLevel = 1; 
+        
+        isSpearmanUnlocked = false; 
+        isMineBuilt = false; 
+        mineLevel = 0; 
+        
         isBarracksBuilt = false;
+        barracksLevel = 0;
+        
         enemiesAlive = 0;
         currentUnits = 0;
         
         if (currentBarracksObject != null) Destroy(currentBarracksObject);
+        if (currentMineObject != null) Destroy(currentMineObject); 
         if (currentSpikes != null) Destroy(currentSpikes.gameObject);
         currentSpikes = null;
         
-        // Очищаємо ціль
         manualTarget = null;
         if(targetIndicator) targetIndicator.Hide();
+        
+        if (waveTimerBar != null) waveTimerBar.value = 1f;
 
         UpdateUI();
         UpdateBarracksStateUI();
@@ -742,60 +1101,119 @@ public class GameManager : MonoBehaviour
         
         if (limitText != null) limitText.text = $"{currentUnits} / {maxUnits}";
         
-        // ОНОВЛЕНО: Відображення двох цін
         if (hirePriceText) 
         {
-            hirePriceText.text = $"Knight: {knightFixedCost}G\nArcher: {archerFixedCost}G";
+            string spearPrice = isSpearmanUnlocked ? $"{spearmanFixedCost}G" : "LOCKED";
+            hirePriceText.text = $"Knight: {knightFixedCost}G\nSpear: {spearPrice}\nArcher: {archerFixedCost}G";
         }
         
         if (towerPriceText) towerPriceText.text = $"Tower Lvl {towerLevel}\nDMG: {GetTowerDamage()}\n{towerWoodCost} W / {towerStoneCost} S";
         if (knightLevelText) knightLevelText.text = $"Knights Lvl {knightLevel}\nDMG: {GetKnightDamage()}";
         if (archerLevelText) archerLevelText.text = $"Archers Lvl {archerLevel}\nDMG: {GetArcherDamage()}";
+        
+        if (spearmanLevelText) spearmanLevelText.text = $"Spearmen Lvl {spearmanLevel}\nDMG: {GetSpearmanDamage()}";
+        if (spearmanPriceText) spearmanPriceText.text = $"{spearmanUpgradeCost} G";
 
         if (knightPriceText) knightPriceText.text = $"{knightUpgradeCost} G";
         if (archerPriceText) archerPriceText.text = $"{archerUpgradeCost} G";
 
-        // ОНОВЛЕНО: Окремі перевірки для кнопок найму
         bool canHireKnight = (gold >= knightFixedCost) && (currentUnits < maxUnits);
         bool canHireArcher = (gold >= archerFixedCost) && (currentUnits < maxUnits);
+        bool canHireSpearman = (gold >= spearmanFixedCost) && (currentUnits < maxUnits); 
         
-        SetButtonInteractableOnly(hireKnightButton, canHireKnight);
-        SetButtonInteractableOnly(hireArcherButton, canHireArcher);
+        UpdateButtonState(hireKnightButton, canHireKnight);
+        UpdateButtonState(hireArcherButton, canHireArcher);
         
-        SetButtonInteractableOnly(towerButton, (wood >= towerWoodCost && stone >= towerStoneCost));
-        SetButtonInteractableOnly(hammerButton, true); 
-
-        SetButtonInteractableOnly(upgradeKnightButton, gold >= knightUpgradeCost);
-        SetButtonInteractableOnly(upgradeArcherButton, gold >= archerUpgradeCost);
-
-        if (!isBarracksBuilt && buildBarracksBtnInMenu != null)
+        if (hireSpearmanButton != null)
         {
-            bool canBuild = gold >= barracksCostGold && wood >= barracksCostWood;
-            SetButtonInteractableOnly(buildBarracksBtnInMenu, canBuild);
+            hireSpearmanButton.gameObject.SetActive(isSpearmanUnlocked);
+            UpdateButtonState(hireSpearmanButton, canHireSpearman);
+        }
+        
+        UpdateButtonState(towerButton, (wood >= towerWoodCost && stone >= towerStoneCost));
+        UpdateButtonState(hammerButton, true);
+
+        UpdateButtonState(upgradeKnightButton, gold >= knightUpgradeCost);
+        UpdateButtonState(upgradeArcherButton, gold >= archerUpgradeCost);
+        
+        if (upgradeSpearmanButton != null)
+        {
+            upgradeSpearmanButton.gameObject.SetActive(isSpearmanUnlocked);
+            UpdateButtonState(upgradeSpearmanButton, gold >= spearmanUpgradeCost);
+        }
+
+        if (spearmanForgeRow != null)
+        {
+            spearmanForgeRow.SetActive(isSpearmanUnlocked);
+        }
+
+        if (unlockSpearmanButton != null)
+        {
+            unlockSpearmanButton.gameObject.SetActive(isBarracksBuilt);
+
+            if (isSpearmanUnlocked)
+            {
+                UpdateButtonState(unlockSpearmanButton, false);
+                if (unlockSpearmanPriceText) unlockSpearmanPriceText.text = "UNLOCKED";
+            }
+            else
+            {
+                UpdateButtonState(unlockSpearmanButton, gold >= spearmanUnlockCost);
+                if (unlockSpearmanPriceText) unlockSpearmanPriceText.text = $"Unlock Spear ({spearmanUnlockCost} G)";
+            }
+        }
+
+        if (buildBarracksBtnInMenu != null)
+        {
+            int costG = GetBarracksBuildingUpgradeCost(true);
+            int costW = GetBarracksBuildingUpgradeCost(false);
+            UpdateButtonState(buildBarracksBtnInMenu, gold >= costG && wood >= costW);
+            
+            UpdateBarracksStateUI(); 
         }
 
         if (upgradeLimitButton != null)
         {
-            int cost = GetBarracksUpgradeCost();
-            SetButtonInteractableOnly(upgradeLimitButton, gold >= cost);
+            int cap = GetBarracksCapLimit();
+            bool canBuySlot = (gold >= GetSlotUpgradeCost()) && (maxUnits < cap);
+            UpdateButtonState(upgradeLimitButton, canBuySlot);
         }
 
-        if (openShopButton != null)
+        if (buildMineButton != null)
         {
-            bool canAffordAny = (gold >= knightUpgradeCost) || (gold >= archerUpgradeCost);
-            SetForgeButtonState(openShopButton, canAffordAny);
+            int mWood = GetMineUpgradeCost(true);
+            int mStone = GetMineUpgradeCost(false);
+            
+            bool canAffordMine = (wood >= mWood) && (stone >= mStone);
+            UpdateButtonState(buildMineButton, canAffordMine);
+
+            Image mineImg = buildMineButton.GetComponent<Image>();
+            if (mineImg != null)
+            {
+                if (mineLevel == 0)
+                    mineImg.sprite = buildButtonSprite;
+                else
+                    mineImg.sprite = upgradeButtonSprite;
+            }
+
+            if (mineLevel == 0)
+            {
+                if (minePriceText) minePriceText.text = $"{mWood} W / {mStone} S";
+            }
+            else
+            {
+                if (minePriceText) minePriceText.text = $"Lvl {mineLevel+1}\n{mWood} W / {mStone} S";
+            }
         }
+
+        if (openShopButton != null) UpdateButtonState(openShopButton, true);
         
-        if (nextWaveButton != null)
-        {
-            SetButtonInteractableOnly(nextWaveButton, enemiesAlive <= 0);
-        }
+        if (nextWaveButton != null) UpdateButtonState(nextWaveButton, enemiesAlive <= 0);
 
-        // === КНОПКА КОЛЮЧОК ===
         if (buildSpikesButton != null)
         {
             bool canBuild = (wood >= spikesWoodCost) && (currentSpikes == null);
-            buildSpikesButton.interactable = canBuild;
+            UpdateButtonState(buildSpikesButton, canBuild);
             
             if (spikesPriceText)
             {
@@ -803,23 +1221,63 @@ public class GameManager : MonoBehaviour
                 else spikesPriceText.text = $"{spikesWoodCost} Wood";
             }
         }
+
+        // === НОВЕ: РОЗРАХУНОК ПРИБУТКУ ===
+        if (estimatedIncomeText != null && spawner != null)
+        {
+            // 1. Золото за ворогів (з методу, що ми написали в Spawner)
+            int enemiesGold = spawner.GetEstimatedGoldFromEnemies();
+            
+            // 2. Золото за проходження хвилі
+            int waveBonus = GetGoldReward();
+
+            int totalEst = enemiesGold + waveBonus;
+
+            estimatedIncomeText.text = $"+{totalEst} G";
+        }
     }
     
-    void SetButtonInteractableOnly(Button btn, bool isActive) 
+    // === УНІВЕРСАЛЬНИЙ МЕТОД ===
+    void UpdateButtonState(Button btn, bool isActive) 
     { 
         if (btn == null) return; 
         btn.interactable = isActive; 
+        Image img = btn.GetComponent<Image>();
+        if (img != null)
+        {
+            img.color = isActive ? Color.white : new Color(0.4f, 0.4f, 0.4f, 1f); 
+        }
     }
 
-    void SetForgeButtonState(Button btn, bool hasUpgrade) 
-    { 
-        if (btn == null) return; 
-        btn.interactable = true; 
-        Image img = btn.GetComponent<Image>();
-        if(img)
+    // === АВТОМАТИЧНЕ НАЛАШТУВАННЯ КНОПОК ===
+    void SetupAllButtons()
+    {
+        // Знаходимо всі активні кнопки на сцені
+        Button[] allButtons = FindObjectsByType<Button>(FindObjectsSortMode.None);
+
+        foreach (Button btn in allButtons)
         {
-            img.sprite = hasUpgrade ? buttonActiveSprite : buttonDisabledSprite;
-            img.color = Color.white; 
+            // Отримуємо поточні налаштування кольорів кнопки
+            ColorBlock colors = btn.colors;
+
+            // Вмикаємо режим зміни кольору (Transition)
+            btn.transition = Selectable.Transition.ColorTint;
+
+            // Задаємо колір натискання (Pressed) - робимо його темно-сірим
+            colors.pressedColor = new Color(0.6f, 0.6f, 0.6f, 1f); 
+            
+            // Скидаємо Normal Color на білий, щоб не було конфліктів
+            colors.normalColor = Color.white;
+
+            // Встановлюємо disabledColor такий самий, як ми робимо вручну в UpdateButtonState,
+            // щоб все виглядало однаково
+            colors.disabledColor = new Color(0.4f, 0.4f, 0.4f, 1f);
+
+            // Множник кольору
+            colors.colorMultiplier = 1f;
+
+            // Застосовуємо зміни назад до кнопки
+            btn.colors = colors;
         }
     }
 }

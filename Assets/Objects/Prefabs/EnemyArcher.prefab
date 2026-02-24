@@ -133,7 +133,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 0.123182535, g: 0.82641506, b: 0.16911417, a: 1}
+  m_Color: {r: 0.827451, g: 0.23207724, b: 0.12156863, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -165,6 +165,8 @@ GameObject:
   - component: {fileID: -3927244361706051883}
   - component: {fileID: 2019517159228266670}
   - component: {fileID: -8244668288450033519}
+  - component: {fileID: 7326346444222445680}
+  - component: {fileID: 4450659837202409039}
   m_Layer: 7
   m_Name: EnemyArcher
   m_TagString: Enemy
@@ -288,7 +290,10 @@ MonoBehaviour:
   timeBetweenShots: 2
   damage: 10
   maxHealth: 40
-  goldReward: 25
+  obstacleLayer:
+    serializedVersion: 2
+    m_Bits: 256
+  avoidanceForce: 2
   arrowPrefab: {fileID: 1033900623364985726, guid: 9c172f6cb9b4e1f4fa91dd18d763bf19, type: 3}
   firePoint: {fileID: 7403795274767799181}
 --- !u!50 &-3927244361706051883
@@ -328,7 +333,7 @@ CapsuleCollider2D:
   m_Enabled: 1
   serializedVersion: 3
   m_Density: 1
-  m_Material: {fileID: 6200000, guid: 2e9feab265637034aa860b831a82d0c7, type: 2}
+  m_Material: {fileID: 6200000, guid: 01fd429fe3751984b8e20952460b2a2b, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -367,6 +372,33 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c67b7f205f38acb49a2cc2444d6ba5c2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemySelector
+--- !u!114 &7326346444222445680
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8319572253659754456}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cee56501453cf354aa2932f39abe1833, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UnitStats
+  category: 1
+--- !u!114 &4450659837202409039
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8319572253659754456}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e24c8a0e4c32de341be2bc8c90c77f1c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyStats
+  baseGoldReward: 20
+  currentGoldReward: 0
 --- !u!1 &8816072622313337729
 GameObject:
   m_ObjectHideFlags: 0
@@ -460,7 +492,7 @@ Canvas:
   m_AdditionalShaderChannelsFlag: 0
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 1
   m_TargetDisplay: 0
 --- !u!114 &1405870351260367182
 MonoBehaviour:

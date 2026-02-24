@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1453728128166172508}
   - component: {fileID: 6111755745649557748}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Square
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -102,7 +102,7 @@ GameObject:
   - component: {fileID: 3774616441476643886}
   - component: {fileID: 5579356389551881466}
   - component: {fileID: -8314940880146738602}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Barracks
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -194,7 +194,7 @@ BoxCollider2D:
   m_Enabled: 1
   serializedVersion: 3
   m_Density: 1
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 6200000, guid: 01fd429fe3751984b8e20952460b2a2b, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
