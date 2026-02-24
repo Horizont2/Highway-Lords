@@ -295,6 +295,10 @@ public class GameManager : MonoBehaviour
         if (shopPanel) shopPanel.SetActive(false); 
         if (constructionPanel) constructionPanel.SetActive(false);
         if (barracksUpgradePanel) barracksUpgradePanel.SetActive(false);
+        if (constructionPanelNew) constructionPanelNew.SetActive(false);
+        if (barracksPanelNew) barracksPanelNew.SetActive(false);
+        if (shopPanelNew) shopPanelNew.SetActive(false);
+        if (settingsPanelNew) settingsPanelNew.SetActive(false);
         
         if (waveTimerBar != null)
         {
