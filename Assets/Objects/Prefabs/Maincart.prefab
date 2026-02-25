@@ -305,10 +305,10 @@ MonoBehaviour:
   speed: 2
   maxHealth: 40
   healthBarFill: {fileID: 6348252556352604713}
-  woodChance: 70
-  woodAmount: 10
-  stoneChance: 50
-  stoneAmount: 4
+  woodChance: 75
+  woodAmount: 12
+  stoneChance: 55
+  stoneAmount: 5
   stopDistance: 4
 --- !u!61 &5142474997283871533
 BoxCollider2D:

@@ -13,22 +13,20 @@ public class Knight : MonoBehaviour
     public int maxHealth = 120;
 
     [Header("Навігація (Обхід)")]
-    public LayerMask obstacleLayer; // ОБОВ'ЯЗКОВО вибери шар Building
-    public float avoidanceForce = 2.0f; // Сила відштовхування від стін
+    public LayerMask obstacleLayer; 
+    public float avoidanceForce = 2.0f; 
     public float checkDistance = 1.5f;
 
     [Header("Компоненти")]
     public Animator animator;
     public SpriteRenderer spriteRenderer;
 
-    // Public для збереження
     public int currentHealth; 
     
     private int myDamage;
     private float nextAttackTime = 0f;
     private Vector3 originalScale;
 
-    // Цілі (Пріоритетна система)
     private Cart targetCart;
     private Guard targetGuard;
     private EnemySpearman targetSpearman;
@@ -36,18 +34,26 @@ public class Knight : MonoBehaviour
     private EnemyArcher targetArcher; 
     private Boss targetBoss; 
 
-    // Патруль
     private Vector3 startPoint;
     public float patrolRadius = 3f;
     private Rigidbody2D rb; 
     private bool isDead = false;
 
-    private Vector3 currentPatrolTarget;
-    private float patrolWaitTimer = 0f;
-    private bool isWaiting = false;
-
-    // Кешування статів
+    private float retargetTimer = 0f;
+    private Vector3 formationPos;
     private UnitStats myStats;
+
+    public void SetFormationPosition(Vector3 pos)
+    {
+        formationPos = pos;
+    }
+
+    // МЕТОД ДЛЯ ЗАВАНТАЖЕННЯ ЗБЕРЕЖЕННЯ (Виправлення помилки CS1061)
+    public void LoadState(int savedHealth)
+    {
+        currentHealth = savedHealth;
+        if (healthBar != null) healthBar.SetHealth(currentHealth, maxHealth);
+    }
 
     void Start()
     {
@@ -57,17 +63,14 @@ public class Knight : MonoBehaviour
         rb.freezeRotation = true; 
 
         if(spriteRenderer == null) spriteRenderer = GetComponent<SpriteRenderer>();
-        
-        // Отримуємо свої стати (Standard)
         myStats = GetComponent<UnitStats>();
 
         startPoint = transform.position;
+        if (formationPos == Vector3.zero) formationPos = startPoint;
+        
         originalScale = transform.localScale;
 
-        // Ініціалізація здоров'я
         if (currentHealth <= 0) currentHealth = maxHealth;
-
-        SetNewPatrolTarget();
 
         if (healthBar != null)
         {
@@ -75,50 +78,26 @@ public class Knight : MonoBehaviour
             healthBar.SetHealth(currentHealth, maxHealth);
         }
 
-        // === ОТРИМАННЯ НОВОГО УРОНУ (Лінійний ріст) ===
         if (GameManager.Instance != null)
         {
             GameManager.Instance.UpdateUI();
-            
-            // Беремо урон з нової формули: 10 + (lvl * 5)
             myDamage = GameManager.Instance.GetKnightDamage();
-
-            // Візуалізація рівня (червоніший відтінок)
             if (GameManager.Instance.knightLevel > 1 && spriteRenderer != null) 
                 spriteRenderer.color = new Color(1f, 0.9f, 0.9f);
         }
-        else
-        {
-            myDamage = 10;
-        }
-    }
-
-    public void LoadState(int savedHealth)
-    {
-        currentHealth = savedHealth;
-        if (healthBar != null) healthBar.SetHealth(currentHealth, maxHealth);
-    }
-
-    void OnDestroy()
-    {
-        if (GameManager.Instance != null && !isDead && !GameManager.Instance.isResettingUnits)
-        {
-            GameManager.Instance.currentUnits--;
-            GameManager.Instance.UpdateUI();
-        }
+        else myDamage = 10;
     }
 
     void Update()
     {
         if (isDead) return;
 
-        // Оновлюємо урон щокадру, щоб врахувати активацію Рогу
         if (GameManager.Instance != null)
         {
             myDamage = GameManager.Instance.GetKnightDamage();
         }
 
-        // Перевірка на зникнення цілей (якщо померли або зникли)
+        // Очищення мертвих цілей
         if (targetBoss != null && (targetBoss.CompareTag("Untagged") || !targetBoss.gameObject.activeInHierarchy)) targetBoss = null;
         if (targetHorse != null && (targetHorse.CompareTag("Untagged") || !targetHorse.gameObject.activeInHierarchy)) targetHorse = null;
         if (targetGuard != null && (targetGuard.CompareTag("Untagged") || !targetGuard.gameObject.activeInHierarchy)) targetGuard = null;
@@ -126,9 +105,13 @@ public class Knight : MonoBehaviour
         if (targetArcher != null && (targetArcher.CompareTag("Untagged") || !targetArcher.gameObject.activeInHierarchy)) targetArcher = null;
         if (targetCart != null && (targetCart.CompareTag("Untagged") || !targetCart.gameObject.activeInHierarchy)) targetCart = null;
 
-        FindNearestTarget();
+        retargetTimer -= Time.deltaTime;
+        if (retargetTimer <= 0f)
+        {
+            FindNearestTarget();
+            retargetTimer = 0.25f;
+        }
 
-        // Визначаємо поточну активну ціль за пріоритетом
         Transform currentTarget = null;
         if (targetBoss != null) currentTarget = targetBoss.transform; 
         else if (targetHorse != null) currentTarget = targetHorse.transform;
@@ -140,11 +123,10 @@ public class Knight : MonoBehaviour
         if (currentTarget != null)
         {
             EngageEnemy(currentTarget);
-            isWaiting = false; 
         }
         else
         {
-            Patrol();
+            MoveTo(formationPos); // Повернення в ширенгу
         }
     }
 
@@ -154,24 +136,19 @@ public class Knight : MonoBehaviour
         float effectiveAttackRange = attackRange;
         bool isFightingCart = (targetCart != null && target == targetCart.transform);
 
-        // Логіка обходу воза (флангування), щоб не товпитися в одній точці
         if (isFightingCart)
         {
             effectiveAttackRange = attackRange + 1.5f; 
             float flankOffset = 1.5f; 
-
             if (transform.position.y > target.position.y) moveDestination.y += flankOffset; 
             else moveDestination.y -= flankOffset; 
-            
             if (transform.position.x < target.position.x) moveDestination.x -= 0.5f;
             else moveDestination.x += 0.5f;
         }
 
         FlipSprite(target.position.x);
-        
         float distance = Vector2.Distance(transform.position, target.position);
         
-        // Перевірка вирівнювання по Y для воза
         bool alignedY = true;
         if (isFightingCart)
         {
@@ -180,7 +157,6 @@ public class Knight : MonoBehaviour
 
         if (distance <= effectiveAttackRange && alignedY)
         {
-            // Зупиняємось і атакуємо
             rb.linearVelocity = Vector2.zero; 
             if (animator) animator.SetBool("IsMoving", false);
             
@@ -196,46 +172,8 @@ public class Knight : MonoBehaviour
         }
     }
 
-    void Patrol()
-    {
-        if (isWaiting)
-        {
-            rb.linearVelocity = Vector2.zero;
-            if (animator) animator.SetBool("IsMoving", false);
-
-            patrolWaitTimer -= Time.deltaTime;
-            if (patrolWaitTimer <= 0)
-            {
-                isWaiting = false;
-                SetNewPatrolTarget();
-            }
-            return;
-        }
-
-        float dist = Vector2.Distance(transform.position, currentPatrolTarget);
-        if (dist < 0.2f)
-        {
-            isWaiting = true;
-            patrolWaitTimer = Random.Range(1.0f, 3.0f);
-        }
-        else
-        {
-            MoveTo(currentPatrolTarget);
-        }
-    }
-
-    void SetNewPatrolTarget()
-    {
-        Vector2 randomPoint = Random.insideUnitCircle * patrolRadius;
-        float randomX = startPoint.x + randomPoint.x;
-        float randomY = startPoint.y + (randomPoint.y * 0.4f);
-        currentPatrolTarget = new Vector3(randomX, randomY, 0);
-    }
-
-    // === ОНОВЛЕНИЙ МЕТОД РУХУ ===
     void MoveTo(Vector3 targetPosition)
     {
-        // 1. Dead Zone: Якщо ми вже на місці, не рухаємось (фікс смикання)
         if (Vector2.Distance(transform.position, targetPosition) < 0.1f)
         {
             rb.linearVelocity = Vector2.zero;
@@ -243,7 +181,6 @@ public class Knight : MonoBehaviour
             return;
         }
 
-        // Обмеження руху кордонами екрану (якщо є в GameManager)
         if (GameManager.Instance != null)
         {
             if (GameManager.Instance.rightBoundary != null && targetPosition.x > GameManager.Instance.rightBoundary.position.x)
@@ -257,13 +194,13 @@ public class Knight : MonoBehaviour
         
         Vector2 direction = (targetPosition - transform.position).normalized;
 
-        // === ОБХІД ПЕРЕШКОД (Raycast) ===
         RaycastHit2D hit = Physics2D.Raycast(transform.position, direction, checkDistance, obstacleLayer);
-        
-        if (hit.collider != null)
+        if (hit.collider != null && hit.collider.gameObject != gameObject)
         {
-            direction += hit.normal * avoidanceForce;
-            direction.Normalize();
+            float dodgeDirY = (transform.position.y >= hit.collider.bounds.center.y) ? 1f : -1f;
+            Vector2 avoidance = new Vector2(0, dodgeDirY); 
+            direction += avoidance * avoidanceForce;
+            direction.Normalize(); 
         }
 
         rb.linearVelocity = direction * speed;
@@ -272,16 +209,16 @@ public class Knight : MonoBehaviour
     void FlipSprite(float targetX)
     {
         float absX = Mathf.Abs(originalScale.x);
-        if (targetX < transform.position.x)
-            transform.localScale = new Vector3(absX, originalScale.y, originalScale.z); 
-        else
+        if (targetX > transform.position.x)
             transform.localScale = new Vector3(-absX, originalScale.y, originalScale.z); 
+        else if (targetX < transform.position.x)
+            transform.localScale = new Vector3(absX, originalScale.y, originalScale.z); 
     }
 
     void FindNearestTarget()
     {
-        // Якщо у нас вже є ціль, не шукаємо нову (щоб не перемикатись постійно)
-        if (targetBoss != null || targetHorse != null || targetGuard != null || targetSpearman != null || targetArcher != null || targetCart != null) return;
+        targetBoss = null; targetHorse = null; targetGuard = null; 
+        targetSpearman = null; targetArcher = null; targetCart = null;
 
         float minX = -1000f; float maxX = 1000f;
         if (GameManager.Instance != null)
@@ -298,7 +235,6 @@ public class Knight : MonoBehaviour
             if (go == gameObject) continue;
             if (go.CompareTag("Untagged")) continue;
             
-            // Не біжимо за ворогами, які ще далеко за лінією фронту
             if (GameManager.Instance != null && GameManager.Instance.engagementLine != null)
                 if (go.transform.position.x > GameManager.Instance.engagementLine.position.x) continue;
             
@@ -306,36 +242,12 @@ public class Knight : MonoBehaviour
 
             float dist = Vector2.Distance(transform.position, go.transform.position);
 
-            // ПРІОРИТЕТИ: Бос -> Вершник -> Гвардієць -> Ворожий списоносець -> Лучник -> Віз
-            if (go.GetComponent<Boss>()) 
-            { 
-                if (dist < shortestDist) { shortestDist = dist; targetBoss = go.GetComponent<Boss>(); targetHorse = null; targetGuard = null; targetSpearman = null; targetArcher = null; targetCart = null; } 
-                continue; 
-            }
-            if (go.GetComponent<EnemyHorse>() && !targetBoss)
-            {
-                if (dist < shortestDist) { shortestDist = dist; targetHorse = go.GetComponent<EnemyHorse>(); targetGuard = null; targetSpearman = null; targetArcher = null; targetCart = null; }
-                continue;
-            }
-            if (go.GetComponent<Guard>() && !targetBoss && !targetHorse) 
-            { 
-                if (dist < shortestDist) { shortestDist = dist; targetGuard = go.GetComponent<Guard>(); targetSpearman = null; targetArcher = null; targetCart = null; } 
-                continue; 
-            }
-            if (go.GetComponent<EnemySpearman>() && !targetBoss && !targetHorse && !targetGuard)
-            {
-                if (dist < shortestDist) { shortestDist = dist; targetSpearman = go.GetComponent<EnemySpearman>(); targetArcher = null; targetCart = null; }
-                continue;
-            }
-            if (go.GetComponent<EnemyArcher>() && !targetBoss && !targetHorse && !targetGuard && !targetSpearman) 
-            { 
-                if (dist < shortestDist) { shortestDist = dist; targetArcher = go.GetComponent<EnemyArcher>(); targetCart = null; } 
-                continue; 
-            }
-            if (go.GetComponent<Cart>() && !targetBoss && !targetHorse && !targetGuard && !targetSpearman && !targetArcher && dist < shortestDist) 
-            { 
-                shortestDist = dist; targetCart = go.GetComponent<Cart>(); 
-            }
+            if (go.GetComponent<Boss>()) { if (dist < shortestDist) { shortestDist = dist; targetBoss = go.GetComponent<Boss>(); } continue; }
+            if (go.GetComponent<EnemyHorse>() && !targetBoss) { if (dist < shortestDist) { shortestDist = dist; targetHorse = go.GetComponent<EnemyHorse>(); } continue; }
+            if (go.GetComponent<Guard>() && !targetBoss && !targetHorse) { if (dist < shortestDist) { shortestDist = dist; targetGuard = go.GetComponent<Guard>(); } continue; }
+            if (go.GetComponent<EnemySpearman>() && !targetBoss && !targetHorse && !targetGuard) { if (dist < shortestDist) { shortestDist = dist; targetSpearman = go.GetComponent<EnemySpearman>(); } continue; }
+            if (go.GetComponent<EnemyArcher>() && !targetBoss && !targetHorse && !targetGuard && !targetSpearman) { if (dist < shortestDist) { shortestDist = dist; targetArcher = go.GetComponent<EnemyArcher>(); } continue; }
+            if (go.GetComponent<Cart>() && !targetBoss && !targetHorse && !targetGuard && !targetSpearman && !targetArcher && dist < shortestDist) { shortestDist = dist; targetCart = go.GetComponent<Cart>(); }
         }
     }
 
@@ -344,26 +256,21 @@ public class Knight : MonoBehaviour
         if (animator) animator.SetTrigger("Attack");
         if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.swordHit);
         
-        // === НОВА ЛОГІКА: Розрахунок урону з урахуванням типів (Камінь-Ножиці-Папір) ===
         int finalDamage = myDamage;
         UnitStats targetStats = null;
 
-        // Визначаємо, кого саме ми б'ємо, щоб отримати його стати
         if (targetBoss != null) targetStats = targetBoss.GetComponent<UnitStats>();
         else if (targetHorse != null) targetStats = targetHorse.GetComponent<UnitStats>();
         else if (targetGuard != null) targetStats = targetGuard.GetComponent<UnitStats>();
         else if (targetSpearman != null) targetStats = targetSpearman.GetComponent<UnitStats>();
-        else if (targetArcher != null) targetArcher.GetComponent<UnitStats>();
-        // Для воза статів може не бути, або вони "Building"
+        else if (targetArcher != null) targetStats = targetArcher.GetComponent<UnitStats>();
 
         if (myStats != null && targetStats != null)
         {
             float multiplier = GameManager.GetDamageMultiplier(myStats.category, targetStats.category);
             finalDamage = Mathf.RoundToInt(myDamage * multiplier);
         }
-        // ==============================================================================
 
-        // Наносимо фінальний урон конкретній цілі
         if (targetBoss != null) targetBoss.TakeDamage(finalDamage);
         else if (targetHorse != null) targetHorse.TakeDamage(finalDamage);
         else if (targetGuard != null) targetGuard.TakeDamage(finalDamage);
@@ -375,14 +282,11 @@ public class Knight : MonoBehaviour
     public void TakeDamage(int damage)
     {
         if (isDead) return;
-
         currentHealth -= damage;
         if (healthBar != null) healthBar.SetHealth(currentHealth, maxHealth);
         if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.knightHit);
         
-        // === POPUP замість ShowDamage ===
         GameManager.CreateDamagePopup(transform.position, damage);
-        
         if (currentHealth <= 0) Die();
     }
 
@@ -401,18 +305,15 @@ public class Knight : MonoBehaviour
         Collider2D col = GetComponent<Collider2D>();
         if (col != null) col.enabled = false; 
 
-        // Оновлюємо лічильник живих юнітів
-        if (GameManager.Instance != null)
+        if (GameManager.Instance != null && !GameManager.Instance.isResettingUnits)
         {
-            GameManager.Instance.currentUnits--;
-            GameManager.Instance.UpdateUI();
+            GameManager.Instance.OnUnitDeath(gameObject, "Knight"); // Зсув лінії
         }
 
         if (healthBar != null) healthBar.gameObject.SetActive(false);
         Transform shadow = transform.Find("Shadow");
         if (shadow != null) shadow.gameObject.SetActive(false);
 
-        // === СКИНУТИ АНІМАЦІЮ ПЕРЕД СМЕРТЮ ===
         if (animator)
         {
             animator.Rebind();

@@ -14,9 +14,11 @@ public class EnemySpearman : MonoBehaviour
     public int damage = 15;
     public int maxHealth = 70;
 
-    [Header("Навігація")]
-    public LayerMask obstacleLayer; // Постав 'Nothing' для початку!
+    [Header("Навігація та Агро")]
+    public LayerMask obstacleLayer; 
     public float avoidanceForce = 2.0f;
+    public float aggroRadius = 4.5f;
+    private float retargetTimer = 0f;
 
     private Animator animator;
     private Rigidbody2D rb;
@@ -40,12 +42,10 @@ public class EnemySpearman : MonoBehaviour
 
         originalScale = transform.localScale;
 
-        // Налаштування фізики
         rb.bodyType = RigidbodyType2D.Dynamic;
         rb.gravityScale = 0; 
-        rb.constraints = RigidbodyConstraints2D.FreezeRotation; 
+        rb.freezeRotation = true; 
 
-        // Баланс та реєстрація
         if (GameManager.Instance != null)
         {
             maxHealth = Mathf.RoundToInt(GameManager.Instance.GetDifficultyHealth() * 1.1f);
@@ -67,28 +67,22 @@ public class EnemySpearman : MonoBehaviour
     {
         if (isDead) return;
 
-        // 1. ПЕРЕВІРКА ЦІЛІ
-        // Якщо ціль зникла або вимкнена - забуваємо її
         if (target != null && (!target.gameObject.activeInHierarchy || target.CompareTag("Untagged")))
         {
             target = null;
         }
 
-        // 2. ПОШУК ЦІЛІ (Якщо її немає)
-        if (target == null || (target.GetComponent<Castle>() != null && HasAnyDefenders()))
+        retargetTimer -= Time.deltaTime;
+        if (retargetTimer <= 0f)
         {
-            target = null;
             FindTarget();
+            retargetTimer = 0.25f;
         }
 
-        // 3. ЛОГІКА РУХУ
         if (target != null)
         {
-            // Якщо є кого бити (Лицар або Замок)
             float distance = Vector2.Distance(transform.position, target.position);
-            
-            // Повертаємось обличчям до цілі
-            FaceDirection(target.position - transform.position);
+            FaceDirection(target.position);
 
             if (distance <= attackRange)
             {
@@ -107,21 +101,10 @@ public class EnemySpearman : MonoBehaviour
         }
         else
         {
-            // 4. ЗАПАСНИЙ ПЛАН: Якщо цілей немає - йди просто ВЛІВО
-            // Це гарантує, що він не буде стояти на спавні
-            Vector3 leftDirection = Vector3.left; 
+            Vector3 leftDirection = transform.position + Vector3.left * 5f; 
             FaceDirection(leftDirection);
-            
-            // Рухаємось в точку, яка зліва від нас
-            MoveTo(transform.position + leftDirection * 5f);
+            MoveTo(leftDirection);
         }
-    }
-
-    bool HasAnyDefenders()
-    {
-        return FindObjectsByType<Knight>(FindObjectsSortMode.None).Length > 0
-            || FindObjectsByType<Spearman>(FindObjectsSortMode.None).Length > 0
-            || FindObjectsByType<Archer>(FindObjectsSortMode.None).Length > 0;
     }
 
     void FindTarget()
@@ -131,18 +114,11 @@ public class EnemySpearman : MonoBehaviour
 
         void Check(Transform t)
         {
-            if (t == null || !t.gameObject.activeInHierarchy) return;
-
-            // Дозволяємо цілі навіть якщо тег Untagged, якщо це захисник/барикада/замок
-            bool isDefender = t.GetComponent<Knight>() != null || t.GetComponent<Archer>() != null || t.GetComponent<Spearman>() != null;
-            bool isStructure = t.GetComponent<Spikes>() != null || t.GetComponent<Castle>() != null;
-            if (!isDefender && !isStructure && t.CompareTag("Untagged")) return;
-            
+            if (t == null || !t.gameObject.activeInHierarchy || t.CompareTag("Untagged")) return;
             float dist = Vector2.Distance(transform.position, t.position);
             if (dist < minDistance) { minDistance = dist; closestTarget = t; }
         }
 
-        // Шукаємо захисників
         Knight[] knights = FindObjectsByType<Knight>(FindObjectsSortMode.None);
         foreach (var k in knights) Check(k.transform);
         
@@ -152,54 +128,36 @@ public class EnemySpearman : MonoBehaviour
         Archer[] archers = FindObjectsByType<Archer>(FindObjectsSortMode.None);
         foreach (var a in archers) Check(a.transform);
 
-        // Барикада (Spikes) має пріоритет
         if (GameManager.Instance != null && GameManager.Instance.currentSpikes != null)
-        {
             Check(GameManager.Instance.currentSpikes.transform);
-        }
 
-        // Якщо захисників немає - шукаємо ЗАМОК
-        if (closestTarget == null)
+        if (closestTarget != null && minDistance <= aggroRadius)
         {
-            // Спроба 1: Через GameManager
-            if (GameManager.Instance != null && GameManager.Instance.castle != null)
-            {
-                Check(GameManager.Instance.castle.transform);
-            }
-            // Спроба 2: Пошук за тегом (Надійніше!)
-            if (closestTarget == null)
-            {
-                GameObject castleObj = GameObject.FindGameObjectWithTag("Castle");
-                if (castleObj == null) castleObj = GameObject.FindGameObjectWithTag("Player"); // Спробуй цей тег
-                
-                if (castleObj != null) Check(castleObj.transform);
-            }
+            target = closestTarget;
         }
-
-        target = closestTarget;
+        else
+        {
+            if (GameManager.Instance != null && GameManager.Instance.castle != null)
+                target = GameManager.Instance.castle.transform;
+        }
     }
 
     void MoveTo(Vector3 destination)
     {
         if (animator) animator.SetBool("IsRunning", true);
 
-        // Ігноруємо Z, щоб не йти "в глибину"
         Vector3 targetPosFixed = new Vector3(destination.x, destination.y, transform.position.z);
         Vector2 direction = (targetPosFixed - transform.position).normalized;
         
-        // Raycast (тільки якщо шар обраний)
-        if (obstacleLayer.value != 0) 
+        RaycastHit2D hit = Physics2D.Raycast(transform.position, direction, 1.5f, obstacleLayer);
+        if (hit.collider != null && hit.collider.gameObject != gameObject)
         {
-            RaycastHit2D hit = Physics2D.Raycast(transform.position, direction, 1.0f, obstacleLayer);
-            if (hit.collider != null && hit.collider.gameObject != gameObject)
-            {
-                Vector2 avoidance = Vector2.Perpendicular(hit.normal) * avoidanceForce;
-                direction += avoidance;
-                direction.Normalize();
-            }
+            float dodgeDirY = (transform.position.y >= hit.collider.bounds.center.y) ? 1f : -1f;
+            Vector2 avoidance = new Vector2(0, dodgeDirY); 
+            direction += avoidance * avoidanceForce;
+            direction.Normalize(); 
         }
 
-        // Рух через velocity
         rb.linearVelocity = direction * speed;
     }
 
@@ -209,35 +167,23 @@ public class EnemySpearman : MonoBehaviour
         if (animator) animator.SetBool("IsRunning", false);
     }
 
-    void FaceDirection(Vector3 direction)
+    void FaceDirection(Vector3 targetPos)
     {
         float absX = Mathf.Abs(originalScale.x);
-        
-        // Якщо рухаємось ВЛІВО (x < 0) -> Дивимось ВЛІВО
-        // Якщо спрайт намальований вправо, то Scale X має бути мінусовим
-        if (direction.x < -0.1f) 
-        {
-            transform.localScale = new Vector3(-absX, originalScale.y, originalScale.z);
-        }
-        // Якщо рухаємось ВПРАВО (x > 0) -> Дивимось ВПРАВО
-        else if (direction.x > 0.1f) 
-        {
-            transform.localScale = new Vector3(absX, originalScale.y, originalScale.z);
-        }
+        if (targetPos.x > transform.position.x) transform.localScale = new Vector3(absX, originalScale.y, originalScale.z);
+        else transform.localScale = new Vector3(-absX, originalScale.y, originalScale.z);
     }
 
-    public void Hit()
+    public void Hit() 
     {
         if (isDead || target == null) return;
         if (hasHitThisAttack) return;
         if (Vector2.Distance(transform.position, target.position) > attackRange + 1.0f) return;
 
         hasHitThisAttack = true;
-        
-        if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.swordHit);
+        if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.swordHit); 
 
         int finalDamage = damage;
-        // Counter-Pick логіка тут...
         if (myStats != null)
         {
             UnitStats targetStats = target.GetComponent<UnitStats>();
@@ -247,8 +193,7 @@ public class EnemySpearman : MonoBehaviour
                 finalDamage = Mathf.RoundToInt(damage * multiplier);
             }
         }
-
-        // Нанесення урону
+        
         if (target.TryGetComponent<Knight>(out Knight k)) k.TakeDamage(finalDamage);
         else if (target.TryGetComponent<Archer>(out Archer a)) a.TakeDamage(finalDamage);
         else if (target.TryGetComponent<Spearman>(out Spearman s)) s.TakeDamage(finalDamage);
@@ -274,19 +219,20 @@ public class EnemySpearman : MonoBehaviour
         if (isDead) return;
         isDead = true;
         gameObject.tag = "Untagged";
-        if (healthBar != null) healthBar.gameObject.SetActive(false);
-        if (rb) { rb.linearVelocity = Vector2.zero; rb.bodyType = RigidbodyType2D.Static; }
+        if (rb != null) { rb.linearVelocity = Vector2.zero; rb.bodyType = RigidbodyType2D.Static; }
         Collider2D col = GetComponent<Collider2D>();
-        if (col) col.enabled = false;
+        if (col != null) col.enabled = false;
         
         if (TryGetComponent<EnemyStats>(out EnemyStats stats)) stats.GiveGold();
         else if (GameManager.Instance != null) GameManager.Instance.UnregisterEnemy();
         
         if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.enemyDeath);
         
-        if (animator) animator.enabled = false; 
+        if (animator) { animator.Rebind(); animator.Update(0f); animator.enabled = false; }
         transform.Rotate(0, 0, -90);
-        if (spriteRenderer) { spriteRenderer.color = Color.gray; spriteRenderer.sortingOrder = 0; }
-        Destroy(gameObject, 5f);
+        if (spriteRenderer != null) { spriteRenderer.color = Color.gray; spriteRenderer.sortingOrder = 0; }
+        
+        Destroy(this);
+        Destroy(gameObject, 10f);
     }
 }

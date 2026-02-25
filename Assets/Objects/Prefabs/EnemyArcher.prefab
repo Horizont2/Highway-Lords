@@ -286,7 +286,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemyArcher
   healthBar: {fileID: 1262736627846743538}
   speed: 1.7
-  attackRange: 7
+  attackRange: 6
   timeBetweenShots: 2
   damage: 10
   maxHealth: 40

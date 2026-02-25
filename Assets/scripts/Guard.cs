@@ -1,7 +1,7 @@
 using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody2D))]
-[RequireComponent(typeof(EnemyStats))] // Автоматично додасть скрипт статистики
+[RequireComponent(typeof(EnemyStats))] 
 public class Guard : MonoBehaviour
 {
     [Header("UI")]
@@ -11,12 +11,13 @@ public class Guard : MonoBehaviour
     public float speed = 1.5f;
     public float attackRange = 1.2f; 
     public int damage = 15;
-    public int health = 60; // Початкове здоров'я
-    // public int goldReward = 15; // ВИДАЛЕНО: Тепер це в EnemyStats
+    public int health = 60;
 
-    [Header("Навігація (Обхід)")]
+    [Header("Навігація та Агро")]
     public LayerMask obstacleLayer; 
     public float avoidanceForce = 2.0f;
+    public float aggroRadius = 3.5f; // Радіус, в якому ворог "бачить" твоїх юнітів
+    private float retargetTimer = 0f;
 
     [Header("Атака")]
     public float attackCooldown = 1.5f;
@@ -34,15 +35,14 @@ public class Guard : MonoBehaviour
     private float laneOffset; 
     private float cartSafetyRadius = 2.5f; 
 
-    // Кешування статів
     private UnitStats myStats;
+    private bool hasHitThisAttack = false;
 
     void Start()
     {
         animator = GetComponent<Animator>();
         rb = GetComponent<Rigidbody2D>();
         spriteRenderer = GetComponent<SpriteRenderer>();
-        
         myStats = GetComponent<UnitStats>();
 
         originalScale = transform.localScale;
@@ -76,10 +76,17 @@ public class Guard : MonoBehaviour
     {
         if (isDead) return;
 
-        if (target == null || target.CompareTag("Untagged") || !target.gameObject.activeInHierarchy) 
+        // Кожні 0.25 сек перевіряємо, чи є поруч вороги
+        retargetTimer -= Time.deltaTime;
+        if (retargetTimer <= 0f)
+        {
+            FindTarget();
+            retargetTimer = 0.25f;
+        }
+
+        if (target != null && (target.CompareTag("Untagged") || !target.gameObject.activeInHierarchy)) 
         {
             target = null;
-            FindTarget();
         }
 
         // 1. АТАКА
@@ -148,6 +155,7 @@ public class Guard : MonoBehaviour
             }
         }
 
+        // Шукаємо юнітів гравця
         Knight[] knights = FindObjectsByType<Knight>(FindObjectsSortMode.None);
         foreach (Knight k in knights) CheckDistance(k.transform);
 
@@ -160,12 +168,18 @@ public class Guard : MonoBehaviour
         if (GameManager.Instance != null && GameManager.Instance.currentSpikes != null)
             CheckDistance(GameManager.Instance.currentSpikes.transform);
 
-        if (closestTarget == null && GameManager.Instance != null && GameManager.Instance.castle != null)
+        // Якщо найближчий юніт в радіусі агро - цілимось на нього
+        if (closestTarget != null && minDistance <= aggroRadius)
         {
-            closestTarget = GameManager.Instance.castle.transform;
+            target = closestTarget;
         }
-        
-        target = closestTarget;
+        else // Інакше йдемо до Замку
+        {
+            if (GameManager.Instance != null && GameManager.Instance.castle != null)
+            {
+                target = GameManager.Instance.castle.transform;
+            }
+        }
     }
 
     void MoveTowards(Vector3 destination)
@@ -225,8 +239,6 @@ public class Guard : MonoBehaviour
         if (animator) animator.SetTrigger("Attack");
     }
 
-    private bool hasHitThisAttack = false;
-
     public void Hit()
     {
         if (isDead) return;
@@ -240,7 +252,6 @@ public class Guard : MonoBehaviour
         if (SoundManager.Instance != null) 
              SoundManager.Instance.PlaySFX(SoundManager.Instance.swordHit);
 
-        // === РОЗРАХУНОК УРОНУ ===
         int finalDamage = damage;
         
         if (myStats != null)
@@ -291,18 +302,14 @@ public class Guard : MonoBehaviour
         Transform shadow = transform.Find("Shadow");
         if (shadow != null) shadow.gameObject.SetActive(false);
 
-        // === ОНОВЛЕНО: ВИКОРИСТАННЯ EnemyStats ===
-        // Викликаємо метод GiveGold(), який сам нарахує гроші, покаже Popup і зніме ворога з обліку
         if (TryGetComponent<EnemyStats>(out EnemyStats stats))
         {
             stats.GiveGold();
         }
         else
         {
-            // Резервний варіант, якщо забули додати скрипт EnemyStats
             if (GameManager.Instance != null) GameManager.Instance.UnregisterEnemy();
         }
-        // ==========================================
         
         if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.enemyDeath);
 

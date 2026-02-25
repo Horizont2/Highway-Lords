@@ -7,10 +7,10 @@ public class Spearman : MonoBehaviour
     public HealthBar healthBar;
 
     [Header("Характеристики")]
-    public float speed = 2.2f;          // Повільніший за лицаря
-    public float attackRange = 2.2f;    // Велика дальність (б'є з другого ряду)
-    public float attackRate = 0.8f;     // Середня швидкість атаки
-    public int maxHealth = 90;          // Трохи менше здоров'я ніж у лицаря
+    public float speed = 2.2f;          
+    public float attackRange = 2.2f;    
+    public float attackRate = 0.8f;     
+    public int maxHealth = 90;          
 
     [Header("Навігація")]
     public LayerMask obstacleLayer; 
@@ -27,26 +27,32 @@ public class Spearman : MonoBehaviour
     private float nextAttackTime = 0f;
     private Vector3 originalScale;
 
-    // Цілі
     private Cart targetCart;
     private Guard targetGuard;
     private EnemyArcher targetArcher; 
     private EnemySpearman targetEnemySpearman;
     private Boss targetBoss; 
-    private EnemyHorse targetHorse; // + НОВЕ: Ціль для Списоносця
+    private EnemyHorse targetHorse; 
 
-    // Патруль
     private Vector3 startPoint;
-    public float patrolRadius = 2.5f;
     private Rigidbody2D rb; 
     private bool isDead = false;
-
-    private Vector3 currentPatrolTarget;
-    private float patrolWaitTimer = 0f;
-    private bool isWaiting = false;
-
-    // Кешування статів
     private UnitStats myStats;
+    private float retargetTimer = 0f;
+
+    private Vector3 formationPos;
+
+    public void SetFormationPosition(Vector3 pos)
+    {
+        formationPos = pos;
+    }
+
+    // МЕТОД ДЛЯ ЗАВАНТАЖЕННЯ ЗБЕРЕЖЕННЯ (Виправлення помилки CS1061)
+    public void LoadState(int savedHealth)
+    {
+        currentHealth = savedHealth;
+        if (healthBar != null) healthBar.SetHealth(currentHealth, maxHealth);
+    }
 
     void Start()
     {
@@ -56,16 +62,13 @@ public class Spearman : MonoBehaviour
         rb.freezeRotation = true; 
 
         if(spriteRenderer == null) spriteRenderer = GetComponent<SpriteRenderer>();
-        
-        // Отримуємо свої стати (Spearman)
         myStats = GetComponent<UnitStats>();
 
         startPoint = transform.position;
+        if (formationPos == Vector3.zero) formationPos = startPoint;
         originalScale = transform.localScale;
 
         if (currentHealth <= 0) currentHealth = maxHealth;
-
-        SetNewPatrolTarget();
 
         if (healthBar != null)
         {
@@ -73,15 +76,11 @@ public class Spearman : MonoBehaviour
             healthBar.SetHealth(currentHealth, maxHealth);
         }
 
-        // === БАЛАНС: ОКРЕМА ПРОКАЧКА ===
         if (GameManager.Instance != null)
         {
             GameManager.Instance.UpdateUI();
-            
-            // Беремо урон з нової функції для Списоносця
             myDamage = GameManager.Instance.GetSpearmanDamage();
 
-            // Візуалізація рівня (синій відтінок)
             if (GameManager.Instance.spearmanLevel > 1 && spriteRenderer != null) 
                 spriteRenderer.color = new Color(0.8f, 0.9f, 1f);
         }
@@ -91,26 +90,10 @@ public class Spearman : MonoBehaviour
         }
     }
 
-    public void LoadState(int savedHealth)
-    {
-        currentHealth = savedHealth;
-        if (healthBar != null) healthBar.SetHealth(currentHealth, maxHealth);
-    }
-
-    void OnDestroy()
-    {
-        if (GameManager.Instance != null && !isDead && !GameManager.Instance.isResettingUnits)
-        {
-            GameManager.Instance.currentUnits--;
-            GameManager.Instance.UpdateUI();
-        }
-    }
-
     void Update()
     {
         if (isDead) return;
 
-        // Оновлюємо урон (для Рогу)
         if (GameManager.Instance != null)
         {
             myDamage = GameManager.Instance.GetSpearmanDamage();
@@ -123,10 +106,14 @@ public class Spearman : MonoBehaviour
         if (targetCart != null && (targetCart.CompareTag("Untagged") || !targetCart.gameObject.activeInHierarchy)) targetCart = null;
         if (targetHorse != null && (targetHorse.CompareTag("Untagged") || !targetHorse.gameObject.activeInHierarchy)) targetHorse = null;
 
-        FindNearestTarget();
+        retargetTimer -= Time.deltaTime;
+        if (retargetTimer <= 0f)
+        {
+            FindNearestTarget();
+            retargetTimer = 0.25f;
+        }
 
         Transform currentTarget = null;
-        // Пріоритет Списоносця: Бос -> Кінь -> Гвардієць -> Інші
         if (targetBoss != null) currentTarget = targetBoss.transform; 
         else if (targetHorse != null) currentTarget = targetHorse.transform;
         else if (targetGuard != null) currentTarget = targetGuard.transform;
@@ -137,17 +124,15 @@ public class Spearman : MonoBehaviour
         if (currentTarget != null)
         {
             EngageEnemy(currentTarget);
-            isWaiting = false; 
         }
         else
         {
-            Patrol();
+            MoveTo(formationPos); // Повернення в ширенгу
         }
     }
 
     void EngageEnemy(Transform target)
     {
-        // Списоносець тримає дистанцію, йому не треба обходити так сильно
         float distance = Vector2.Distance(transform.position, target.position);
         FlipSprite(target.position.x);
 
@@ -166,40 +151,6 @@ public class Spearman : MonoBehaviour
         {
             MoveTo(target.position);
         }
-    }
-
-    void Patrol()
-    {
-        if (isWaiting)
-        {
-            rb.linearVelocity = Vector2.zero;
-            if (animator) animator.SetBool("IsMoving", false);
-
-            patrolWaitTimer -= Time.deltaTime;
-            if (patrolWaitTimer <= 0)
-            {
-                isWaiting = false;
-                SetNewPatrolTarget();
-            }
-            return;
-        }
-
-        float dist = Vector2.Distance(transform.position, currentPatrolTarget);
-        if (dist < 0.2f)
-        {
-            isWaiting = true;
-            patrolWaitTimer = Random.Range(1.0f, 3.0f);
-        }
-        else
-        {
-            MoveTo(currentPatrolTarget);
-        }
-    }
-
-    void SetNewPatrolTarget()
-    {
-        Vector2 randomPoint = Random.insideUnitCircle * patrolRadius;
-        currentPatrolTarget = startPoint + (Vector3)randomPoint;
     }
 
     void MoveTo(Vector3 targetPosition)
@@ -225,9 +176,11 @@ public class Spearman : MonoBehaviour
         Vector2 direction = (targetPosition - transform.position).normalized;
 
         RaycastHit2D hit = Physics2D.Raycast(transform.position, direction, checkDistance, obstacleLayer);
-        if (hit.collider != null)
+        if (hit.collider != null && hit.collider.gameObject != gameObject)
         {
-            direction += hit.normal * avoidanceForce;
+            float dodgeDirY = (transform.position.y >= hit.collider.bounds.center.y) ? 1f : -1f;
+            Vector2 avoidance = new Vector2(0, dodgeDirY); 
+            direction += avoidance * avoidanceForce;
             direction.Normalize(); 
         }
 
@@ -237,15 +190,16 @@ public class Spearman : MonoBehaviour
     void FlipSprite(float targetX)
     {
         float absX = Mathf.Abs(originalScale.x);
-        if (targetX < transform.position.x) 
+        if (targetX > transform.position.x) 
             transform.localScale = new Vector3(absX, originalScale.y, originalScale.z); 
-        else 
+        else if (targetX < transform.position.x) 
             transform.localScale = new Vector3(-absX, originalScale.y, originalScale.z); 
     }
 
     void FindNearestTarget()
     {
-        if (targetBoss != null || targetGuard != null || targetArcher != null || targetEnemySpearman != null || targetCart != null || targetHorse != null) return;
+        targetBoss = null; targetHorse = null; targetGuard = null; 
+        targetEnemySpearman = null; targetArcher = null; targetCart = null;
 
         float minX = -1000f; float maxX = 1000f;
         if (GameManager.Instance != null)
@@ -259,54 +213,20 @@ public class Spearman : MonoBehaviour
         
         foreach (GameObject go in enemies)
         {
-            if (go == gameObject) continue;
-            if (go.CompareTag("Untagged")) continue;
-            
+            if (go == gameObject || go.CompareTag("Untagged")) continue;
             if (GameManager.Instance != null && GameManager.Instance.engagementLine != null)
                 if (go.transform.position.x > GameManager.Instance.engagementLine.position.x) continue;
-            
             if (go.transform.position.x > maxX || go.transform.position.x < minX) continue;
 
             float dist = Vector2.Distance(transform.position, go.transform.position);
 
-            // ПРІОРИТЕТИ (Додано Horse)
-            if (go.GetComponent<Boss>()) 
-            { 
-                if (dist < shortestDist) { shortestDist = dist; targetBoss = go.GetComponent<Boss>(); ResetTargets(); } 
-                continue; 
-            }
-            // Списоносець фокусить коней!
-            if (go.GetComponent<EnemyHorse>()) 
-            { 
-                if (dist < shortestDist) { shortestDist = dist; targetHorse = go.GetComponent<EnemyHorse>(); ResetTargets(); } 
-                continue; 
-            }
-            if (go.GetComponent<Guard>() && !targetBoss && !targetHorse) 
-            { 
-                if (dist < shortestDist) { shortestDist = dist; targetGuard = go.GetComponent<Guard>(); ResetTargets(); } 
-                continue; 
-            }
-            if (go.GetComponent<EnemySpearman>() && !targetBoss && !targetHorse && !targetGuard)
-            {
-                if (dist < shortestDist) { shortestDist = dist; targetEnemySpearman = go.GetComponent<EnemySpearman>(); ResetTargets(); }
-                continue;
-            }
-            if (go.GetComponent<EnemyArcher>() && !targetBoss && !targetHorse && !targetGuard && !targetEnemySpearman) 
-            { 
-                if (dist < shortestDist) { shortestDist = dist; targetArcher = go.GetComponent<EnemyArcher>(); ResetTargets(); } 
-                continue; 
-            }
-            if (go.GetComponent<Cart>() && !targetBoss && !targetHorse && !targetGuard && !targetArcher && dist < shortestDist) 
-            { 
-                shortestDist = dist; targetCart = go.GetComponent<Cart>(); 
-            }
+            if (go.GetComponent<Boss>()) { if (dist < shortestDist) { shortestDist = dist; targetBoss = go.GetComponent<Boss>(); } continue; }
+            if (go.GetComponent<EnemyHorse>()) { if (dist < shortestDist) { shortestDist = dist; targetHorse = go.GetComponent<EnemyHorse>(); } continue; }
+            if (go.GetComponent<Guard>() && !targetBoss && !targetHorse) { if (dist < shortestDist) { shortestDist = dist; targetGuard = go.GetComponent<Guard>(); } continue; }
+            if (go.GetComponent<EnemySpearman>() && !targetBoss && !targetHorse && !targetGuard) { if (dist < shortestDist) { shortestDist = dist; targetEnemySpearman = go.GetComponent<EnemySpearman>(); } continue; }
+            if (go.GetComponent<EnemyArcher>() && !targetBoss && !targetHorse && !targetGuard && !targetEnemySpearman) { if (dist < shortestDist) { shortestDist = dist; targetArcher = go.GetComponent<EnemyArcher>(); } continue; }
+            if (go.GetComponent<Cart>() && !targetBoss && !targetHorse && !targetGuard && !targetArcher && dist < shortestDist) { shortestDist = dist; targetCart = go.GetComponent<Cart>(); }
         }
-    }
-
-    void ResetTargets()
-    {
-        // Допоміжний метод для скидання інших цілей, коли знайдено пріоритетнішу
-        // (Логіка вже є всередині if-ів, але це для чистоти, якщо захочете розширити)
     }
 
     void Attack()
@@ -314,34 +234,26 @@ public class Spearman : MonoBehaviour
         if (animator) animator.SetTrigger("Attack");
     }
 
-    // === ВИКЛИКАЄТЬСЯ З АНІМАЦІЇ (Event: Hit) ===
-    public void Hit()
+    public void Hit() // Викликається анімацією
     {
         if (isDead) return;
-        if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.swordHit); // Або spearHit
+        if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.swordHit); 
 
-        // === НОВА ЛОГІКА УРОНУ ===
         int finalDamage = myDamage;
         UnitStats targetStats = null;
-        GameObject targetObj = null;
 
-        // Визначаємо ціль
-        if (targetBoss != null) { targetObj = targetBoss.gameObject; targetStats = targetBoss.GetComponent<UnitStats>(); }
-        else if (targetHorse != null) { targetObj = targetHorse.gameObject; targetStats = targetHorse.GetComponent<UnitStats>(); }
-        else if (targetGuard != null) { targetObj = targetGuard.gameObject; targetStats = targetGuard.GetComponent<UnitStats>(); }
-        else if (targetEnemySpearman != null) { targetObj = targetEnemySpearman.gameObject; targetStats = targetEnemySpearman.GetComponent<UnitStats>(); }
-        else if (targetArcher != null) { targetObj = targetArcher.gameObject; targetStats = targetArcher.GetComponent<UnitStats>(); }
-        else if (targetCart != null) { targetObj = targetCart.gameObject; }
+        if (targetBoss != null) targetStats = targetBoss.GetComponent<UnitStats>();
+        else if (targetHorse != null) targetStats = targetHorse.GetComponent<UnitStats>();
+        else if (targetGuard != null) targetStats = targetGuard.GetComponent<UnitStats>();
+        else if (targetEnemySpearman != null) targetStats = targetEnemySpearman.GetComponent<UnitStats>();
+        else if (targetArcher != null) targetStats = targetArcher.GetComponent<UnitStats>();
 
-        // Розраховуємо множник (наприклад x2 по конях)
         if (myStats != null && targetStats != null)
         {
             float multiplier = GameManager.GetDamageMultiplier(myStats.category, targetStats.category);
             finalDamage = Mathf.RoundToInt(myDamage * multiplier);
         }
-        // =========================
         
-        // Наносимо урон
         if (targetBoss != null) targetBoss.TakeDamage(finalDamage);
         else if (targetHorse != null) targetHorse.TakeDamage(finalDamage);
         else if (targetGuard != null) targetGuard.TakeDamage(finalDamage);
@@ -354,12 +266,8 @@ public class Spearman : MonoBehaviour
     {
         if (isDead) return;
         currentHealth -= damage;
-        
         if (healthBar != null) healthBar.SetHealth(currentHealth, maxHealth);
-        
-        // === POPUP ===
         GameManager.CreateDamagePopup(transform.position, damage);
-        
         if (currentHealth <= 0) Die();
     }
 
@@ -368,24 +276,19 @@ public class Spearman : MonoBehaviour
         if (isDead) return;
         isDead = true;
         gameObject.tag = "Untagged";
-        
         if (rb != null) { rb.linearVelocity = Vector2.zero; rb.bodyType = RigidbodyType2D.Static; }
         Collider2D col = GetComponent<Collider2D>();
         if (col != null) col.enabled = false;
-
-        if (GameManager.Instance != null) { GameManager.Instance.currentUnits--; GameManager.Instance.UpdateUI(); }
-        if (healthBar != null) healthBar.gameObject.SetActive(false);
-
-        if (animator)
-        {
-            animator.Rebind();
-            animator.Update(0f);
-            animator.enabled = false;
+        
+        if (GameManager.Instance != null && !GameManager.Instance.isResettingUnits) 
+        { 
+            GameManager.Instance.OnUnitDeath(gameObject, "Spearman"); 
         }
 
+        if (healthBar != null) healthBar.gameObject.SetActive(false);
+        if (animator) { animator.Rebind(); animator.Update(0f); animator.enabled = false; }
         transform.Rotate(0, 0, -90);
         if (spriteRenderer != null) { spriteRenderer.color = Color.gray; spriteRenderer.sortingOrder = 0; }
-        
         Destroy(this);
         Destroy(gameObject, 10f);
     }

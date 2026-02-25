@@ -32,6 +32,27 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager Instance;
 
+    [Header("Formation Settings")]
+    public Transform formationStartPoint; // Початок червоної зони з твого скріна
+    public float rowSpacing = 1.5f;    // Відстань між рядами (X)
+    public float columnSpacing = 0.8f; // Відстань між юнітами в ряду (Y)
+
+    // Списки для відстеження живих юнітів
+    private List<Knight> activeKnights = new List<Knight>();
+    private List<Spearman> activeSpearmen = new List<Spearman>();
+    private List<Archer> activeArchers = new List<Archer>();
+
+    [Header("Continuous Wave UI")]
+    public GameObject tickPrefab;      // Префаб маленької лінії-мітки
+    public Transform tickContainer;    // Дочірній об'єкт Slider (зазвичай Fill Area)
+    public float waveDuration = 60f;   // Скільки триває хвиля в секундах
+    private float waveTimer = 0f;
+    private List<float> currentWaveMilestones = new List<float>(); // Значення від 0 до 1
+
+    // Запобіжники для правильного переходу хвиль
+    private bool isFirstWaveStarted = false; 
+    private bool isWaitingForNextWave = false; // ВИПРАВЛЕННЯ БАГУ ПЕРЕСТРИБУВАННЯ ХВИЛЬ
+
     // ==========================================
     // === СИСТЕМА ПРИЦІЛЮВАННЯ ===
     // ==========================================
@@ -115,6 +136,9 @@ public class GameManager : MonoBehaviour
     public Button unlockSpearmanButton;
     public UICostGroup unlockSpearmanCostUI;
 
+    [Tooltip("Перетягни сюди об'єкт рядка Unlock Spearman. Переконайся, що на ньому висить компонент Canvas Group!")]
+    public CanvasGroup unlockSpearmanRowGroup; 
+
     [Header("UI: Панель Кузні (Shop/Forge)")]
     public Button upgradeKnightButton;
     public Button upgradeArcherButton;
@@ -179,8 +203,6 @@ public class GameManager : MonoBehaviour
 
     [Header("UI: Прогрес Хвилі")]
     public Slider waveTimerBar;
-    private int totalEnemiesInWave = 1;
-    private int enemiesKilledInWave = 0;
 
     [Header("Управління Хвилею")]
     public Button nextWaveButton;
@@ -191,7 +213,7 @@ public class GameManager : MonoBehaviour
 
     [Header("Зв'язки")]
     public Castle castle;
-    public Transform towerTransform;
+    public Transform towerTransform; 
     public EnemySpawner spawner;
 
     [Header("Спрайти Кнопок")]
@@ -223,7 +245,7 @@ public class GameManager : MonoBehaviour
     public TMP_Text waveText;
     public TMP_Text hirePriceText;
     public TMP_Text limitText;
-    public TMP_Text towerLevelText; // Текст рівня/шкоди вежі
+    public TMP_Text towerLevelText; 
 
     [Header("Баланс: Війська")]
     public GameObject knightPrefab;
@@ -265,7 +287,7 @@ public class GameManager : MonoBehaviour
     public int baseEnemyHealth = 50;
 
     private bool isWaveInProgress = false;
-    private int _lastHireFrame = -1;
+    private float _lastHireTime = 0f;
 
     void Awake()
     {
@@ -283,16 +305,23 @@ public class GameManager : MonoBehaviour
 
     void Start()
     {
-        SetupAllButtonColors();
+        if (goldText != null) 
+        {
+            goldText.gameObject.SetActive(true);
+            if (goldText.transform.parent != null) 
+            {
+                goldText.transform.parent.gameObject.SetActive(true);
+            }
+        }
+
         ResolveUIRefs();
         ResolveSpearmanLockUI();
-        WireExplicitButtons(); // Надійна пряма прив'язка
+        WireExplicitButtons(); 
 
         RecalculateUnits();
 
         enemiesAlive = 0;
 
-        // Вимикаємо панелі на старті
         if (constructionPanel) constructionPanel.SetActive(false);
         if (barracksUpgradePanel) barracksUpgradePanel.SetActive(false);
         if (shopPanel) shopPanel.SetActive(false);
@@ -306,20 +335,58 @@ public class GameManager : MonoBehaviour
         {
             waveTimerBar.gameObject.SetActive(true);
             waveTimerBar.maxValue = 1f;
-            waveTimerBar.value = 1f;
+            waveTimerBar.value = 0f;
         }
 
-        if (autoStartWaves)
+        if (autoStartWaves && !isWaitingForNextWave)
         {
+            isWaitingForNextWave = true;
             StartCoroutine(AutoStartNextWave(3.0f));
         }
 
         StartCoroutine(WaveWatchdog());
     }
 
+    void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.F12))
+        {
+            DeleteSave();
+        }
+
+        if (isWaveInProgress)
+        {
+            waveTimer += Time.deltaTime;
+            float progress = waveTimer / waveDuration;
+            
+            // ВАЖЛИВО: Смужка йде у зворотному напрямку (від 1 до 0)
+            if (waveTimerBar != null) waveTimerBar.value = 1f - progress;
+
+            // Перевірка міток на спавн
+            for (int i = currentWaveMilestones.Count - 1; i >= 0; i--)
+            {
+                if (progress >= currentWaveMilestones[i])
+                {
+                    SpawnEnemySquad(); 
+                    currentWaveMilestones.RemoveAt(i);
+                    
+                    // Видаляємо візуальну мітку з UI
+                    if (tickContainer != null && tickContainer.childCount > 0) 
+                        Destroy(tickContainer.GetChild(0).gameObject);
+                }
+            }
+
+            // Зупиняємо таймер по досягненню 100%
+            if (progress >= 1f)
+            {
+                isWaveInProgress = false;
+                if (waveTimerBar != null) waveTimerBar.value = 0f;
+            }
+        }
+    }
+
     void ResolveUIRefs()
     {
-        // HUD buttons
         if (hammerButton == null) hammerButton = FindUIButton("BuildButton");
         if (barracksIconButton == null) barracksIconButton = FindUIButton("BarracksButton");
         if (openShopButton == null) openShopButton = FindUIButton("ForgeButton");
@@ -334,12 +401,10 @@ public class GameManager : MonoBehaviour
         if (stoneText == null) stoneText = FindTMP("StoneText");
         if (waveText == null) waveText = FindTMP("WaveText");
 
-        // Panels: prefer set panel, fallback to *_New
         var construction = constructionPanel != null ? constructionPanel : constructionPanelNew;
         var barracks = barracksUpgradePanel != null ? barracksUpgradePanel : barracksPanelNew;
         var shop = shopPanel != null ? shopPanel : shopPanelNew;
 
-        // Construction panel row buttons
         if (buildBarracksBtnInMenu == null) buildBarracksBtnInMenu = FindButtonInRow(construction, "Barracks_Row");
         if (buildSpikesButton == null) buildSpikesButton = FindButtonInRow(construction, "Spikes_Row");
         if (buildMineButton == null) buildMineButton = FindButtonInRow(construction, "Mine_Row");
@@ -347,19 +412,47 @@ public class GameManager : MonoBehaviour
 
         if (castleUpgradeCostUI == null) castleUpgradeCostUI = FindCostGroupInRow(construction, "Tower Upgrade_Row", "Castle Upgrade_Row");
 
-        // Barracks panel
         if (upgradeLimitButton == null) upgradeLimitButton = FindButtonInRow(barracks, "Barracks_Row", "Upgrade Units Limit_Row");
         if (unlockSpearmanButton == null) unlockSpearmanButton = FindButtonInRow(barracks, "Spikes_Row", "Unlock Spearman_Row");
 
-        // Shop panel
         if (upgradeKnightButton == null) upgradeKnightButton = FindButtonInRow(shop, "Barracks_Row", "Knights_Row");
         if (upgradeArcherButton == null) upgradeArcherButton = FindButtonInRow(shop, "Spikes_Row", "Archers_Row");
         if (upgradeSpearmanButton == null) upgradeSpearmanButton = FindButtonInRow(shop, "Mine_Row", "Spearmen_Row");
 
-        // Close buttons (inside panels)
         if (closeConstructionBtn == null) closeConstructionBtn = FindUIButtonInPanel(construction, "CloseButton");
         if (closeBarracksBtn == null) closeBarracksBtn = FindUIButtonInPanel(barracks, "CloseButton");
         if (closeShopBtn == null) closeShopBtn = FindUIButtonInPanel(shop, "CloseButton");
+
+        // БЕЗПЕЧНИЙ ПОШУК РЯДКА
+        if (unlockSpearmanButton != null && unlockSpearmanRowGroup == null)
+        {
+            Transform rowTransform = unlockSpearmanButton.transform;
+            bool foundRow = false;
+            
+            int depth = 0;
+            while (rowTransform.parent != null && depth < 4)
+            {
+                if (rowTransform.name.ToLower().Contains("row"))
+                {
+                    foundRow = true;
+                    break;
+                }
+                rowTransform = rowTransform.parent;
+                depth++;
+            }
+            
+            if (foundRow)
+            {
+                unlockSpearmanRowGroup = rowTransform.GetComponent<CanvasGroup>();
+                if (unlockSpearmanRowGroup == null) unlockSpearmanRowGroup = rowTransform.gameObject.AddComponent<CanvasGroup>();
+            }
+        }
+
+        if (waveTimerBar != null && tickContainer == null)
+        {
+            tickContainer = waveTimerBar.transform.Find("Background");
+            if (tickContainer == null) tickContainer = waveTimerBar.transform;
+        }
     }
 
     Button FindUIButton(string name)
@@ -379,7 +472,10 @@ public class GameManager : MonoBehaviour
     {
         if (panel == null) return null;
         var t = panel.GetComponentsInChildren<Transform>(true);
-        foreach (var tr in t) if (tr.name == name) return tr.GetComponent<Button>();
+        foreach (var tr in t)
+        {
+            if (tr.name == name) return tr.GetComponent<Button>();
+        }
         return null;
     }
 
@@ -407,7 +503,7 @@ public class GameManager : MonoBehaviour
             if (t == null) continue;
             var icons = t.GetComponentsInChildren<Image>(true);
             var texts = t.GetComponentsInChildren<TMP_Text>(true);
-            // pick cost icons/texts by name
+            
             var iconList = icons.Where(i => i.name.Contains("CostIcon")).ToArray();
             var textList = texts.Where(tt => tt.name.Contains("CostText")).ToArray();
             if (iconList.Length > 0 || textList.Length > 0)
@@ -426,7 +522,9 @@ public class GameManager : MonoBehaviour
     Transform FindChild(Transform root, string name)
     {
         foreach (Transform t in root.GetComponentsInChildren<Transform>(true))
+        {
             if (t.name == name) return t;
+        }
         return null;
     }
 
@@ -436,36 +534,48 @@ public class GameManager : MonoBehaviour
         var shop = shopPanel != null ? shopPanel : shopPanelNew;
         if (shop == null) return;
 
-        // Try find row by text containing "Spearman"
         var texts = shop.GetComponentsInChildren<TMP_Text>(true);
         foreach (var t in texts)
         {
             if (t.text != null && t.text.ToLower().Contains("spear"))
             {
-                var row = t.transform;
-                // climb to row
-                for (int i = 0; i < 3 && row.parent != null; i++) row = row.parent;
-                spearmanRowGroup = row.GetComponent<CanvasGroup>();
-                if (spearmanRowGroup == null) spearmanRowGroup = row.gameObject.AddComponent<CanvasGroup>();
-                if (spearmanLockIcon == null)
+                Transform row = t.transform;
+                bool foundRow = false;
+                
+                // БЕЗПЕЧНИЙ ПОШУК РЯДКА
+                for (int i = 0; i < 4 && row.parent != null; i++)
                 {
-                    var lockGo = new GameObject("LockIcon", typeof(RectTransform), typeof(Image));
-                    lockGo.transform.SetParent(row, false);
-                    var rt = lockGo.GetComponent<RectTransform>();
-                    rt.anchorMin = new Vector2(0.9f, 0.5f);
-                    rt.anchorMax = new Vector2(0.9f, 0.5f);
-                    rt.sizeDelta = new Vector2(28, 28);
-                    spearmanLockIcon = lockGo;
+                    if (row.name.ToLower().Contains("row"))
+                    {
+                        foundRow = true;
+                        break;
+                    }
+                    row = row.parent;
+                }
+                
+                if (foundRow)
+                {
+                    spearmanRowGroup = row.GetComponent<CanvasGroup>();
+                    if (spearmanRowGroup == null) spearmanRowGroup = row.gameObject.AddComponent<CanvasGroup>();
+                    
+                    if (spearmanLockIcon == null)
+                    {
+                        var lockGo = new GameObject("LockIcon", typeof(RectTransform), typeof(Image));
+                        lockGo.transform.SetParent(row, false);
+                        var rt = lockGo.GetComponent<RectTransform>();
+                        rt.anchorMin = new Vector2(0.9f, 0.5f);
+                        rt.anchorMax = new Vector2(0.9f, 0.5f);
+                        rt.sizeDelta = new Vector2(28, 28);
+                        spearmanLockIcon = lockGo;
+                    }
                 }
                 break;
             }
         }
     }
 
-    // === ПРЯМА ТА НАДІЙНА ПРИВ'ЯЗКА КНОПОК ===
     void WireExplicitButtons()
     {
-        // Відкриття панелей
         if (hammerButton != null)
         {
             hammerButton.onClick.RemoveAllListeners();
@@ -484,7 +594,6 @@ public class GameManager : MonoBehaviour
             openShopButton.onClick.AddListener(ToggleShop);
         }
 
-        // Кнопки закриття (хрестики)
         if (closeConstructionBtn != null)
         {
             closeConstructionBtn.onClick.RemoveAllListeners();
@@ -503,7 +612,6 @@ public class GameManager : MonoBehaviour
             closeShopBtn.onClick.AddListener(ToggleShop);
         }
 
-        // Функціонал будівництва
         if (buildBarracksBtnInMenu != null)
         {
             buildBarracksBtnInMenu.onClick.RemoveAllListeners();
@@ -534,7 +642,6 @@ public class GameManager : MonoBehaviour
             castleUpgradeButton.onClick.AddListener(UpgradeCastleHP);
         }
 
-        // Функціонал кузні (апгрейди)
         if (upgradeKnightButton != null)
         {
             upgradeKnightButton.onClick.RemoveAllListeners();
@@ -553,7 +660,6 @@ public class GameManager : MonoBehaviour
             upgradeSpearmanButton.onClick.AddListener(UpgradeSpearman);
         }
 
-        // Функціонал казарми
         if (upgradeLimitButton != null)
         {
             upgradeLimitButton.onClick.RemoveAllListeners();
@@ -566,7 +672,6 @@ public class GameManager : MonoBehaviour
             unlockSpearmanButton.onClick.AddListener(UnlockSpearman);
         }
 
-        // Найм
         if (hireKnightButton != null)
         {
             hireKnightButton.onClick.RemoveAllListeners();
@@ -585,7 +690,6 @@ public class GameManager : MonoBehaviour
             hireSpearmanButton.onClick.AddListener(HireSpearman);
         }
 
-        // Керування хвилею
         if (nextWaveButton != null)
         {
             nextWaveButton.onClick.RemoveAllListeners();
@@ -593,7 +697,135 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    // === ЛОГІКА ВІДКРИТТЯ ПАНЕЛЕЙ ===
+    public void UpdateFormationPositions()
+    {
+        AssignPositionsToGroup(activeKnights.Cast<MonoBehaviour>().ToList(), 0); 
+        AssignPositionsToGroup(activeSpearmen.Cast<MonoBehaviour>().ToList(), 1); 
+        AssignPositionsToGroup(activeArchers.Cast<MonoBehaviour>().ToList(), 3); 
+    }
+
+    void AssignPositionsToGroup(List<MonoBehaviour> units, int groupIndex)
+    {
+        if (formationStartPoint == null) return;
+
+        for (int i = 0; i < units.Count; i++)
+        {
+            int rowInGroup = i / 4;
+            int colInGroup = i % 4;
+
+            float posX = formationStartPoint.position.x - (groupIndex + rowInGroup) * rowSpacing;
+            float posY = formationStartPoint.position.y + (colInGroup * columnSpacing) - (1.5f * columnSpacing);
+
+            Vector3 targetPos = new Vector3(posX, posY, 0);
+            
+            units[i].SendMessage("SetFormationPosition", targetPos, SendMessageOptions.DontRequireReceiver);
+        }
+    }
+
+    public void OnUnitDeath(GameObject unitObj, string type)
+    {
+        if (type == "Knight") activeKnights.Remove(unitObj.GetComponent<Knight>());
+        else if (type == "Spearman") activeSpearmen.Remove(unitObj.GetComponent<Spearman>());
+        else if (type == "Archer") activeArchers.Remove(unitObj.GetComponent<Archer>());
+
+        currentUnits--;
+        UpdateUI();
+        UpdateFormationPositions(); 
+    }
+
+    IEnumerator AutoStartNextWave(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        NextWave();
+    }
+
+    public void NextWave()
+    {
+        // Додатковий захист від подвійних викликів
+        if (enemiesAlive > 0) 
+        {
+            isWaitingForNextWave = false; 
+            return; 
+        }
+
+        isWaitingForNextWave = false;
+
+        if (isFirstWaveStarted) 
+        {
+            currentWave++;
+        }
+        isFirstWaveStarted = true;
+
+        waveTimer = 0;
+        isWaveInProgress = true;
+
+        if (castle != null) castle.HealMax();
+        manualTarget = null;
+        if(targetIndicator) targetIndicator.Hide();
+
+        if (spawner != null) spawner.PrepareForWave(currentWave);
+        
+        GenerateWaveMilestones();
+        SaveGame();
+        UpdateUI();
+
+        if (SoundManager.Instance != null)
+        {
+            SoundManager.Instance.PlaySFX(SoundManager.Instance.waveStart, 0.4f);
+        }
+
+        // === ГАРАНТОВАНИЙ СПАВН ПЕРШОГО ЗАГОНУ НА ПОЧАТКУ ХВИЛІ ===
+        if (spawner != null)
+        {
+            spawner.SpawnSquad(false);
+        }
+    }
+
+    void GenerateWaveMilestones()
+    {
+        currentWaveMilestones.Clear();
+        if (tickContainer != null) foreach (Transform child in tickContainer) Destroy(child.gameObject);
+
+        int baseSquadCount = 2 + (currentWave / 5); 
+        int extraRandom = 1; 
+        
+        if (currentWave % 4 == 0 && currentWave % 10 != 0)
+        {
+            extraRandom = Random.Range(2, 4); 
+        }
+
+        int totalSquads = baseSquadCount + Random.Range(0, extraRandom + 1);
+        totalSquads = Mathf.Clamp(totalSquads, 1, 6);
+
+        // МІНУС 1, тому що найперший загін вже вийде автоматично при старті хвилі (без мітки)
+        int milestonesCount = totalSquads - 1;
+
+        for (int i = 1; i <= milestonesCount; i++)
+        {
+            float m = (float)i / (milestonesCount + 1);
+            currentWaveMilestones.Add(m);
+
+            if (tickPrefab != null && tickContainer != null)
+            {
+                GameObject tick = Instantiate(tickPrefab, tickContainer);
+                RectTransform rt = tick.GetComponent<RectTransform>();
+                
+                float visualPos = 1f - m; 
+                rt.anchorMin = new Vector2(visualPos, 0.5f);
+                rt.anchorMax = new Vector2(visualPos, 0.5f);
+                rt.anchoredPosition = Vector2.zero;
+            }
+        }
+        
+        if (currentWave % 10 == 0) currentWaveMilestones.Add(0.95f);
+    }
+
+    void SpawnEnemySquad()
+    {
+        bool isBossMoment = (currentWave % 10 == 0) && currentWaveMilestones.Count <= 1;
+        if (spawner != null) spawner.SpawnSquad(isBossMoment);
+    }
+
     public void ToggleConstructionMenu()
     {
         GameObject panel = constructionPanel != null ? constructionPanel : constructionPanelNew;
@@ -666,14 +898,10 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    // =========================================================================
-    // === СИСТЕМА ОНОВЛЕННЯ UI ЦІН (Вставляє іконки та текст) ===
-    // =========================================================================
     public void UpdateCostUIGroup(UICostGroup costUI, ResourceType type1, int cost1, ResourceType type2 = ResourceType.Gold, int cost2 = 0, string overrideText = "")
     {
         if (costUI == null) return;
 
-        // Перевизначення тексту (наприклад "BUILT", "MAX", "UNLOCKED")
         if (!string.IsNullOrEmpty(overrideText))
         {
             if (costUI.icon1 != null) costUI.icon1.gameObject.SetActive(false);
@@ -689,7 +917,6 @@ public class GameManager : MonoBehaviour
             return;
         }
 
-        // Перший ресурс
         if (costUI.icon1 != null && costUI.text1 != null)
         {
             if (cost1 > 0)
@@ -707,7 +934,6 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        // Другий ресурс
         if (costUI.icon2 != null && costUI.text2 != null)
         {
             if (cost2 > 0)
@@ -742,19 +968,19 @@ public class GameManager : MonoBehaviour
         while (true)
         {
             yield return new WaitForSeconds(2.0f);
-            if (isWaveInProgress && enemiesAlive > 0)
+            
+            if (enemiesAlive > 0)
             {
                 GameObject[] realEnemies = GameObject.FindGameObjectsWithTag("Enemy");
+                
                 if (realEnemies.Length == 0)
                 {
                     enemiesAlive = 0;
                     UpdateUI();
-                    isWaveInProgress = false;
-
-                    if (spawner != null) spawner.StopSpawning();
-
-                    if (autoStartWaves)
+                    
+                    if (!isWaveInProgress && autoStartWaves && !isWaitingForNextWave)
                     {
+                        isWaitingForNextWave = true;
                         StartCoroutine(AutoStartNextWave(timeBetweenWaves));
                     }
                 }
@@ -762,6 +988,15 @@ public class GameManager : MonoBehaviour
                 {
                     enemiesAlive = realEnemies.Length;
                     UpdateUI();
+                }
+            }
+            else if (!isWaveInProgress && autoStartWaves && isFirstWaveStarted && !isWaitingForNextWave) 
+            {
+                GameObject[] realEnemies = GameObject.FindGameObjectsWithTag("Enemy");
+                if (realEnemies.Length == 0)
+                {
+                    isWaitingForNextWave = true;
+                    StartCoroutine(AutoStartNextWave(timeBetweenWaves));
                 }
             }
         }
@@ -772,13 +1007,17 @@ public class GameManager : MonoBehaviour
         var knights = FindObjectsByType<Knight>(FindObjectsSortMode.None);
         var archers = FindObjectsByType<Archer>(FindObjectsSortMode.None);
         var spearmen = FindObjectsByType<Spearman>(FindObjectsSortMode.None);
-        currentUnits = knights.Length + archers.Length + spearmen.Length;
+        
+        activeKnights = knights.Where(k => !k.CompareTag("Untagged")).ToList();
+        activeArchers = archers.Where(a => !a.CompareTag("Untagged")).ToList();
+        activeSpearmen = spearmen.Where(s => !s.CompareTag("Untagged")).ToList();
+        
+        currentUnits = activeKnights.Count + activeArchers.Count + activeSpearmen.Count;
+        UpdateFormationPositions();
     }
 
-    // === БАЛАНС ===
     public int GetDifficultyHealth() { return Mathf.RoundToInt(baseEnemyHealth * Mathf.Pow(enemyHpGrowth, currentWave - 1)); }
     public int GetGoldReward() { return Mathf.RoundToInt(baseGoldReward * Mathf.Pow(goldRewardGrowth, currentWave)); }
-
     public int GetKnightDamage() { return Mathf.RoundToInt((10 + ((knightLevel - 1) * 5)) * globalDamageMultiplier); }
     public int GetArcherDamage() { return Mathf.RoundToInt((8 + ((archerLevel - 1) * 3)) * globalDamageMultiplier); }
     public int GetSpearmanDamage() { return Mathf.RoundToInt((12 + ((spearmanLevel - 1) * 6)) * globalDamageMultiplier); }
@@ -811,38 +1050,25 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    // === ЛОГІКА ХВИЛІ ===
     public void InitWaveProgress(int totalEnemies)
     {
-        totalEnemiesInWave = totalEnemies;
-        enemiesKilledInWave = 0;
-
         if (waveTimerBar != null)
         {
             waveTimerBar.gameObject.SetActive(true);
             waveTimerBar.maxValue = 1f;
-            waveTimerBar.value = 1f;
+            waveTimerBar.value = 0f; 
         }
     }
 
     public void RegisterEnemy()
     {
         enemiesAlive++;
-        isWaveInProgress = true;
         UpdateUI();
     }
 
     public void UnregisterEnemy()
     {
         enemiesAlive--;
-        enemiesKilledInWave++;
-
-        if (waveTimerBar != null && totalEnemiesInWave > 0)
-        {
-            float progress = 1f - ((float)enemiesKilledInWave / totalEnemiesInWave);
-            waveTimerBar.value = progress;
-        }
-
         if(enemiesAlive < 0) enemiesAlive = 0;
         UpdateUI();
 
@@ -851,53 +1077,18 @@ public class GameManager : MonoBehaviour
              manualTarget = null;
         }
 
-        if (enemiesAlive == 0 && isWaveInProgress)
+        if (enemiesAlive == 0 && !isWaveInProgress && !isWaitingForNextWave)
         {
-            isWaveInProgress = false;
-            if (spawner != null) spawner.StopSpawning();
-            if (waveTimerBar != null) waveTimerBar.value = 1f;
+            if (waveTimerBar != null) waveTimerBar.value = 0f;
 
             if (autoStartWaves)
             {
+                isWaitingForNextWave = true;
                 StartCoroutine(AutoStartNextWave(timeBetweenWaves));
             }
         }
     }
 
-    IEnumerator AutoStartNextWave(float delay)
-    {
-        yield return new WaitForSeconds(delay);
-        NextWave();
-    }
-
-    public void NextWave()
-    {
-        if (enemiesAlive > 0) return;
-
-        if (!isWaveInProgress && enemiesAlive == 0 && Time.timeSinceLevelLoad > 5f)
-        {
-             currentWave++;
-        }
-
-        if (castle != null) castle.HealMax();
-
-        manualTarget = null;
-        if(targetIndicator) targetIndicator.Hide();
-
-        SaveGame();
-
-        if (SoundManager.Instance != null)
-        {
-            SoundManager.Instance.PlaySFX(SoundManager.Instance.waveStart, 0.4f);
-        }
-
-        if (spawner != null) spawner.StartWave(currentWave);
-        UpdateUI();
-
-        isWaveInProgress = true;
-    }
-
-    // === БУДІВНИЦТВО ===
     public void BuildOrUpgradeBarracks()
     {
         int costG = GetBarracksBuildingUpgradeCost(true);
@@ -1057,7 +1248,8 @@ public class GameManager : MonoBehaviour
             gold -= cost;
             maxUnits++;
 
-            if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.constructionSound);
+            if (SoundManager.Instance != null && SoundManager.Instance.unitUpgradeSound != null) 
+                SoundManager.Instance.PlaySFX(SoundManager.Instance.unitUpgradeSound);
 
             SaveGame();
             UpdateUI();
@@ -1129,7 +1321,8 @@ public class GameManager : MonoBehaviour
             gold -= spearmanUnlockCost;
             isSpearmanUnlocked = true;
 
-            if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.constructionSound);
+            if (SoundManager.Instance != null && SoundManager.Instance.unitUpgradeSound != null) 
+                SoundManager.Instance.PlaySFX(SoundManager.Instance.unitUpgradeSound);
 
             SaveGame();
             UpdateUI();
@@ -1149,8 +1342,16 @@ public class GameManager : MonoBehaviour
             gold -= knightUpgradeCost;
             knightLevel++;
             knightUpgradeCost = (int)(knightUpgradeCost * upgradeCostGrowth);
+            
+            if (SoundManager.Instance != null && SoundManager.Instance.unitUpgradeSound != null) 
+                SoundManager.Instance.PlaySFX(SoundManager.Instance.unitUpgradeSound);
+            
             SaveGame();
             UpdateUI();
+        }
+        else
+        {
+            if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.error);
         }
     }
 
@@ -1161,8 +1362,16 @@ public class GameManager : MonoBehaviour
             gold -= archerUpgradeCost;
             archerLevel++;
             archerUpgradeCost = (int)(archerUpgradeCost * upgradeCostGrowth);
+            
+            if (SoundManager.Instance != null && SoundManager.Instance.unitUpgradeSound != null) 
+                SoundManager.Instance.PlaySFX(SoundManager.Instance.unitUpgradeSound);
+            
             SaveGame();
             UpdateUI();
+        }
+        else
+        {
+            if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.error);
         }
     }
 
@@ -1173,29 +1382,66 @@ public class GameManager : MonoBehaviour
             gold -= spearmanUpgradeCost;
             spearmanLevel++;
             spearmanUpgradeCost = (int)(spearmanUpgradeCost * upgradeCostGrowth);
+            
+            if (SoundManager.Instance != null && SoundManager.Instance.unitUpgradeSound != null) 
+                SoundManager.Instance.PlaySFX(SoundManager.Instance.unitUpgradeSound);
+            
             SaveGame();
             UpdateUI();
         }
+        else
+        {
+            if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.error);
+        }
     }
 
-    public void HireKnight() { TryHireUnit(knightPrefab, knightFixedCost); }
-    public void HireArcher() { TryHireUnit(archerPrefab, archerFixedCost); }
-    public void HireSpearman() { TryHireUnit(spearmanPrefab, spearmanFixedCost); }
+    public void HireKnight() 
+    { 
+        GameObject unit = TryHireUnit(knightPrefab, knightFixedCost); 
+        if (unit != null) 
+        {
+            activeKnights.Add(unit.GetComponent<Knight>());
+            UpdateFormationPositions(); 
+        }
+    }
 
-    private void TryHireUnit(GameObject prefab, int cost)
+    public void HireArcher() 
+    { 
+        GameObject unit = TryHireUnit(archerPrefab, archerFixedCost); 
+        if (unit != null) 
+        {
+            activeArchers.Add(unit.GetComponent<Archer>());
+            UpdateFormationPositions();
+        }
+    }
+
+    public void HireSpearman() 
+    { 
+        GameObject unit = TryHireUnit(spearmanPrefab, spearmanFixedCost); 
+        if (unit != null) 
+        {
+            activeSpearmen.Add(unit.GetComponent<Spearman>());
+            UpdateFormationPositions();
+        }
+    }
+
+    private GameObject TryHireUnit(GameObject prefab, int cost)
     {
-        if (_lastHireFrame == Time.frameCount) return;
-        _lastHireFrame = Time.frameCount;
+        if (Time.time - _lastHireTime < 0.1f) return null; 
+        _lastHireTime = Time.time;
 
-        if(currentUnits >= maxUnits || gold < cost) return;
+        if(currentUnits >= maxUnits || gold < cost) return null;
 
         gold -= cost;
         currentUnits++;
         UpdateUI();
+        
+        if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.clickSound);
 
-        Instantiate(prefab, unitSpawnPoint.position, Quaternion.identity);
+        GameObject newUnit = Instantiate(prefab, unitSpawnPoint.position, Quaternion.identity);
 
         SaveGame();
+        return newUnit;
     }
 
     public void UpgradeDamage()
@@ -1206,22 +1452,19 @@ public class GameManager : MonoBehaviour
             stone -= towerStoneCost;
 
             towerLevel++;
-
             towerWoodCost = (int)(towerWoodCost * upgradeCostGrowth);
             towerStoneCost = (int)(towerStoneCost * upgradeCostGrowth);
-            SaveGame();
-            UpdateUI();
-        }
-    }
-
-    public void UpgradeCastleHP()
-    {
-        if (castle == null) return;
-        int cost = castle.GetUpgradeCost();
-        if (gold >= cost)
-        {
-            gold -= cost;
-            castle.UpgradeCastle();
+            
+            if (upgradeEffectPrefab != null && towerTransform != null)
+            {
+                Instantiate(upgradeEffectPrefab, towerTransform.position, Quaternion.identity);
+            }
+            
+            if (SoundManager.Instance != null && SoundManager.Instance.unitUpgradeSound != null) 
+                SoundManager.Instance.PlaySFX(SoundManager.Instance.unitUpgradeSound);
+            else if (SoundManager.Instance != null) 
+                SoundManager.Instance.PlaySFX(SoundManager.Instance.constructionSound);
+            
             SaveGame();
             UpdateUI();
         }
@@ -1231,7 +1474,28 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    // === ЕФЕКТИ ===
+    public void UpgradeCastleHP()
+    {
+        if (castle == null) return;
+        int cost = castle.GetUpgradeCost();
+        
+        // ТЕПЕР ПЕРЕВІРЯЄМО І СПИСУЄМО ЗОЛОТО (gold) ЗАМІСТЬ ДЕРЕВА (wood)
+        if (gold >= cost)
+        {
+            gold -= cost;
+            castle.UpgradeCastle();
+            
+            if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.constructionSound);
+            
+            SaveGame();
+            UpdateUI();
+        }
+        else
+        {
+            if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.error);
+        }
+    }
+
     public void ShowDamage(int damageAmount, Vector3 position)
     {
         CreateDamagePopup(position, damageAmount, false);
@@ -1360,12 +1624,15 @@ public class GameManager : MonoBehaviour
 
         var units = FindObjectsByType<Knight>(FindObjectsSortMode.None);
         foreach(var u in units) Destroy(u.gameObject);
+        activeKnights.Clear();
 
         var archs = FindObjectsByType<Archer>(FindObjectsSortMode.None);
         foreach(var a in archs) Destroy(a.gameObject);
+        activeArchers.Clear();
 
         var spearmen = FindObjectsByType<Spearman>(FindObjectsSortMode.None);
         foreach(var s in spearmen) Destroy(s.gameObject);
+        activeSpearmen.Clear();
 
         if (currentMineObject != null) Destroy(currentMineObject);
         if (isMineBuilt) SpawnMineObject();
@@ -1373,14 +1640,18 @@ public class GameManager : MonoBehaviour
         currentUnits = 0;
         enemiesAlive = 0;
         isResettingUnits = false;
+        isWaitingForNextWave = false; 
 
+        waveTimer = 0f;
         if (waveTimerBar != null)
         {
             waveTimerBar.gameObject.SetActive(true);
-            waveTimerBar.value = 1f;
+            waveTimerBar.value = 0f;
         }
 
-        if (spawner != null) spawner.StartWave(currentWave);
+        if (spawner != null) spawner.PrepareForWave(currentWave);
+        GenerateWaveMilestones();
+        isWaveInProgress = true;
 
         UpdateUI();
         UpdateBarracksStateUI();
@@ -1388,7 +1659,6 @@ public class GameManager : MonoBehaviour
         StartCoroutine(RecalculateUnitsNextFrame());
     }
 
-    // === SAVE / LOAD ===
     public void SaveGame()
     {
         PlayerPrefs.SetInt("SavedGold", gold);
@@ -1488,6 +1758,11 @@ public class GameManager : MonoBehaviour
 
         isSpearmanUnlocked = PlayerPrefs.GetInt("SavedSpearmanUnlocked", 0) == 1;
 
+        if (barracksLevel == 0)
+        {
+            isSpearmanUnlocked = false;
+        }
+
         isMineBuilt = PlayerPrefs.GetInt("SavedMineBuilt", 0) == 1;
         mineLevel = PlayerPrefs.GetInt("SavedMineLevel", 0);
         if (mineLevel > 0) isMineBuilt = true;
@@ -1567,6 +1842,7 @@ public class GameManager : MonoBehaviour
 
         enemiesAlive = 0;
         currentUnits = 0;
+        isWaitingForNextWave = false;
 
         if (currentBarracksObject != null) Destroy(currentBarracksObject);
         if (currentMineObject != null) Destroy(currentMineObject);
@@ -1576,13 +1852,14 @@ public class GameManager : MonoBehaviour
         manualTarget = null;
         if(targetIndicator) targetIndicator.Hide();
 
-        if (waveTimerBar != null) waveTimerBar.value = 1f;
+        if (waveTimerBar != null) waveTimerBar.value = 0f;
 
         UpdateUI();
         UpdateBarracksStateUI();
+        
+        Debug.Log("Збереження видалено! (Кеш очищено)");
     }
 
-    // === UI ОНОВЛЕННЯ ===
     public void UpdateUI()
     {
         if (goldText) goldText.text = gold.ToString();
@@ -1598,21 +1875,21 @@ public class GameManager : MonoBehaviour
             hirePriceText.text = $"Knight: {knightFixedCost}G\nSpear: {spearPrice}\nArcher: {archerFixedCost}G";
         }
 
-        // ОНОВЛЕННЯ ЦІНИ ТА ТЕКСТУ ВЕЖІ
         UpdateCostUIGroup(towerCostUI, ResourceType.Wood, towerWoodCost, ResourceType.Stone, towerStoneCost);
-        if (towerLevelText) towerLevelText.text = $"Tower Lvl {towerLevel}\nDMG: {GetTowerDamage()}";
+        if (towerLevelText) 
+        {
+            towerLevelText.text = $"Tower Lvl {towerLevel}\nDMG: {GetTowerDamage()}\n{towerWoodCost} W / {towerStoneCost} S";
+        }
 
-        // ОНОВЛЕННЯ ЦІНИ АПГРЕЙДУ ЗАМКУ (HP)
         if (castleUpgradeCostUI != null && castle != null)
         {
-            UpdateCostUIGroup(castleUpgradeCostUI, ResourceType.Gold, castle.GetUpgradeCost());
+            UpdateCostUIGroup(castleUpgradeCostUI, ResourceType.Wood, castle.GetUpgradeCost());
         }
 
         if (knightLevelText) knightLevelText.text = $"Knights Lvl {knightLevel}\nDMG: {GetKnightDamage()}";
         if (archerLevelText) archerLevelText.text = $"Archers Lvl {archerLevel}\nDMG: {GetArcherDamage()}";
         if (spearmanLevelText) spearmanLevelText.text = $"Spearmen Lvl {spearmanLevel}\nDMG: {GetSpearmanDamage()}";
 
-        // ОНОВЛЕННЯ ЦІН ПРОКАЧКИ ВІЙСЬК (КУЗНЯ)
         UpdateCostUIGroup(knightUpgradeCostUI, ResourceType.Gold, knightUpgradeCost);
         UpdateCostUIGroup(archerUpgradeCostUI, ResourceType.Gold, archerUpgradeCost);
         UpdateCostUIGroup(spearmanUpgradeCostUI, ResourceType.Gold, spearmanUpgradeCost);
@@ -1626,13 +1903,17 @@ public class GameManager : MonoBehaviour
 
         if (hireSpearmanButton != null)
         {
-            hireSpearmanButton.gameObject.SetActive(isSpearmanUnlocked);
-            UpdateButtonState(hireSpearmanButton, canHireSpearman && isSpearmanUnlocked);
+            bool canSeeSpearman = isSpearmanUnlocked && barracksLevel > 0; 
+            hireSpearmanButton.gameObject.SetActive(canSeeSpearman);
+            UpdateButtonState(hireSpearmanButton, canHireSpearman && canSeeSpearman);
         }
 
         UpdateButtonState(towerButton, (wood >= towerWoodCost && stone >= towerStoneCost));
         if (castleUpgradeButton != null && castle != null)
-            UpdateButtonState(castleUpgradeButton, gold >= castle.GetUpgradeCost());
+        {
+            UpdateButtonState(castleUpgradeButton, wood >= castle.GetUpgradeCost());
+        }
+            
         UpdateButtonState(hammerButton, true);
 
         UpdateButtonState(upgradeKnightButton, gold >= knightUpgradeCost);
@@ -1645,17 +1926,38 @@ public class GameManager : MonoBehaviour
 
         if (unlockSpearmanButton != null)
         {
-            unlockSpearmanButton.gameObject.SetActive(isBarracksBuilt);
+            if (unlockSpearmanRowGroup != null) 
+            {
+                unlockSpearmanRowGroup.gameObject.SetActive(isBarracksBuilt);
+            }
+            else 
+            {
+                unlockSpearmanButton.gameObject.SetActive(isBarracksBuilt);
+            }
 
             if (isSpearmanUnlocked)
             {
                 UpdateButtonState(unlockSpearmanButton, false);
                 UpdateCostUIGroup(unlockSpearmanCostUI, ResourceType.Gold, 0, ResourceType.Wood, 0, "UNLOCKED");
+                
+                if (unlockSpearmanRowGroup != null)
+                {
+                    unlockSpearmanRowGroup.alpha = 0.5f; 
+                    unlockSpearmanRowGroup.interactable = false;
+                    unlockSpearmanRowGroup.blocksRaycasts = false;
+                }
             }
             else
             {
                 UpdateButtonState(unlockSpearmanButton, gold >= spearmanUnlockCost);
                 UpdateCostUIGroup(unlockSpearmanCostUI, ResourceType.Gold, spearmanUnlockCost);
+                
+                if (unlockSpearmanRowGroup != null)
+                {
+                    unlockSpearmanRowGroup.alpha = 1f; 
+                    unlockSpearmanRowGroup.interactable = true;
+                    unlockSpearmanRowGroup.blocksRaycasts = true;
+                }
             }
         }
 
@@ -1666,6 +1968,11 @@ public class GameManager : MonoBehaviour
             UpdateButtonState(buildBarracksBtnInMenu, gold >= costG && wood >= costW);
 
             UpdateBarracksStateUI();
+        }
+
+        if (barracksIconButton != null)
+        {
+            barracksIconButton.gameObject.SetActive(barracksLevel > 0);
         }
 
         if (upgradeLimitButton != null)
@@ -1695,7 +2002,7 @@ public class GameManager : MonoBehaviour
 
         if (openShopButton != null) UpdateButtonState(openShopButton, true);
 
-        if (nextWaveButton != null) UpdateButtonState(nextWaveButton, enemiesAlive <= 0);
+        if (nextWaveButton != null) UpdateButtonState(nextWaveButton, enemiesAlive <= 0 && !isWaveInProgress && !isWaitingForNextWave);
 
         if (buildSpikesButton != null)
         {
@@ -1712,7 +2019,6 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        // === РОЗРАХУНОК ПРИБУТКУ ===
         if (estimatedIncomeText != null && spawner != null)
         {
             int enemiesGold = spawner.GetEstimatedGoldFromEnemies();
@@ -1725,33 +2031,28 @@ public class GameManager : MonoBehaviour
         UpdateSpearmanLockUI();
     }
 
-    // === УНІВЕРСАЛЬНИЙ МЕТОД КНОПОК ===
     void UpdateButtonState(Button btn, bool isActive)
     {
         if (btn == null) return;
 
         btn.interactable = isActive;
+        btn.transition = Selectable.Transition.ColorTint;
 
         Image img = btn.GetComponent<Image>();
-        if (img != null)
-        {
-            img.color = isActive ? Color.white : new Color(0.4f, 0.4f, 0.4f, 1f);
-        }
-    }
+        if (img != null) img.color = Color.white;
 
-    void SetupAllButtonColors()
-    {
-        Button[] allButtons = FindObjectsByType<Button>(FindObjectsSortMode.None);
+        ColorBlock cb = btn.colors;
+        Color targetColor = isActive ? Color.white : new Color(0.4f, 0.4f, 0.4f, 1f);
+        Color pressedColor = isActive ? new Color(0.7f, 0.7f, 0.7f, 1f) : targetColor;
 
-        foreach (Button btn in allButtons)
-        {
-            ColorBlock colors = btn.colors;
-            btn.transition = Selectable.Transition.ColorTint;
-            colors.pressedColor = new Color(0.6f, 0.6f, 0.6f, 1f);
-            colors.normalColor = Color.white;
-            colors.disabledColor = new Color(0.4f, 0.4f, 0.4f, 1f);
-            colors.colorMultiplier = 1f;
-            btn.colors = colors;
-        }
+        cb.normalColor = targetColor;
+        cb.highlightedColor = targetColor; 
+        cb.pressedColor = pressedColor;    
+        cb.selectedColor = targetColor;
+        cb.disabledColor = targetColor;
+        cb.colorMultiplier = 1f;
+        cb.fadeDuration = 0.05f;           
+
+        btn.colors = cb;
     }
 }

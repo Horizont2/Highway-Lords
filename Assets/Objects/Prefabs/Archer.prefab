@@ -209,7 +209,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Archer
   healthBar: {fileID: 4731322444913341324}
   speed: 1.8
-  attackRange: 8
+  attackRange: 7
   attackRate: 0.8
   maxHealth: 30
   obstacleLayer:
@@ -222,7 +222,6 @@ MonoBehaviour:
   animator: {fileID: 0}
   spriteRenderer: {fileID: 0}
   currentHealth: 0
-  patrolRadius: 2.5
 --- !u!50 &2922825187524092143
 Rigidbody2D:
   serializedVersion: 5

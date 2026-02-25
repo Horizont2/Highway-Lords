@@ -27,7 +27,9 @@ public class SoundManager : MonoBehaviour
     public AudioClip coinPickup;    
     public AudioClip buyItem;       
     public AudioClip error;
-    public AudioClip clickSound;    
+    public AudioClip clickSound;
+    // === НОВИЙ ЗВУК ДЛЯ ПОЛІПШЕННЯ ЮНІТІВ ===
+    public AudioClip unitUpgradeSound; 
 
     [Header("Будівництво")]
     public AudioClip constructionSound; // Початок будівництва

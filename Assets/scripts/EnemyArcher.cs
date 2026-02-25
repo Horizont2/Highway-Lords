@@ -13,16 +13,16 @@ public class EnemyArcher : MonoBehaviour
     public float timeBetweenShots = 2.0f;
     public int damage = 10;
     public int maxHealth = 40; 
-    // public int goldReward = 15; // ВИДАЛЕНО: Тепер це в EnemyStats
     
-    [Header("Навігація")]
+    [Header("Навігація та Агро")]
     public LayerMask obstacleLayer; 
     public float avoidanceForce = 2.0f;
+    public float aggroRadius = 8.0f; // Зона, в якій лучник "помічає" ціль і відволікається від замку
+    private float retargetTimer = 0f;
 
     [Header("Поведінка")]
     private float safeDistanceBehindTank = 2.0f;
     // Максимальна відстань, на якій ми ще чекаємо танка. 
-    // Якщо танк далі ніж 15 метрів позаду, ми не будемо його чекати.
     private float maxTankWaitDistance = 15.0f; 
 
     [Header("Стрільба")]
@@ -41,8 +41,6 @@ public class EnemyArcher : MonoBehaviour
     private SpriteRenderer spriteRenderer;
 
     private Transform myCart;
-
-    // Кешування статів
     private UnitStats myStats;
 
     void Start()
@@ -50,8 +48,6 @@ public class EnemyArcher : MonoBehaviour
         animator = GetComponent<Animator>();
         rb = GetComponent<Rigidbody2D>();
         spriteRenderer = GetComponent<SpriteRenderer>();
-        
-        // Отримуємо свої стати (Ranged)
         myStats = GetComponent<UnitStats>();
 
         originalScale = transform.localScale;
@@ -84,7 +80,13 @@ public class EnemyArcher : MonoBehaviour
         if (target != null && (target.CompareTag("Untagged") || !target.gameObject.activeInHierarchy)) 
             target = null;
 
-        FindTarget();
+        // Оновлення цілі кожні 0.25 секунд (щоб не залипав на замку)
+        retargetTimer -= Time.deltaTime;
+        if (retargetTimer <= 0f)
+        {
+            FindTarget();
+            retargetTimer = 0.25f;
+        }
 
         Vector2 finalVelocity = Vector2.zero;
         bool shouldMove = false;
@@ -125,7 +127,7 @@ public class EnemyArcher : MonoBehaviour
                     AimAtTarget();
                     if (Time.time > nextShotTime)
                     {
-                        animator.SetTrigger("Attack"); 
+                        if (animator != null) animator.SetTrigger("Attack"); 
                         nextShotTime = Time.time + timeBetweenShots;
                     }
                 }
@@ -133,6 +135,7 @@ public class EnemyArcher : MonoBehaviour
         }
         else
         {
+            // Якщо цілі немає взагалі (навіть замку)
             if (!ShouldWaitForTank())
             {
                 Vector3 destination = transform.position + Vector3.left;
@@ -146,70 +149,61 @@ public class EnemyArcher : MonoBehaviour
             }
         }
 
-        rb.linearVelocity = finalVelocity; // Використовуємо velocity для сумісності
+        rb.linearVelocity = finalVelocity; 
         if (animator) animator.SetBool("IsRunning", shouldMove);
     }
 
     void FindTarget()
     {
-        if (target != null && !target.CompareTag("Untagged"))
+        float minDistance = Mathf.Infinity;
+        Transform closestUnit = null;
+
+        void CheckDistance(Transform t)
         {
-            // Якщо ціль — замок, спершу перевіряємо шипи, але НЕ робимо ранній return,
-            // щоб можна було перелочитись на ближчих юнітів.
-            if (target.GetComponent<Castle>())
+            if (t == null || !t.gameObject.activeInHierarchy || t.CompareTag("Untagged")) return;
+            float dist = Vector2.Distance(transform.position, t.position);
+            if (dist < minDistance)
             {
-                if (GameManager.Instance != null && GameManager.Instance.currentSpikes != null)
-                {
-                    float distToSpikes = Vector2.Distance(transform.position, GameManager.Instance.currentSpikes.transform.position);
-                    if (distToSpikes < attackRange) 
-                    {
-                        target = GameManager.Instance.currentSpikes.transform;
-                        return;
-                    }
-                }
+                minDistance = dist;
+                closestUnit = t;
+            }
+        }
+
+        Knight[] knights = FindObjectsByType<Knight>(FindObjectsSortMode.None);
+        foreach (Knight k in knights) CheckDistance(k.transform);
+
+        Archer[] archers = FindObjectsByType<Archer>(FindObjectsSortMode.None);
+        foreach (Archer a in archers) CheckDistance(a.transform);
+        
+        Spearman[] spearmen = FindObjectsByType<Spearman>(FindObjectsSortMode.None); 
+        foreach (Spearman s in spearmen) CheckDistance(s.transform);
+
+        if (GameManager.Instance != null && GameManager.Instance.currentSpikes != null)
+            CheckDistance(GameManager.Instance.currentSpikes.transform);
+
+        // Якщо знайдено валідного юніта в радіусі агру - стріляємо по ньому
+        if (closestUnit != null && minDistance <= aggroRadius)
+        {
+            target = closestUnit;
+        }
+        else
+        {
+            // Інакше йдемо до Замку
+            if (GameManager.Instance != null && GameManager.Instance.castle != null)
+            {
+                target = GameManager.Instance.castle.transform;
             }
             else
             {
-                // Якщо вже є валідна ціль у радіусі — можемо її тримати
-                float distToCurrent = Vector2.Distance(transform.position, target.position);
-                if (distToCurrent <= attackRange) return;
+                target = null;
             }
         }
-
-        float minDistance = Mathf.Infinity;
-        Transform closestTarget = null;
-
-        Knight[] knights = FindObjectsByType<Knight>(FindObjectsSortMode.None);
-        foreach (Knight k in knights) { float d = Vector2.Distance(transform.position, k.transform.position); if (d < minDistance) { minDistance = d; closestTarget = k.transform; } }
-
-        Archer[] archers = FindObjectsByType<Archer>(FindObjectsSortMode.None);
-        foreach (Archer a in archers) { float d = Vector2.Distance(transform.position, a.transform.position); if (d < minDistance) { minDistance = d; closestTarget = a.transform; } }
-        
-        // + Додаємо Списоносців як ціль
-        Spearman[] spearmen = FindObjectsByType<Spearman>(FindObjectsSortMode.None);
-        foreach (Spearman s in spearmen) { float d = Vector2.Distance(transform.position, s.transform.position); if (d < minDistance) { minDistance = d; closestTarget = s.transform; } }
-
-        if (GameManager.Instance != null && GameManager.Instance.currentSpikes != null)
-        {
-            float distToSpikes = Vector2.Distance(transform.position, GameManager.Instance.currentSpikes.transform.position);
-            if (distToSpikes < minDistance)
-            {
-                minDistance = distToSpikes;
-                closestTarget = GameManager.Instance.currentSpikes.transform;
-            }
-        }
-
-        if (closestTarget == null && GameManager.Instance != null && GameManager.Instance.castle != null)
-        {
-            closestTarget = GameManager.Instance.castle.transform;
-        }
-        
-        target = closestTarget;
     }
 
     public void ShootArrow()
     {
-        if (target == null) return;
+        if (isDead) return;
+        if (target == null || target.CompareTag("Untagged") || !target.gameObject.activeInHierarchy) return;
 
         float dist = Vector2.Distance(transform.position, target.position);
         if (dist > attackRange + 1.5f) return;
@@ -268,7 +262,6 @@ public class EnemyArcher : MonoBehaviour
         return dir;
     }
 
-    // === ВИПРАВЛЕНИЙ МЕТОД ОЧІКУВАННЯ ТАНКА ===
     bool ShouldWaitForTank()
     {
         Guard[] guards = FindObjectsByType<Guard>(FindObjectsSortMode.None);
@@ -284,8 +277,6 @@ public class EnemyArcher : MonoBehaviour
             float guardX = g.transform.position.x;
             float distanceToGuard = Mathf.Abs(myX - guardX);
 
-            // Якщо танк знаходиться лівіше (попереду) від нас
-            // І відстань до нього менша за допустиму (він не на іншому кінці карти)
             if (guardX < myX && distanceToGuard < maxTankWaitDistance) 
             { 
                 if (guardX < forwardMostX) forwardMostX = guardX; 
@@ -293,7 +284,6 @@ public class EnemyArcher : MonoBehaviour
             }
         }
 
-        // Чекаємо тільки якщо є "актуальний" танк поруч, і ми підійшли до нього надто близько
         return hasRelevantTank && myX < (forwardMostX + safeDistanceBehindTank);
     }
 
@@ -308,8 +298,10 @@ public class EnemyArcher : MonoBehaviour
     void FaceTarget(Vector3 targetPos)
     {
         float absX = Mathf.Abs(originalScale.x);
-        if (targetPos.x > transform.position.x) transform.localScale = new Vector3(absX, originalScale.y, originalScale.z); 
-        else transform.localScale = new Vector3(-absX, originalScale.y, originalScale.z); 
+        if (targetPos.x > transform.position.x)
+            transform.localScale = new Vector3(absX, originalScale.y, originalScale.z); 
+        else
+            transform.localScale = new Vector3(-absX, originalScale.y, originalScale.z); 
     }
 
     void AimAtTarget()
@@ -329,7 +321,6 @@ public class EnemyArcher : MonoBehaviour
         currentHealth -= damageAmount;
         if (healthBar != null) healthBar.SetHealth(currentHealth, _maxHealth);
         
-        // === POPUP замість ShowDamage ===
         GameManager.CreateDamagePopup(transform.position, damageAmount);
         
         if (currentHealth <= 0) Die();
@@ -346,18 +337,14 @@ public class EnemyArcher : MonoBehaviour
         Transform shadow = transform.Find("Shadow");
         if (shadow != null) shadow.gameObject.SetActive(false);
         
-        // === ОНОВЛЕНО: ВИКОРИСТАННЯ EnemyStats ===
-        // Викликаємо метод GiveGold(), який сам нарахує гроші, покаже Popup і зніме ворога з обліку
         if (TryGetComponent<EnemyStats>(out EnemyStats stats))
         {
             stats.GiveGold();
         }
         else
         {
-            // Резервний варіант, якщо забули додати скрипт EnemyStats
             if (GameManager.Instance != null) GameManager.Instance.UnregisterEnemy();
         }
-        // ==========================================
         
         if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.enemyDeath);
         
@@ -377,6 +364,6 @@ public class EnemyArcher : MonoBehaviour
         if (spriteRenderer != null) { spriteRenderer.color = new Color(0.6f, 0.6f, 0.6f); spriteRenderer.sortingOrder = 0; }
         
         this.enabled = false;
-        Destroy(gameObject, 10f);
+        Destroy(gameObject, 5f);
     }
 }

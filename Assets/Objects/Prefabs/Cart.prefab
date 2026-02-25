@@ -266,6 +266,7 @@ GameObject:
   - component: {fileID: 555185393898380330}
   - component: {fileID: -6396319141317161403}
   - component: {fileID: -123557900004488280}
+  - component: {fileID: 3559185838067679950}
   m_Layer: 0
   m_Name: Cart
   m_TagString: Enemy
@@ -364,11 +365,11 @@ MonoBehaviour:
   speed: 2
   maxHealth: 40
   healthBarFill: {fileID: 8968486310014330825}
-  goldAmount: 15
-  woodChance: 40
+  woodChance: 50
   woodAmount: 5
-  stoneChance: 20
+  stoneChance: 30
   stoneAmount: 3
+  stopDistance: 3.5
 --- !u!50 &-6396319141317161403
 Rigidbody2D:
   serializedVersion: 5
@@ -442,3 +443,17 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 6.17, y: 2.56}
   m_EdgeRadius: 0
+--- !u!114 &3559185838067679950
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7782258064807393932}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e24c8a0e4c32de341be2bc8c90c77f1c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyStats
+  baseGoldReward: 15
+  currentGoldReward: 0
