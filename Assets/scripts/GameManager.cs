@@ -1626,7 +1626,7 @@ public class GameManager : MonoBehaviour
 
         if (hireSpearmanButton != null)
         {
-            hireSpearmanButton.gameObject.SetActive(isSpearmanUnlocked);
+            hireSpearmanButton.gameObject.SetActive(true);
             UpdateButtonState(hireSpearmanButton, canHireSpearman && isSpearmanUnlocked);
         }
 
@@ -1645,7 +1645,7 @@ public class GameManager : MonoBehaviour
 
         if (unlockSpearmanButton != null)
         {
-            unlockSpearmanButton.gameObject.SetActive(isBarracksBuilt);
+            unlockSpearmanButton.gameObject.SetActive(isBarracksBuilt && !isSpearmanUnlocked);
 
             if (isSpearmanUnlocked)
             {
