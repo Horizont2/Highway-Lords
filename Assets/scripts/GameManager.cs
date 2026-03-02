@@ -97,9 +97,22 @@ public class GameManager : MonoBehaviour
     // === МАТРИЦЯ УРОНУ ===
     public static float GetDamageMultiplier(UnitCategory attacker, UnitCategory defender)
     {
-        if (attacker == UnitCategory.Spearman && defender == UnitCategory.Cavalry) return 2.0f;
-        if (attacker == UnitCategory.Cavalry && (defender == UnitCategory.Standard || defender == UnitCategory.Ranged)) return 1.5f;
-        if (attacker == UnitCategory.Cavalry && defender == UnitCategory.Spearman) return 0.5f;
+        // Knight (Standard) > Archer, < Spearman
+        if (attacker == UnitCategory.Standard && defender == UnitCategory.Ranged)   return 1.5f;  // Knight > Archer
+        if (attacker == UnitCategory.Standard && defender == UnitCategory.Spearman) return 0.75f; // Knight < Spearman
+
+        // Spearman > Cavalry, < Archer
+        if (attacker == UnitCategory.Spearman && defender == UnitCategory.Cavalry)  return 2.0f;  // Spear > Cavalry
+        if (attacker == UnitCategory.Spearman && defender == UnitCategory.Ranged)   return 0.75f; // Spear < Archer
+
+        // Archer > Spearman, < Knight/Cavalry
+        if (attacker == UnitCategory.Ranged   && defender == UnitCategory.Spearman) return 1.5f;  // Archer > Spear
+        if (attacker == UnitCategory.Ranged   && defender == UnitCategory.Standard) return 0.75f; // Archer < Knight
+
+        // Cavalry > Knight & Archer, < Spearman
+        if (attacker == UnitCategory.Cavalry  && (defender == UnitCategory.Standard || defender == UnitCategory.Ranged)) return 1.5f; // Cavalry > Knight/Archer
+        if (attacker == UnitCategory.Cavalry  && defender == UnitCategory.Spearman) return 0.5f;  // Cavalry < Spear
+
         return 1.0f;
     }
 
@@ -2056,14 +2069,23 @@ public class GameManager : MonoBehaviour
             UpdateCostUIGroup(castleUpgradeCostUI, ResourceType.Gold, castle.GetUpgradeCost());
         }
 
-        if (knightLevelText) 
-            knightLevelText.text = $"Knights Lvl {knightLevel}\nDMG: {GetKnightDamage()}\n<size=70%><color=#FF6666>Vulnerable to Cavalry</color></size>";
-            
-        if (archerLevelText) 
-            archerLevelText.text = $"Archers Lvl {archerLevel}\nDMG: {GetArcherDamage()}\n<size=70%><color=#FF6666>Vulnerable to Cavalry</color></size>";
-            
-        if (spearmanLevelText) 
-            spearmanLevelText.text = $"Spearmen Lvl {spearmanLevel}\nDMG: {GetSpearmanDamage()}\n<size=70%><color=#66FF66>Counters Cavalry (x2 DMG)</color></size>";
+        if (knightLevelText)
+            knightLevelText.text =
+                $"Knights Lvl {knightLevel}\nDMG: {GetKnightDamage()}\n" +
+                "<size=70%><color=#66FF66>Counters Archers</color>\n" +
+                "<color=#FF6666>Vulnerable to Spearmen</color></size>";
+
+        if (archerLevelText)
+            archerLevelText.text =
+                $"Archers Lvl {archerLevel}\nDMG: {GetArcherDamage()}\n" +
+                "<size=70%><color=#66FF66>Counters Spearmen</color>\n" +
+                "<color=#FF6666>Vulnerable to Knights & Cavalry</color></size>";
+
+        if (spearmanLevelText)
+            spearmanLevelText.text =
+                $"Spearmen Lvl {spearmanLevel}\nDMG: {GetSpearmanDamage()}\n" +
+                "<size=70%><color=#66FF66>Counters Cavalry (x2 DMG)</color>\n" +
+                "<color=#FF6666>Vulnerable to Archers</color></size>";
 
         UpdateCostUIGroup(knightUpgradeCostUI, ResourceType.Gold, knightUpgradeCost);
         UpdateCostUIGroup(archerUpgradeCostUI, ResourceType.Gold, archerUpgradeCost);
