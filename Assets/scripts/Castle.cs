@@ -54,7 +54,9 @@ public class Castle : MonoBehaviour
 
         currentHealth -= damage;
 
-        if (CameraShake.Instance != null) CameraShake.Instance.Shake(0.15f, 0.1f);
+        // Тряска екрану лише якщо замок ще живий після удару
+        if (currentHealth > 0 && CameraShake.Instance != null)
+            CameraShake.Instance.Shake(0.15f, 0.1f);
         
         if (GameManager.Instance != null) 
             GameManager.Instance.ShowDamage(damage, transform.position + Vector3.up * 2f);

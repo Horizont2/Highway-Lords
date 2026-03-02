@@ -1809,7 +1809,8 @@ public class GameManager : MonoBehaviour
 
     public void Defeat()
     {
-        Time.timeScale = 0;
+        // На поразці гру не фрізимо — вороги продовжують бігти
+        Time.timeScale = 1f;
 
         if(defeatPanel) defeatPanel.SetActive(true);
 
@@ -1823,14 +1824,43 @@ public class GameManager : MonoBehaviour
         if (SoundManager.Instance != null)
             SoundManager.Instance.PlaySFX(SoundManager.Instance.defeat);
 
-        // Авто-ретрай через 5 секунд реального часу
+        // Авто-ретрай з невеликою плавною анімацією
         StartCoroutine(DefeatAutoRetry());
     }
 
     private IEnumerator DefeatAutoRetry()
     {
-        // Чекаємо 5 секунд незалежно від Time.timeScale
-        yield return new WaitForSecondsRealtime(5f);
+        float duration = 0.8f; // час фейду
+        float t = 0f;
+
+        CanvasGroup cg = null;
+        if (defeatPanel != null)
+        {
+            cg = defeatPanel.GetComponent<CanvasGroup>();
+            if (cg == null) cg = defeatPanel.AddComponent<CanvasGroup>();
+        }
+
+        // Плавно затемнюємо defeatPanel
+        if (cg != null)
+        {
+            cg.alpha = 0f;
+            while (t < duration)
+            {
+                t += Time.unscaledDeltaTime;
+                cg.alpha = Mathf.Clamp01(t / duration);
+                yield return null;
+            }
+            cg.alpha = 1f;
+        }
+        else
+        {
+            // Якщо немає CanvasGroup — просто пауза
+            yield return new WaitForSecondsRealtime(0.8f);
+        }
+
+        // Невелика пауза перед рестартом
+        yield return new WaitForSecondsRealtime(1.5f);
+
         OnRetryButton();
     }
 
