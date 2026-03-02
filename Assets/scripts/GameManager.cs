@@ -260,7 +260,8 @@ public class GameManager : MonoBehaviour
     [Header("Зв'язки")]
     [HideInInspector] public bool isDefeated = false;
 
-    public Castle castle;
+    // ЗМІНЕНО З Castle НА Wall
+    public Wall castle;
     public Transform towerTransform;
     public EnemySpawner spawner;
 
@@ -862,7 +863,8 @@ public class GameManager : MonoBehaviour
 
             if (castle != null)
             {
-                castle.LoadState(castle.castleLevel);
+                // ЗМІНЕНО: castleLevel на wallLevel
+                castle.LoadState(castle.wallLevel);
             }
 
             SaveGame();
@@ -1860,8 +1862,8 @@ public class GameManager : MonoBehaviour
             yield return new WaitForSecondsRealtime(0.8f);
         }
 
-        // Невелика пауза перед рестартом
-        yield return new WaitForSecondsRealtime(1.5f);
+        // Невелика пауза перед рестартом (збільшена)
+        yield return new WaitForSecondsRealtime(2.5f);
 
         OnRetryButton();
     }
@@ -1885,7 +1887,8 @@ public class GameManager : MonoBehaviour
         ClearDeadEnemies();
         ClearDeadUnits();
 
-        if (castle == null) castle = FindFirstObjectByType<Castle>();
+        // ЗМІНЕНО: Пошук нової Стіни замість старого Замку
+        if (castle == null) castle = FindFirstObjectByType<Wall>();
         if (castle != null) castle.HealMax();
 
         if (currentSpikes != null) Destroy(currentSpikes.gameObject);
@@ -1953,7 +1956,8 @@ public class GameManager : MonoBehaviour
         PlayerPrefs.SetInt("SavedMineBuilt", isMineBuilt ? 1 : 0);
         PlayerPrefs.SetInt("SavedMineLevel", mineLevel);
 
-        if (castle != null) PlayerPrefs.SetInt("SavedCastleLevel", castle.castleLevel);
+        // ЗМІНЕНО: Записуємо wallLevel замість castleLevel
+        if (castle != null) PlayerPrefs.SetInt("SavedCastleLevel", castle.wallLevel);
 
         PlayerPrefs.SetInt("SavedTowerLevel", towerLevel);
         PlayerPrefs.SetInt("SavedTowerWoodCost", towerWoodCost);
@@ -2062,7 +2066,8 @@ public class GameManager : MonoBehaviour
         if (isBarracksBuilt) SpawnBarracksObject();
         if (isMineBuilt) SpawnMineObject();
 
-        if (castle == null) castle = FindFirstObjectByType<Castle>();
+        // ЗМІНЕНО: Пошук нової Стіни замість старого Замку
+        if (castle == null) castle = FindFirstObjectByType<Wall>();
 
         if (castle != null)
         {

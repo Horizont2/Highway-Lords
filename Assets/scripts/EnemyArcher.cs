@@ -75,7 +75,7 @@ public class EnemyArcher : MonoBehaviour
     {
         if (isDead) return;
 
-        // Якщо замок уже впав – просто біжимо вліво за екран і не стріляємо
+        // Якщо стіна уже впала – просто біжимо вліво за екран і не стріляємо
         if (GameManager.Instance != null && GameManager.Instance.isDefeated)
         {
             target = null;
@@ -99,7 +99,7 @@ public class EnemyArcher : MonoBehaviour
 
         if (target != null)
         {
-            bool isStructure = target.TryGetComponent<Spikes>(out _) || target.TryGetComponent<Castle>(out _);
+            bool isStructure = target.TryGetComponent<Spikes>(out _) || target.TryGetComponent<Wall>(out _);
             float distanceToTarget;
 
             if (isStructure)
@@ -229,7 +229,7 @@ public class EnemyArcher : MonoBehaviour
         if (isDead) return;
         if (target == null || target.CompareTag("Untagged") || !target.gameObject.activeInHierarchy) return;
 
-        bool isStructure = target.TryGetComponent<Spikes>(out _) || target.TryGetComponent<Castle>(out _);
+        bool isStructure = target.TryGetComponent<Spikes>(out _) || target.TryGetComponent<Wall>(out _);
         float dist;
 
         if (isStructure)

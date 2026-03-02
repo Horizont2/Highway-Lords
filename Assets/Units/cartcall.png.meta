@@ -1,10 +1,13 @@
 fileFormatVersion: 2
-guid: 09e53d4cf1031d941abd2b8027ee5d2e
+guid: 7a60f990f193c5b4d8fa8163af8d30ab
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 3766099503325198326
-    second: EffectsIcon_0
+      213: -3973078668924174254
+    second: cartcall_0
+  - first:
+      213: -7885086796136400164
+    second: cartcall_1
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -37,7 +40,7 @@ TextureImporter:
   maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
-    filterMode: 1
+    filterMode: 0
     aniso: 1
     mipBias: 0
     wrapU: 1
@@ -75,7 +78,7 @@ TextureImporter:
     maxTextureSize: 2048
     resizeAlgorithm: 0
     textureFormat: -1
-    textureCompression: 1
+    textureCompression: 0
     compressionQuality: 50
     crunchedCompression: 0
     allowsAlphaSplitting: 0
@@ -113,23 +116,45 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: EffectsIcon_0
+      name: cartcall_0
       rect:
         serializedVersion: 2
-        x: 8
-        y: 2
-        width: 51
-        height: 60
+        x: 85
+        y: 105
+        width: 488
+        height: 493
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 6f7397c6b8fd34430800000000000000
-      internalID: 3766099503325198326
+      spriteID: 250c71a300accd8c0800000000000000
+      internalID: -3973078668924174254
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: cartcall_1
+      rect:
+        serializedVersion: 2
+        x: 693
+        y: 110
+        width: 483
+        height: 489
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cdaba2df55b829290800000000000000
+      internalID: -7885086796136400164
       vertices: []
       indices: 
       edges: []
@@ -138,7 +163,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 
+    spriteID: b464f80fc37131342b4bf3e9a98652fb
     internalID: 0
     vertices: []
     indices: 
@@ -146,9 +171,12 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     spriteCustomMetadata:
-      entries: []
+      entries:
+      - key: SpriteEditor.SliceSettings
+        value: '{"sliceOnImport":false,"gridCellCount":{"x":1.0,"y":1.0},"gridSpriteSize":{"x":64.0,"y":64.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.5,"y":0.5},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":0,"pivotUnitMode":0,"slicingType":0,"keepEmptyRects":false,"isAlternate":false}'
     nameFileIdTable:
-      EffectsIcon_0: 3766099503325198326
+      cartcall_0: -3973078668924174254
+      cartcall_1: -7885086796136400164
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

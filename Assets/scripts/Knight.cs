@@ -27,7 +27,6 @@ public class Knight : MonoBehaviour
     private float nextAttackTime = 0f;
     private Vector3 originalScale;
 
-    private Cart targetCart;
     private Guard targetGuard;
     private EnemySpearman targetSpearman;
     private EnemyHorse targetHorse;
@@ -101,7 +100,6 @@ public class Knight : MonoBehaviour
         if (targetGuard != null && (targetGuard.CompareTag("Untagged") || !targetGuard.gameObject.activeInHierarchy)) targetGuard = null;
         if (targetSpearman != null && (targetSpearman.CompareTag("Untagged") || !targetSpearman.gameObject.activeInHierarchy)) targetSpearman = null;
         if (targetArcher != null && (targetArcher.CompareTag("Untagged") || !targetArcher.gameObject.activeInHierarchy)) targetArcher = null;
-        if (targetCart != null && (targetCart.CompareTag("Untagged") || !targetCart.gameObject.activeInHierarchy)) targetCart = null;
 
         retargetTimer -= Time.deltaTime;
         if (retargetTimer <= 0f)
@@ -116,7 +114,6 @@ public class Knight : MonoBehaviour
         else if (targetGuard != null) currentTarget = targetGuard.transform;
         else if (targetSpearman != null) currentTarget = targetSpearman.transform;
         else if (targetArcher != null) currentTarget = targetArcher.transform;
-        else if (targetCart != null) currentTarget = targetCart.transform;
 
         if (currentTarget != null)
         {
@@ -137,29 +134,10 @@ public class Knight : MonoBehaviour
     void EngageEnemy(Transform target)
     {
         Vector3 moveDestination = target.position;
-        float effectiveAttackRange = attackRange;
-        bool isFightingCart = (targetCart != null && target == targetCart.transform);
-
-        if (isFightingCart)
-        {
-            effectiveAttackRange = attackRange + 1.5f; 
-            float flankOffset = 1.5f; 
-            if (transform.position.y > target.position.y) moveDestination.y += flankOffset; 
-            else moveDestination.y -= flankOffset; 
-            if (transform.position.x < target.position.x) moveDestination.x -= 0.5f;
-            else moveDestination.x += 0.5f;
-        }
-
         FlipSprite(target.position.x);
         float distance = Vector2.Distance(transform.position, target.position);
-        
-        bool alignedY = true;
-        if (isFightingCart)
-        {
-            if (Mathf.Abs(transform.position.y - moveDestination.y) > 0.2f) alignedY = false;
-        }
 
-        if (distance <= effectiveAttackRange && alignedY)
+        if (distance <= attackRange)
         {
             rb.linearVelocity = Vector2.zero; 
             if (animator) animator.SetBool("IsMoving", false);
@@ -222,7 +200,7 @@ public class Knight : MonoBehaviour
     void FindNearestTarget()
     {
         targetBoss = null; targetHorse = null; targetGuard = null; 
-        targetSpearman = null; targetArcher = null; targetCart = null;
+        targetSpearman = null; targetArcher = null;
 
         float minX = -1000f; float maxX = 1000f;
         if (GameManager.Instance != null)
@@ -251,7 +229,6 @@ public class Knight : MonoBehaviour
             if (go.GetComponent<Guard>() && !targetBoss && !targetHorse) { if (dist < shortestDist) { shortestDist = dist; targetGuard = go.GetComponent<Guard>(); } continue; }
             if (go.GetComponent<EnemySpearman>() && !targetBoss && !targetHorse && !targetGuard) { if (dist < shortestDist) { shortestDist = dist; targetSpearman = go.GetComponent<EnemySpearman>(); } continue; }
             if (go.GetComponent<EnemyArcher>() && !targetBoss && !targetHorse && !targetGuard && !targetSpearman) { if (dist < shortestDist) { shortestDist = dist; targetArcher = go.GetComponent<EnemyArcher>(); } continue; }
-            if (go.GetComponent<Cart>() && !targetBoss && !targetHorse && !targetGuard && !targetSpearman && !targetArcher && dist < shortestDist) { shortestDist = dist; targetCart = go.GetComponent<Cart>(); }
         }
     }
 
@@ -280,7 +257,6 @@ public class Knight : MonoBehaviour
         else if (targetGuard != null) targetGuard.TakeDamage(finalDamage);
         else if (targetSpearman != null) targetSpearman.TakeDamage(finalDamage);
         else if (targetArcher != null) targetArcher.TakeDamage(finalDamage);
-        else if (targetCart != null) targetCart.TakeDamage(finalDamage);
     }
 
     public void TakeDamage(int damage)

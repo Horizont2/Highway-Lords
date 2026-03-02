@@ -76,7 +76,7 @@ public class Guard : MonoBehaviour
     {
         if (isDead) return;
 
-        // Якщо замок уже впав – просто біжимо вліво за екран
+        // Якщо стіна уже впала – просто біжимо вліво за екран
         if (GameManager.Instance != null && GameManager.Instance.isDefeated)
         {
             target = null;
@@ -100,7 +100,7 @@ public class Guard : MonoBehaviour
         // 1. АТАКА
         if (target != null)
         {
-            bool isStructure = target.TryGetComponent<Spikes>(out _) || target.TryGetComponent<Castle>(out _);
+            bool isStructure = target.TryGetComponent<Spikes>(out _) || target.TryGetComponent<Wall>(out _);
             float distanceToTarget;
 
             if (isStructure)
@@ -138,7 +138,7 @@ public class Guard : MonoBehaviour
         {
             FaceTarget(target.position);
             
-            bool isStructure = target.TryGetComponent<Spikes>(out _) || target.TryGetComponent<Castle>(out _);
+            bool isStructure = target.TryGetComponent<Spikes>(out _) || target.TryGetComponent<Wall>(out _);
             Vector3 dest = target.position;
             
             float distance = Vector2.Distance(transform.position, target.position);
@@ -290,7 +290,7 @@ public class Guard : MonoBehaviour
         if (target == null) return; 
         if (hasHitThisAttack) return;
 
-        bool isStructure = target.TryGetComponent<Spikes>(out _) || target.TryGetComponent<Castle>(out _);
+        bool isStructure = target.TryGetComponent<Spikes>(out _) || target.TryGetComponent<Wall>(out _);
         float distanceToTarget;
 
         if (isStructure)
@@ -326,7 +326,7 @@ public class Guard : MonoBehaviour
         if (target.TryGetComponent<Knight>(out Knight k)) k.TakeDamage(finalDamage);
         else if (target.TryGetComponent<Archer>(out Archer a)) a.TakeDamage(finalDamage);
         else if (target.TryGetComponent<Spearman>(out Spearman s)) s.TakeDamage(finalDamage);
-        else if (target.TryGetComponent<Castle>(out Castle c))
+        else if (target.TryGetComponent<Wall>(out Wall c))
         {
             c.TakeDamage(finalDamage);
             if (CameraShake.Instance != null) CameraShake.Instance.Shake(0.1f, 0.2f); 

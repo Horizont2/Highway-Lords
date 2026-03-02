@@ -69,10 +69,6 @@ public class Projectile : MonoBehaviour
         else
         {
             // === Логіка прямого польоту ===
-            // Летимо просто прямо туди, куди дивимось (з урахуванням офсету)
-            // Оскільки ми повернули об'єкт при старті, можна використовувати transform.right або up
-            // Але простіше перерахувати вектор, якщо він не змінюється
-            // Тут ми просто рухаємось до точки, яку запам'ятали
              moveDir = (targetPosition - transform.position).normalized;
         }
 
@@ -84,10 +80,10 @@ public class Projectile : MonoBehaviour
     void OnTriggerEnter2D(Collider2D other)
     {
         if (hasHit) return;
-        // Ігноруємо стріли та свої юніти (якщо це стріла гравця)
+        // Ігноруємо стріли та свої юніти
         if (other.CompareTag("Projectile") || other.CompareTag("Player") || other.CompareTag("PlayerUnit")) return;
         
-        // Знищення об границі екрану (Boundary)
+        // Знищення об границі екрану
         if (other.CompareTag("Boundary"))
         {
             Destroy(gameObject);
@@ -121,11 +117,11 @@ public class Projectile : MonoBehaviour
         if (hitObj != null)
         {
             if (hitObj.TryGetComponent<Guard>(out Guard g)) g.TakeDamage(damage);
-            else if (hitObj.TryGetComponent<Cart>(out Cart c)) c.TakeDamage(damage);
             else if (hitObj.TryGetComponent<EnemyArcher>(out EnemyArcher ea)) ea.TakeDamage(damage);
             else if (hitObj.TryGetComponent<EnemySpearman>(out EnemySpearman es)) es.TakeDamage(damage);
             else if (hitObj.TryGetComponent<EnemyHorse>(out EnemyHorse eh)) eh.TakeDamage(damage);
             else if (hitObj.TryGetComponent<Boss>(out Boss b)) b.TakeDamage(damage);
+            // Віз прибрано звідси
         }
         
         Destroy(gameObject);

@@ -1,0 +1,15 @@
+diff --git a/Assets/scripts/GameManager.cs b/Assets/scripts/GameManager.cs
+index de32a77..29e0f89 100644
+--- a/Assets/scripts/GameManager.cs
++++ b/Assets/scripts/GameManager.cs
+@@ -1860,8 +1860,8 @@ public class GameManager : MonoBehaviour
+             yield return new WaitForSecondsRealtime(0.8f);
+         }
+ 
+-        // Невелика пауза перед рестартом
+-        yield return new WaitForSecondsRealtime(1.5f);
++        // Невелика пауза перед рестартом (збільшена)
++        yield return new WaitForSecondsRealtime(2.5f);
+ 
+         OnRetryButton();
+     }

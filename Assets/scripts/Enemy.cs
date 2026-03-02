@@ -9,6 +9,7 @@ public class Enemy : MonoBehaviour
     public int goldReward = 15; 
     
     private int currentHealth;
+    private bool isRunningAway = false;
 
     void Start()
     {
@@ -27,6 +28,22 @@ public class Enemy : MonoBehaviour
         else
         {
             currentHealth = baseHealth;
+        }
+    }
+
+    void Update()
+    {
+        // Якщо гра програна – тікаємо вліво за екран
+        if (!isRunningAway && GameManager.Instance != null && GameManager.Instance.isDefeated)
+        {
+            isRunningAway = true;
+        }
+
+        if (isRunningAway)
+        {
+            // Біжимо вліво фіксованою швидкістю, без атак
+            transform.position += Vector3.left * 2.5f * Time.deltaTime;
+            return;
         }
     }
 

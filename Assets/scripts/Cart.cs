@@ -1,165 +1,127 @@
 using UnityEngine;
-using UnityEngine.UI;
+using System.Collections;
 
-[RequireComponent(typeof(Rigidbody2D))]
-[RequireComponent(typeof(EnemyStats))] // Інтеграція зі статистикою
 public class Cart : MonoBehaviour
 {
-    [Header("Статус")]
-    public bool isBoss = false; 
-
     [Header("Характеристики")]
-    public float speed = 2f;
-    public int maxHealth = 50; 
-    private int currentHealth;
+    public float speed = 2.5f;
+    [Tooltip("Відстань від стіни зліва, де віз зупиниться (наприклад, -2.5)")]
+    public float stopOffsetFromWall = -2.5f; 
 
-    [Header("UI")]
-    public Image healthBarFill; 
+    [Header("Базові ресурси (Рандом)")]
+    public int minWood = 15;
+    public int maxWood = 30;
+    public int minStone = 5;
+    public int maxStone = 15;
 
-    // goldAmount видалено звідси, бо тепер це керується EnemyStats
+    private int woodReward;
+    private int stoneReward;
     
-    [Header("Ресурси (Дерево)")]
-    [Range(0, 100)] public int woodChance = 50; 
-    public int woodAmount = 20;
+    private bool isUnloading = false;
+    private bool isLeaving = false;
+    private float targetX;
 
-    [Header("Ресурси (Камінь)")]
-    [Range(0, 100)] public int stoneChance = 30;
-    public int stoneAmount = 10;
-
-    [Header("Логіка зупинки (Spikes)")]
-    public float stopDistance = 3.5f; 
-    
-    // Компоненти
-    private Rigidbody2D rb;
     private Animator animator;
-    private EnemyStats enemyStats; // Посилання на статистику
 
     void Start()
     {
-        rb = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
-        enemyStats = GetComponent<EnemyStats>();
+        CalculateRewards();
 
-        // Фізика
-        rb.gravityScale = 0; 
-        rb.freezeRotation = true; 
-        
-        int difficultyHealth = 50;
-        
-        if (GameManager.Instance != null)
+        // Визначаємо точку зупинки (відносно стіни)
+        if (GameManager.Instance != null && GameManager.Instance.castle != null)
         {
-            difficultyHealth = GameManager.Instance.GetDifficultyHealth();
-            // goldAmount тепер автоматично підтягується в EnemyStats через GameManager
-        }
-
-        if (isBoss)
-        {
-            maxHealth = difficultyHealth * 5; 
-            transform.localScale = transform.localScale * 1.5f; 
-            speed = speed * 0.7f; 
-            
-            // Якщо це бос, збільшуємо нагороду в статистиці
-            if (enemyStats != null) enemyStats.baseGoldReward *= 3;
+            // Беремо позицію X стіни і віднімаємо від неї наш відступ
+            targetX = GameManager.Instance.castle.transform.position.x + stopOffsetFromWall;
         }
         else
         {
-            maxHealth = difficultyHealth;
+            targetX = transform.position.x + 5f; // Запасний варіант, якщо стіни немає
         }
+    }
 
-        currentHealth = maxHealth;
-        UpdateHealthBar(); 
+    void CalculateRewards()
+    {
+        woodReward = Random.Range(minWood, maxWood + 1);
+        stoneReward = Random.Range(minStone, maxStone + 1);
+
+        // Легке скалювання від хвилі
+        if (GameManager.Instance != null)
+        {
+            int wave = GameManager.Instance.currentWave;
+            woodReward += wave;
+            stoneReward += Mathf.RoundToInt(wave * 0.5f);
+        }
     }
 
     void Update()
     {
-        // === ПЕРЕВІРКА НА КОЛЮЧКИ ===
-        if (GameManager.Instance != null && GameManager.Instance.currentSpikes != null)
-        {
-            float dist = Vector2.Distance(transform.position, GameManager.Instance.currentSpikes.transform.position);
-            
-            // Перевіряємо, чи колючки ПОПЕРЕДУ нас (лівіше по X)
-            bool isSpikesAhead = (transform.position.x > GameManager.Instance.currentSpikes.transform.position.x);
+        // Якщо розвантажується - стоїмо на місці
+        if (isUnloading) return;
 
-            if (dist < stopDistance && isSpikesAhead)
-            {
-                // === ГАЛЬМУЄМО ===
-                if (rb != null) rb.linearVelocity = Vector2.zero;
-                
-                // Зупиняємо анімацію
-                if (animator != null) animator.SetBool("IsMoving", false); 
-                
-                return; // Виходимо з Update, щоб не виконувався код руху нижче
-            }
+        // Якщо розвантажився і їде назад
+        if (isLeaving)
+        {
+            transform.Translate(Vector3.left * speed * Time.deltaTime);
+            return;
         }
 
-        // === РУХ ===
-        // Вмикаємо анімацію
-        if (animator != null) animator.SetBool("IsMoving", true);
-        
-        transform.Translate(Vector2.left * speed * Time.deltaTime);
-        
-        if (transform.position.x < -15f) Destroy(gameObject);
-    }
-
-    public void TakeDamage(int damage)
-    {
-        currentHealth -= damage;
-        
-        // Popup
-        GameManager.CreateDamagePopup(transform.position, damage);
-            
-        UpdateHealthBar(); 
-        
-        if (currentHealth <= 0) Die();
-    }
-
-    void UpdateHealthBar()
-    {
-        if (healthBarFill != null)
+        // Їдемо вправо до точки зупинки
+        if (transform.position.x < targetX)
         {
-            float fillValue = (float)currentHealth / maxHealth;
-            healthBarFill.fillAmount = fillValue;
+            transform.Translate(Vector3.right * speed * Time.deltaTime);
+        }
+        else
+        {
+            // Доїхали до стіни! Починаємо розвантаження
+            StartCoroutine(UnloadRoutine());
         }
     }
 
-    void Die()
+    IEnumerator UnloadRoutine()
     {
-        if (SoundManager.Instance != null)
+        isUnloading = true;
+
+        // Вмикаємо анімацію розвантаження (якщо вона є)
+        if (animator != null)
         {
-            SoundManager.Instance.PlaySFX(SoundManager.Instance.cartBreak);
-            SoundManager.Instance.PlaySFX(SoundManager.Instance.coinPickup);
+            animator.SetTrigger("Unload");
         }
 
+        // Чекаємо 1.5 секунди (час на розвантаження)
+        yield return new WaitForSeconds(1.5f); 
+
+        DeliverResources();
+
+        // Після розвантаження віз їде назад за екран
+        isUnloading = false;
+        isLeaving = true;
+        
+        // Розвертаємо спрайт воза, щоб він їхав задом/розвернувся
+        transform.localScale = new Vector3(-Mathf.Abs(transform.localScale.x), transform.localScale.y, transform.localScale.z);
+
+        // Видаляємо віз через 5 секунд, коли він точно виїде за межі екрана
+        Destroy(gameObject, 5f);
+    }
+
+    void DeliverResources()
+    {
         if (GameManager.Instance != null)
         {
-            // 1. ЗОЛОТО (через EnemyStats)
-            if (enemyStats != null)
-            {
-                enemyStats.GiveGold();
-            }
-            else
-            {
-                // Резерв (якщо раптом статів немає)
-                GameManager.Instance.AddResource(ResourceType.Gold, 50); 
-            }
+            GameManager.Instance.AddResource(ResourceType.Wood, woodReward);
+            GameManager.Instance.AddResource(ResourceType.Stone, stoneReward);
 
-            // 2. ДЕРЕВО (Додатковий дроп)
-            if (isBoss || Random.Range(0, 100) < woodChance)
-            {
-                GameManager.Instance.AddResource(ResourceType.Wood, woodAmount);
-                Vector3 woodPos = transform.position + new Vector3(1.2f, 1f, 0); 
-                GameManager.Instance.ShowResourcePopup(ResourceType.Wood, woodAmount, woodPos);
-            }
-
-            // 3. КАМІНЬ (Додатковий дроп)
-            if (isBoss || Random.Range(0, 100) < stoneChance)
-            {
-                GameManager.Instance.AddResource(ResourceType.Stone, stoneAmount);
-                Vector3 stonePos = transform.position + new Vector3(-1.2f, 1f, 0);
-                GameManager.Instance.ShowResourcePopup(ResourceType.Stone, stoneAmount, stonePos);
-            }
+            // Показуємо попапи ресурсів над возом
+            Vector3 popupPos = transform.position + Vector3.up * 1.5f;
+            GameManager.Instance.ShowResourcePopup(ResourceType.Wood, woodReward, popupPos);
+            
+            Vector3 popupPos2 = transform.position + new Vector3(0.5f, 2f, 0f);
+            GameManager.Instance.ShowResourcePopup(ResourceType.Stone, stoneReward, popupPos2);
         }
-        
-        Destroy(gameObject);
+
+        if (SoundManager.Instance != null && SoundManager.Instance.coinPickup != null) 
+        {
+            SoundManager.Instance.PlaySFX(SoundManager.Instance.coinPickup);
+        }
     }
 }

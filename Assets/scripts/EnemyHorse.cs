@@ -68,7 +68,7 @@ public class EnemyHorse : MonoBehaviour
     {
         if (isDead) return;
 
-        // Якщо замок уже впав – просто біжимо вліво за екран
+        // Якщо стіна уже впала – просто біжимо вліво за екран
         if (GameManager.Instance != null && GameManager.Instance.isDefeated)
         {
             target = null;
@@ -93,7 +93,7 @@ public class EnemyHorse : MonoBehaviour
         {
             FaceDirection(target.position);
 
-            bool isStructure = target.TryGetComponent<Spikes>(out _) || target.TryGetComponent<Castle>(out _);
+            bool isStructure = target.TryGetComponent<Spikes>(out _) || target.TryGetComponent<Wall>(out _);
             float distanceToTarget;
 
             if (isStructure)
@@ -233,7 +233,7 @@ public class EnemyHorse : MonoBehaviour
         if (isDead || target == null) return;
         if (hasHitThisAttack) return;
 
-        bool isStructure = target.TryGetComponent<Spikes>(out _) || target.TryGetComponent<Castle>(out _);
+        bool isStructure = target.TryGetComponent<Spikes>(out _) || target.TryGetComponent<Wall>(out _);
         float distanceToTarget;
 
         if (isStructure)
@@ -267,7 +267,7 @@ public class EnemyHorse : MonoBehaviour
         if (target.TryGetComponent<Knight>(out Knight k)) k.TakeDamage(finalDamage);
         else if (target.TryGetComponent<Archer>(out Archer a)) a.TakeDamage(finalDamage);
         else if (target.TryGetComponent<Spearman>(out Spearman s)) s.TakeDamage(finalDamage);
-        else if (target.TryGetComponent<Castle>(out Castle c))
+        else if (target.TryGetComponent<Wall>(out Wall c))
         {
              c.TakeDamage(finalDamage);
              if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.castleDamage);

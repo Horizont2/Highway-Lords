@@ -5,7 +5,7 @@ using UnityEngine.UI;
 public class CastleUpgradeUI : MonoBehaviour
 {
     [Header("Посилання")]
-    public Castle castle;          // Перетягни сюди об'єкт Castle зі сцени
+    public Wall castle;          // Перетягни сюди об'єкт Wall зі сцени (змінна називається castle для сумісності)
     public Button upgradeButton;   // Сама кнопка
     public TextMeshProUGUI costText; // Текст ціни на кнопці (або під нею)
     public TextMeshProUGUI levelText; // Текст "Level 1" (опціонально)
@@ -13,8 +13,8 @@ public class CastleUpgradeUI : MonoBehaviour
 
     void Start()
     {
-        // Знаходимо замок автоматично, якщо забув перетягнути
-        if (castle == null) castle = FindFirstObjectByType<Castle>();
+        // ЗМІНЕНО: Тепер шукаємо Wall замість Castle
+        if (castle == null) castle = FindFirstObjectByType<Wall>();
 
         if (upgradeButton != null)
         {
@@ -50,7 +50,7 @@ public class CastleUpgradeUI : MonoBehaviour
             GameManager.Instance.gold -= cost;
             GameManager.Instance.UpdateUI();
             
-            // Покращуємо замок
+            // Покращуємо стіну
             castle.UpgradeCastle();
 
             // Оновлюємо текст
@@ -68,7 +68,8 @@ public class CastleUpgradeUI : MonoBehaviour
             costText.text = $"{cost} Gold";
 
         if (levelText != null)
-            levelText.text = $"Castle Lvl {castle.castleLevel}";
+            // ЗМІНЕНО: Текст і змінна тепер вказують на wallLevel
+            levelText.text = $"Wall Lvl {castle.wallLevel}";
 
         if (statsText != null)
         {

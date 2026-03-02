@@ -27,7 +27,6 @@ public class Spearman : MonoBehaviour
     private float nextAttackTime = 0f;
     private Vector3 originalScale;
 
-    private Cart targetCart;
     private Guard targetGuard;
     private EnemyArcher targetArcher; 
     private EnemySpearman targetEnemySpearman;
@@ -102,7 +101,6 @@ public class Spearman : MonoBehaviour
         if (targetGuard != null && (targetGuard.CompareTag("Untagged") || !targetGuard.gameObject.activeInHierarchy)) targetGuard = null;
         if (targetArcher != null && (targetArcher.CompareTag("Untagged") || !targetArcher.gameObject.activeInHierarchy)) targetArcher = null;
         if (targetEnemySpearman != null && (targetEnemySpearman.CompareTag("Untagged") || !targetEnemySpearman.gameObject.activeInHierarchy)) targetEnemySpearman = null;
-        if (targetCart != null && (targetCart.CompareTag("Untagged") || !targetCart.gameObject.activeInHierarchy)) targetCart = null;
         if (targetHorse != null && (targetHorse.CompareTag("Untagged") || !targetHorse.gameObject.activeInHierarchy)) targetHorse = null;
 
         retargetTimer -= Time.deltaTime;
@@ -118,7 +116,6 @@ public class Spearman : MonoBehaviour
         else if (targetGuard != null) currentTarget = targetGuard.transform;
         else if (targetEnemySpearman != null) currentTarget = targetEnemySpearman.transform;
         else if (targetArcher != null) currentTarget = targetArcher.transform;
-        else if (targetCart != null) currentTarget = targetCart.transform;
 
         if (currentTarget != null)
         {
@@ -204,7 +201,7 @@ public class Spearman : MonoBehaviour
     void FindNearestTarget()
     {
         targetBoss = null; targetHorse = null; targetGuard = null; 
-        targetEnemySpearman = null; targetArcher = null; targetCart = null;
+        targetEnemySpearman = null; targetArcher = null;
 
         float minX = -1000f; float maxX = 1000f;
         if (GameManager.Instance != null)
@@ -230,7 +227,6 @@ public class Spearman : MonoBehaviour
             if (go.GetComponent<Guard>() && !targetBoss && !targetHorse) { if (dist < shortestDist) { shortestDist = dist; targetGuard = go.GetComponent<Guard>(); } continue; }
             if (go.GetComponent<EnemySpearman>() && !targetBoss && !targetHorse && !targetGuard) { if (dist < shortestDist) { shortestDist = dist; targetEnemySpearman = go.GetComponent<EnemySpearman>(); } continue; }
             if (go.GetComponent<EnemyArcher>() && !targetBoss && !targetHorse && !targetGuard && !targetEnemySpearman) { if (dist < shortestDist) { shortestDist = dist; targetArcher = go.GetComponent<EnemyArcher>(); } continue; }
-            if (go.GetComponent<Cart>() && !targetBoss && !targetHorse && !targetGuard && !targetArcher && dist < shortestDist) { shortestDist = dist; targetCart = go.GetComponent<Cart>(); }
         }
     }
 
@@ -264,7 +260,6 @@ public class Spearman : MonoBehaviour
         else if (targetGuard != null) targetGuard.TakeDamage(finalDamage);
         else if (targetEnemySpearman != null) targetEnemySpearman.TakeDamage(finalDamage);
         else if (targetArcher != null) targetArcher.TakeDamage(finalDamage);
-        else if (targetCart != null) targetCart.TakeDamage(finalDamage);
     }
 
     public void TakeDamage(int damage)

@@ -43,7 +43,7 @@ public class Boss : MonoBehaviour
 
     void Update()
     {
-        // Якщо замок уже впав – бос теж йде вліво за екран
+        // Якщо стіна уже впала – бос теж йде вліво за екран
         if (GameManager.Instance != null && GameManager.Instance.isDefeated)
         {
             Vector3 dest = transform.position + Vector3.left * 5f;
@@ -78,7 +78,7 @@ public class Boss : MonoBehaviour
         }
         else
         {
-            // Якщо немає героїв — йдемо ламати замок
+            // Якщо немає героїв — йдемо ламати стіну
             Vector3 castlePos = transform.position + Vector3.left * 10f; 
             if (GameManager.Instance != null && GameManager.Instance.castle != null)
                 castlePos = GameManager.Instance.castle.transform.position;
@@ -100,7 +100,7 @@ public class Boss : MonoBehaviour
         Archer[] archers = FindObjectsByType<Archer>(FindObjectsSortMode.None);
         foreach (var a in archers) CheckDist(a.transform, ref minDistance, ref closestTarget);
 
-        // Якщо героїв немає - йдемо на Замок
+        // Якщо героїв немає - йдемо на Стіну
         if (closestTarget == null && GameManager.Instance != null && GameManager.Instance.castle != null)
         {
             closestTarget = GameManager.Instance.castle.transform;
@@ -145,8 +145,9 @@ public class Boss : MonoBehaviour
             Archer a = hit.GetComponent<Archer>();
             if (a) a.TakeDamage(damage);
 
-            Castle c = hit.GetComponent<Castle>();
-            if (c) c.TakeDamage(damage);
+            // ЗМІНЕНО: Castle на Wall
+            Wall w = hit.GetComponent<Wall>();
+            if (w) w.TakeDamage(damage);
         }
     }
 

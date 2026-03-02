@@ -5,7 +5,7 @@ public class Arrow : MonoBehaviour
     [Header("Налаштування")]
     public float speed = 15f; // Трохи збільшив швидкість для точності
     public int damage = 10;
-    public float lifeTime = 5f; // Збільшив час життя
+    public float lifeTime = 1.5f; // Збільшив час життя
 
     private Transform target; // Тепер зберігаємо посилання на ворога
     private bool isInitialized = false;
@@ -68,10 +68,6 @@ public class Arrow : MonoBehaviour
             if (hitInfo.TryGetComponent<Guard>(out Guard g)) 
             { 
                 g.TakeDamage(damage); hit = true; 
-            }
-            else if (hitInfo.TryGetComponent<Cart>(out Cart c)) 
-            { 
-                c.TakeDamage(damage); hit = true; 
             }
             else if (hitInfo.TryGetComponent<EnemyArcher>(out EnemyArcher ea)) 
             { 

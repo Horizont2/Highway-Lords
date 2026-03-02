@@ -51,10 +51,10 @@ public class EnemyProjectile : MonoBehaviour
             spikes.TakeDamage(damage);
             hit = true; 
         }
-        // 2. Влучили в Замок
-        else if (collision.TryGetComponent<Castle>(out Castle c))
+        // 2. Влучили в Стіну (ЗМІНЕНО З Castle НА Wall)
+        else if (collision.TryGetComponent<Wall>(out Wall w))
         {
-            c.TakeDamage(damage);
+            w.TakeDamage(damage);
             hit = true;
         }
         // 3. Влучили в Юнітів гравця
