@@ -17,7 +17,7 @@ public class EnemyHorse : MonoBehaviour
     [Header("Навігація та Агро")]
     public LayerMask obstacleLayer; 
     public float avoidanceForce = 2.0f;
-    public float aggroRadius = 6.0f; // Кіннота бачить далі
+    public float aggroRadius = 6.0f; 
     private float retargetTimer = 0f;
 
     private Animator animator;
@@ -82,9 +82,25 @@ public class EnemyHorse : MonoBehaviour
 
         if (target != null)
         {
-            float distance = Vector2.Distance(transform.position, target.position);
+            FaceDirection(target.position);
 
-            if (distance <= attackRange)
+            bool isStructure = target.TryGetComponent<Spikes>(out _) || target.TryGetComponent<Castle>(out _);
+            float distanceToTarget;
+
+            if (isStructure)
+            {
+                Collider2D targetCol = target.GetComponent<Collider2D>();
+                if (targetCol != null) 
+                    distanceToTarget = Vector2.Distance(transform.position, targetCol.ClosestPoint(transform.position));
+                else 
+                    distanceToTarget = Mathf.Abs(transform.position.x - target.position.x);
+            }
+            else
+            {
+                distanceToTarget = Vector2.Distance(transform.position, target.position);
+            }
+
+            if (distanceToTarget <= attackRange)
             {
                 StopMoving();
                 if (Time.time >= nextAttackTime)
@@ -95,18 +111,29 @@ public class EnemyHorse : MonoBehaviour
             }
             else
             {
-                MoveTowards(target.position);
+                MoveTowards(target.position, isStructure);
             }
         }
         else
         {
             Vector3 forwardPos = transform.position + Vector3.left * 5f;
-            MoveTowards(forwardPos);
+            FaceDirection(forwardPos);
+            MoveTowards(forwardPos, false);
         }
     }
 
     void FindTarget()
     {
+        if (GameManager.Instance != null && GameManager.Instance.currentSpikes != null)
+        {
+            Transform spikes = GameManager.Instance.currentSpikes.transform;
+            if (transform.position.x > spikes.position.x - 2.0f)
+            {
+                target = spikes;
+                return;
+            }
+        }
+
         float minDistance = Mathf.Infinity;
         Transform closestTarget = null;
 
@@ -126,9 +153,6 @@ public class EnemyHorse : MonoBehaviour
         Archer[] archers = FindObjectsByType<Archer>(FindObjectsSortMode.None);
         foreach (var a in archers) Check(a.transform);
 
-        if (GameManager.Instance != null && GameManager.Instance.currentSpikes != null)
-            Check(GameManager.Instance.currentSpikes.transform);
-
         if (closestTarget != null && minDistance <= aggroRadius)
         {
             target = closestTarget;
@@ -140,20 +164,37 @@ public class EnemyHorse : MonoBehaviour
         }
     }
 
-    void MoveTowards(Vector3 destination)
+    void MoveTowards(Vector3 destination, bool isStructureTarget)
     {
         if (animator) animator.SetBool("IsRunning", true);
-        FaceDirection(destination);
         
-        Vector2 direction = (destination - transform.position).normalized;
+        Vector3 targetPosFixed = new Vector3(destination.x, destination.y, transform.position.z);
+        if (isStructureTarget)
+        {
+            targetPosFixed = new Vector3(destination.x, transform.position.y, transform.position.z);
+        }
+
+        Vector2 direction = (targetPosFixed - transform.position).normalized;
 
         RaycastHit2D hit = Physics2D.Raycast(transform.position, direction, 1.5f, obstacleLayer);
         if (hit.collider != null && hit.collider.gameObject != gameObject)
         {
-            float dodgeDirY = (transform.position.y >= hit.collider.bounds.center.y) ? 1f : -1f;
-            Vector2 avoidance = new Vector2(0, dodgeDirY); 
-            direction += avoidance * avoidanceForce;
-            direction.Normalize(); 
+            bool hitMyTarget = false;
+            if (target != null)
+            {
+                if (hit.collider.transform == target || hit.collider.transform.IsChildOf(target))
+                {
+                    hitMyTarget = true;
+                }
+            }
+
+            if (!hitMyTarget)
+            {
+                float dodgeDirY = (transform.position.y >= hit.collider.bounds.center.y) ? 1f : -1f;
+                Vector2 avoidance = new Vector2(0, dodgeDirY); 
+                direction += avoidance * avoidanceForce;
+                direction.Normalize(); 
+            }
         }
 
         rb.linearVelocity = direction * speed;
@@ -182,6 +223,23 @@ public class EnemyHorse : MonoBehaviour
     {
         if (isDead || target == null) return;
         if (hasHitThisAttack) return;
+
+        bool isStructure = target.TryGetComponent<Spikes>(out _) || target.TryGetComponent<Castle>(out _);
+        float distanceToTarget;
+
+        if (isStructure)
+        {
+            Collider2D targetCol = target.GetComponent<Collider2D>();
+            if (targetCol != null) distanceToTarget = Vector2.Distance(transform.position, targetCol.ClosestPoint(transform.position));
+            else distanceToTarget = Mathf.Abs(transform.position.x - target.position.x);
+        }
+        else
+        {
+            distanceToTarget = Vector2.Distance(transform.position, target.position);
+        }
+
+        if (distanceToTarget > attackRange + 1.5f) return;
+
         hasHitThisAttack = true;
 
         if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.swordHit); 

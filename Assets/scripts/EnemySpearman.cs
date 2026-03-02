@@ -81,10 +81,30 @@ public class EnemySpearman : MonoBehaviour
 
         if (target != null)
         {
-            float distance = Vector2.Distance(transform.position, target.position);
             FaceDirection(target.position);
 
-            if (distance <= attackRange)
+            bool isStructure = target.TryGetComponent<Spikes>(out _) || target.TryGetComponent<Castle>(out _);
+            float distanceToTarget;
+
+            // ФІКС 1: Міряємо відстань до КРАЮ колайдера, а не до центру
+            if (isStructure)
+            {
+                Collider2D targetCol = target.GetComponent<Collider2D>();
+                if (targetCol != null) 
+                {
+                    distanceToTarget = Vector2.Distance(transform.position, targetCol.ClosestPoint(transform.position));
+                }
+                else 
+                {
+                    distanceToTarget = Mathf.Abs(transform.position.x - target.position.x);
+                }
+            }
+            else
+            {
+                distanceToTarget = Vector2.Distance(transform.position, target.position);
+            }
+
+            if (distanceToTarget <= attackRange)
             {
                 StopMoving();
                 if (Time.time >= nextAttackTime)
@@ -96,19 +116,31 @@ public class EnemySpearman : MonoBehaviour
             }
             else
             {
-                MoveTo(target.position);
+                MoveTo(target.position, isStructure);
             }
         }
         else
         {
             Vector3 leftDirection = transform.position + Vector3.left * 5f; 
             FaceDirection(leftDirection);
-            MoveTo(leftDirection);
+            MoveTo(leftDirection, false);
         }
     }
 
     void FindTarget()
     {
+        // Барикада - пріоритет №1
+        if (GameManager.Instance != null && GameManager.Instance.currentSpikes != null)
+        {
+            Transform spikes = GameManager.Instance.currentSpikes.transform;
+            // Атакуємо її, поки не пройдемо її повністю
+            if (transform.position.x > spikes.position.x - 2.0f)
+            {
+                target = spikes;
+                return;
+            }
+        }
+
         float minDistance = Mathf.Infinity;
         Transform closestTarget = null;
 
@@ -128,9 +160,6 @@ public class EnemySpearman : MonoBehaviour
         Archer[] archers = FindObjectsByType<Archer>(FindObjectsSortMode.None);
         foreach (var a in archers) Check(a.transform);
 
-        if (GameManager.Instance != null && GameManager.Instance.currentSpikes != null)
-            Check(GameManager.Instance.currentSpikes.transform);
-
         if (closestTarget != null && minDistance <= aggroRadius)
         {
             target = closestTarget;
@@ -142,20 +171,40 @@ public class EnemySpearman : MonoBehaviour
         }
     }
 
-    void MoveTo(Vector3 destination)
+    void MoveTo(Vector3 destination, bool isStructureTarget)
     {
         if (animator) animator.SetBool("IsRunning", true);
 
         Vector3 targetPosFixed = new Vector3(destination.x, destination.y, transform.position.z);
+        
+        // ФІКС 2: Не ковзаємо по осі Y, якщо ціль - барикада
+        if (isStructureTarget)
+        {
+            targetPosFixed = new Vector3(destination.x, transform.position.y, transform.position.z);
+        }
+
         Vector2 direction = (targetPosFixed - transform.position).normalized;
         
         RaycastHit2D hit = Physics2D.Raycast(transform.position, direction, 1.5f, obstacleLayer);
         if (hit.collider != null && hit.collider.gameObject != gameObject)
         {
-            float dodgeDirY = (transform.position.y >= hit.collider.bounds.center.y) ? 1f : -1f;
-            Vector2 avoidance = new Vector2(0, dodgeDirY); 
-            direction += avoidance * avoidanceForce;
-            direction.Normalize(); 
+            bool hitMyTarget = false;
+            if (target != null)
+            {
+                if (hit.collider.transform == target || hit.collider.transform.IsChildOf(target))
+                {
+                    hitMyTarget = true;
+                }
+            }
+
+            // Відштовхуємось ТІЛЬКИ якщо це не наша ціль
+            if (!hitMyTarget)
+            {
+                float dodgeDirY = (transform.position.y >= hit.collider.bounds.center.y) ? 1f : -1f;
+                Vector2 avoidance = new Vector2(0, dodgeDirY); 
+                direction += avoidance * avoidanceForce;
+                direction.Normalize(); 
+            }
         }
 
         rb.linearVelocity = direction * speed;
@@ -178,7 +227,29 @@ public class EnemySpearman : MonoBehaviour
     {
         if (isDead || target == null) return;
         if (hasHitThisAttack) return;
-        if (Vector2.Distance(transform.position, target.position) > attackRange) return;
+        
+        bool isStructure = target.TryGetComponent<Spikes>(out _) || target.TryGetComponent<Castle>(out _);
+        float distanceToTarget;
+
+        if (isStructure)
+        {
+            Collider2D targetCol = target.GetComponent<Collider2D>();
+            if (targetCol != null) 
+            {
+                distanceToTarget = Vector2.Distance(transform.position, targetCol.ClosestPoint(transform.position));
+            }
+            else 
+            {
+                distanceToTarget = Mathf.Abs(transform.position.x - target.position.x);
+            }
+        }
+        else
+        {
+            distanceToTarget = Vector2.Distance(transform.position, target.position);
+        }
+
+        // ФІКС 3: Даємо допуск +1.5f. Якщо інший ворог штовхнув цього ззаду під час анімації, удар все одно пройде!
+        if (distanceToTarget > attackRange + 1.5f) return;
 
         hasHitThisAttack = true;
         if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.swordHit); 

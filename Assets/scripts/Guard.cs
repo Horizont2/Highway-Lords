@@ -16,7 +16,7 @@ public class Guard : MonoBehaviour
     [Header("Навігація та Агро")]
     public LayerMask obstacleLayer; 
     public float avoidanceForce = 2.0f;
-    public float aggroRadius = 3.5f; // Радіус, в якому ворог "бачить" твоїх юнітів
+    public float aggroRadius = 3.5f; 
     private float retargetTimer = 0f;
 
     [Header("Атака")]
@@ -76,7 +76,6 @@ public class Guard : MonoBehaviour
     {
         if (isDead) return;
 
-        // Кожні 0.25 сек перевіряємо, чи є поруч вороги
         retargetTimer -= Time.deltaTime;
         if (retargetTimer <= 0f)
         {
@@ -92,9 +91,21 @@ public class Guard : MonoBehaviour
         // 1. АТАКА
         if (target != null)
         {
-            float distance = Vector2.Distance(transform.position, target.position);
+            bool isStructure = target.TryGetComponent<Spikes>(out _) || target.TryGetComponent<Castle>(out _);
+            float distanceToTarget;
 
-            if (distance <= attackRange)
+            if (isStructure)
+            {
+                Collider2D targetCol = target.GetComponent<Collider2D>();
+                if (targetCol != null) distanceToTarget = Vector2.Distance(transform.position, targetCol.ClosestPoint(transform.position));
+                else distanceToTarget = Mathf.Abs(transform.position.x - target.position.x);
+            }
+            else
+            {
+                distanceToTarget = Vector2.Distance(transform.position, target.position);
+            }
+
+            if (distanceToTarget <= attackRange)
             {
                 StopMoving();
                 if (Time.time >= nextAttackTime)
@@ -118,15 +129,17 @@ public class Guard : MonoBehaviour
         {
             FaceTarget(target.position);
             
+            bool isStructure = target.TryGetComponent<Spikes>(out _) || target.TryGetComponent<Castle>(out _);
             Vector3 dest = target.position;
+            
             float distance = Vector2.Distance(transform.position, target.position);
 
-            if (distance > 3.5f) 
+            if (!isStructure && distance > 3.5f) 
             {
                 dest.y += laneOffset;
             }
             
-            MoveTowards(dest);
+            MoveTowards(dest, isStructure);
         }
         else
         {
@@ -135,12 +148,22 @@ public class Guard : MonoBehaviour
             destination.y = baseY + laneOffset;
             
             FaceTarget(destination); 
-            MoveTowards(destination);
+            MoveTowards(destination, false);
         }
     }
 
     void FindTarget()
     {
+        if (GameManager.Instance != null && GameManager.Instance.currentSpikes != null)
+        {
+            Transform spikes = GameManager.Instance.currentSpikes.transform;
+            if (transform.position.x > spikes.position.x - 2.0f)
+            {
+                target = spikes;
+                return;
+            }
+        }
+
         float minDistance = Mathf.Infinity;
         Transform closestTarget = null;
 
@@ -155,7 +178,6 @@ public class Guard : MonoBehaviour
             }
         }
 
-        // Шукаємо юнітів гравця
         Knight[] knights = FindObjectsByType<Knight>(FindObjectsSortMode.None);
         foreach (Knight k in knights) CheckDistance(k.transform);
 
@@ -165,15 +187,11 @@ public class Guard : MonoBehaviour
         Spearman[] spearmen = FindObjectsByType<Spearman>(FindObjectsSortMode.None); 
         foreach (Spearman s in spearmen) CheckDistance(s.transform);
 
-        if (GameManager.Instance != null && GameManager.Instance.currentSpikes != null)
-            CheckDistance(GameManager.Instance.currentSpikes.transform);
-
-        // Якщо найближчий юніт в радіусі агро - цілимось на нього
         if (closestTarget != null && minDistance <= aggroRadius)
         {
             target = closestTarget;
         }
-        else // Інакше йдемо до Замку
+        else 
         {
             if (GameManager.Instance != null && GameManager.Instance.castle != null)
             {
@@ -182,17 +200,35 @@ public class Guard : MonoBehaviour
         }
     }
 
-    void MoveTowards(Vector3 destination)
+    void MoveTowards(Vector3 destination, bool isStructureTarget)
     {
         if (animator) animator.SetBool("IsRunning", true);
         
-        Vector2 direction = (destination - transform.position).normalized;
+        Vector3 targetPosFixed = new Vector3(destination.x, destination.y, transform.position.z);
+        if (isStructureTarget)
+        {
+            targetPosFixed = new Vector3(destination.x, transform.position.y, transform.position.z);
+        }
+
+        Vector2 direction = (targetPosFixed - transform.position).normalized;
 
         RaycastHit2D hit = Physics2D.Raycast(transform.position, direction, 1.5f, obstacleLayer);
-        if (hit.collider != null)
+        if (hit.collider != null && hit.collider.gameObject != gameObject)
         {
-            direction += hit.normal * avoidanceForce;
-            direction.Normalize();
+            bool hitMyTarget = false;
+            if (target != null)
+            {
+                if (hit.collider.transform == target || hit.collider.transform.IsChildOf(target))
+                {
+                    hitMyTarget = true;
+                }
+            }
+
+            if (!hitMyTarget)
+            {
+                direction += hit.normal * avoidanceForce;
+                direction.Normalize();
+            }
         }
 
         rb.linearVelocity = direction * speed; 
@@ -245,9 +281,23 @@ public class Guard : MonoBehaviour
         if (target == null) return; 
         if (hasHitThisAttack) return;
 
-        hasHitThisAttack = true;
+        bool isStructure = target.TryGetComponent<Spikes>(out _) || target.TryGetComponent<Castle>(out _);
+        float distanceToTarget;
 
-        if (Vector2.Distance(transform.position, target.position) > attackRange + 0.5f) return;
+        if (isStructure)
+        {
+            Collider2D targetCol = target.GetComponent<Collider2D>();
+            if (targetCol != null) distanceToTarget = Vector2.Distance(transform.position, targetCol.ClosestPoint(transform.position));
+            else distanceToTarget = Mathf.Abs(transform.position.x - target.position.x);
+        }
+        else
+        {
+            distanceToTarget = Vector2.Distance(transform.position, target.position);
+        }
+
+        if (distanceToTarget > attackRange + 1.5f) return;
+
+        hasHitThisAttack = true;
 
         if (SoundManager.Instance != null) 
              SoundManager.Instance.PlaySFX(SoundManager.Instance.swordHit);

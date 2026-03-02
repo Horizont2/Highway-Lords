@@ -216,7 +216,7 @@ public class GameManager : MonoBehaviour
     [Header("Захисні споруди (Spikes)")]
     public GameObject spikesPrefab;
     public Transform spikesSpawnPoint;
-    public int spikesWoodCost = 100;
+    public int spikesWoodCost = 50;
 
     [HideInInspector] public Spikes currentSpikes;
 

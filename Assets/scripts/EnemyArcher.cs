@@ -1,7 +1,7 @@
 using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody2D))]
-[RequireComponent(typeof(EnemyStats))] // Автоматично додасть скрипт статистики
+[RequireComponent(typeof(EnemyStats))] 
 public class EnemyArcher : MonoBehaviour
 {
     [Header("UI")]
@@ -17,12 +17,11 @@ public class EnemyArcher : MonoBehaviour
     [Header("Навігація та Агро")]
     public LayerMask obstacleLayer; 
     public float avoidanceForce = 2.0f;
-    public float aggroRadius = 8.0f; // Зона, в якій лучник "помічає" ціль і відволікається від замку
+    public float aggroRadius = 8.0f; 
     private float retargetTimer = 0f;
 
     [Header("Поведінка")]
     private float safeDistanceBehindTank = 2.0f;
-    // Максимальна відстань, на якій ми ще чекаємо танка. 
     private float maxTankWaitDistance = 15.0f; 
 
     [Header("Стрільба")]
@@ -52,7 +51,6 @@ public class EnemyArcher : MonoBehaviour
 
         originalScale = transform.localScale;
 
-        // === БАЛАНС ===
         if (GameManager.Instance != null)
         {
             maxHealth = GameManager.Instance.GetDifficultyHealth();
@@ -80,7 +78,6 @@ public class EnemyArcher : MonoBehaviour
         if (target != null && (target.CompareTag("Untagged") || !target.gameObject.activeInHierarchy)) 
             target = null;
 
-        // Оновлення цілі кожні 0.25 секунд (щоб не залипав на замку)
         retargetTimer -= Time.deltaTime;
         if (retargetTimer <= 0f)
         {
@@ -93,10 +90,23 @@ public class EnemyArcher : MonoBehaviour
 
         if (target != null)
         {
-            float distance = Vector2.Distance(transform.position, target.position);
+            bool isStructure = target.TryGetComponent<Spikes>(out _) || target.TryGetComponent<Castle>(out _);
+            float distanceToTarget;
+
+            if (isStructure)
+            {
+                Collider2D targetCol = target.GetComponent<Collider2D>();
+                if (targetCol != null) distanceToTarget = Vector2.Distance(transform.position, targetCol.ClosestPoint(transform.position));
+                else distanceToTarget = Mathf.Abs(transform.position.x - target.position.x);
+            }
+            else
+            {
+                distanceToTarget = Vector2.Distance(transform.position, target.position);
+            }
+
             FaceTarget(target.position);
 
-            if (distance > attackRange)
+            if (distanceToTarget > attackRange)
             {
                 if (ShouldWaitForTank())
                 {
@@ -106,7 +116,15 @@ public class EnemyArcher : MonoBehaviour
                 }
                 else
                 {
-                    Vector2 direction = (target.position - transform.position).normalized;
+                    Vector3 targetPosFixed = target.position;
+                    // Лучники не змінюють свій Y кардинально, коли йдуть на замок/барикаду, 
+                    // щоб стріляти рівним фронтом, а не збиратися в купу.
+                    if (isStructure) 
+                    {
+                        targetPosFixed.y = transform.position.y;
+                    }
+
+                    Vector2 direction = (targetPosFixed - transform.position).normalized;
                     if (IsBlockingCart()) direction = ApplyCartAvoidance(direction);
                     direction = ApplyWallAvoidance(direction);
 
@@ -135,7 +153,6 @@ public class EnemyArcher : MonoBehaviour
         }
         else
         {
-            // Якщо цілі немає взагалі (навіть замку)
             if (!ShouldWaitForTank())
             {
                 Vector3 destination = transform.position + Vector3.left;
@@ -181,14 +198,12 @@ public class EnemyArcher : MonoBehaviour
         if (GameManager.Instance != null && GameManager.Instance.currentSpikes != null)
             CheckDistance(GameManager.Instance.currentSpikes.transform);
 
-        // Якщо знайдено валідного юніта в радіусі агру - стріляємо по ньому
         if (closestUnit != null && minDistance <= aggroRadius)
         {
             target = closestUnit;
         }
         else
         {
-            // Інакше йдемо до Замку
             if (GameManager.Instance != null && GameManager.Instance.castle != null)
             {
                 target = GameManager.Instance.castle.transform;
@@ -205,7 +220,20 @@ public class EnemyArcher : MonoBehaviour
         if (isDead) return;
         if (target == null || target.CompareTag("Untagged") || !target.gameObject.activeInHierarchy) return;
 
-        float dist = Vector2.Distance(transform.position, target.position);
+        bool isStructure = target.TryGetComponent<Spikes>(out _) || target.TryGetComponent<Castle>(out _);
+        float dist;
+
+        if (isStructure)
+        {
+            Collider2D targetCol = target.GetComponent<Collider2D>();
+            if (targetCol != null) dist = Vector2.Distance(transform.position, targetCol.ClosestPoint(transform.position));
+            else dist = Mathf.Abs(transform.position.x - target.position.x);
+        }
+        else
+        {
+            dist = Vector2.Distance(transform.position, target.position);
+        }
+
         if (dist > attackRange + 1.5f) return;
 
         if (arrowPrefab != null && firePoint != null)
@@ -216,7 +244,6 @@ public class EnemyArcher : MonoBehaviour
             
             if (p != null)
             {
-                // === НОВА ЛОГІКА УРОНУ ===
                 int finalDamage = damage;
                 
                 if (myStats != null)
@@ -228,7 +255,6 @@ public class EnemyArcher : MonoBehaviour
                         finalDamage = Mathf.RoundToInt(damage * multiplier);
                     }
                 }
-                // =========================
 
                 p.Initialize(target.position, finalDamage);
             }
@@ -256,8 +282,20 @@ public class EnemyArcher : MonoBehaviour
         RaycastHit2D hit = Physics2D.Raycast(transform.position, dir, 1.5f, obstacleLayer);
         if (hit.collider != null)
         {
-            dir += hit.normal * avoidanceForce;
-            return dir.normalized;
+            bool hitMyTarget = false;
+            if (target != null)
+            {
+                if (hit.collider.transform == target || hit.collider.transform.IsChildOf(target))
+                {
+                    hitMyTarget = true;
+                }
+            }
+
+            if (!hitMyTarget)
+            {
+                dir += hit.normal * avoidanceForce;
+                return dir.normalized;
+            }
         }
         return dir;
     }
