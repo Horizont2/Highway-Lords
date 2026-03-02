@@ -48,7 +48,6 @@ public class Knight : MonoBehaviour
         formationPos = pos;
     }
 
-    // МЕТОД ДЛЯ ЗАВАНТАЖЕННЯ ЗБЕРЕЖЕННЯ (Виправлення помилки CS1061)
     public void LoadState(int savedHealth)
     {
         currentHealth = savedHealth;
@@ -97,7 +96,6 @@ public class Knight : MonoBehaviour
             myDamage = GameManager.Instance.GetKnightDamage();
         }
 
-        // Очищення мертвих цілей
         if (targetBoss != null && (targetBoss.CompareTag("Untagged") || !targetBoss.gameObject.activeInHierarchy)) targetBoss = null;
         if (targetHorse != null && (targetHorse.CompareTag("Untagged") || !targetHorse.gameObject.activeInHierarchy)) targetHorse = null;
         if (targetGuard != null && (targetGuard.CompareTag("Untagged") || !targetGuard.gameObject.activeInHierarchy)) targetGuard = null;
@@ -127,6 +125,12 @@ public class Knight : MonoBehaviour
         else
         {
             MoveTo(formationPos); // Повернення в ширенгу
+            
+            // Якщо лицар вже стоїть на своєму місці — змушуємо його дивитись вправо
+            if (Vector2.Distance(transform.position, formationPos) < 0.1f)
+            {
+                FlipSprite(transform.position.x + 1f); 
+            }
         }
     }
 
@@ -307,7 +311,7 @@ public class Knight : MonoBehaviour
 
         if (GameManager.Instance != null && !GameManager.Instance.isResettingUnits)
         {
-            GameManager.Instance.OnUnitDeath(gameObject, "Knight"); // Зсув лінії
+            GameManager.Instance.OnUnitDeath(gameObject, "Knight"); 
         }
 
         if (healthBar != null) healthBar.gameObject.SetActive(false);

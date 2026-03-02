@@ -47,7 +47,6 @@ public class Spearman : MonoBehaviour
         formationPos = pos;
     }
 
-    // МЕТОД ДЛЯ ЗАВАНТАЖЕННЯ ЗБЕРЕЖЕННЯ (Виправлення помилки CS1061)
     public void LoadState(int savedHealth)
     {
         currentHealth = savedHealth;
@@ -128,6 +127,12 @@ public class Spearman : MonoBehaviour
         else
         {
             MoveTo(formationPos); // Повернення в ширенгу
+            
+            // Якщо списоносець вже у ширензі — змушуємо його дивитися вправо
+            if (Vector2.Distance(transform.position, formationPos) < 0.1f)
+            {
+                FlipSprite(transform.position.x + 1f);
+            }
         }
     }
 
@@ -234,7 +239,7 @@ public class Spearman : MonoBehaviour
         if (animator) animator.SetTrigger("Attack");
     }
 
-    public void Hit() // Викликається анімацією
+    public void Hit() 
     {
         if (isDead) return;
         if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.swordHit); 

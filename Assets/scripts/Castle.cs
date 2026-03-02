@@ -4,15 +4,15 @@ using UnityEngine.UI;
 public class Castle : MonoBehaviour
 {
     [Header("=== БАЛАНС (ЕКСТРЕМАЛЬНИЙ) ===")]
-    // Початкове здоров'я (Wave 1)
     public int baseHealth = 100; 
-    // Бонус, який додається ДО МАКСИМУМУ тільки при UpgradeCastle()
-    public int hpBonusPerUpgrade = 50; 
+    public int hpBonusPerUpgrade = 50;
+
+    public HealthBarSegments hpSegments;
     
     [Header("=== ЕКОНОМІКА ===")]
     public int castleLevel = 1;
-    public int baseUpgradeCost = 150;    // Ціна першого апгрейду
-    public float costMultiplier = 1.5f;  // Коефіцієнт подорожчання (x1.5)
+    public int baseUpgradeCost = 150;    
+    public float costMultiplier = 1.5f;  
 
     [Header("=== СТАН (Read Only) ===")]
     public int maxHealth;
@@ -20,21 +20,18 @@ public class Castle : MonoBehaviour
     private bool isDead = false;
 
     [Header("=== UI & КОМПОНЕНТИ ===")]
-    public Image healthBarFill; // Зелене кільце/смужка (Filled)
-    public Transform spawnPoint; // Точка виходу військ
+    public Image healthBarFill; 
+    public Transform spawnPoint; 
 
     void Start()
     {
-        // При старті розраховуємо ліміт на основі поточного рівня
         RecalculateMaxHealth();
         
-        // Якщо здоров'я ще не задане (новий запуск), лікуємо до максимуму
         if (currentHealth <= 0) currentHealth = maxHealth;
 
         UpdateUI();
         isDead = false;
 
-        // Реєстрація в GameManager
         if (GameManager.Instance != null)
         {
             GameManager.Instance.castle = this;
@@ -43,6 +40,11 @@ public class Castle : MonoBehaviour
                 GameManager.Instance.unitSpawnPoint = spawnPoint;
             else
                 GameManager.Instance.unitSpawnPoint = transform;
+        }
+
+        if (hpSegments != null)
+        {
+            hpSegments.UpdateSegments(maxHealth);
         }
     }
 
@@ -77,7 +79,6 @@ public class Castle : MonoBehaviour
         UpdateUI();
     }
 
-    // Викликається при старті нової хвилі або рестарті
     public void HealMax()
     {
         isDead = false;
@@ -85,8 +86,6 @@ public class Castle : MonoBehaviour
         UpdateUI();
         Debug.Log("Castle: Healed to " + maxHealth);
     }
-
-    // === СИСТЕМА АПГРЕЙДУ (Викликається з меню Constructions) ===
 
     public int GetUpgradeCost()
     {
@@ -97,13 +96,9 @@ public class Castle : MonoBehaviour
     {
         castleLevel++;
         
-        // ВАЖЛИВО: Додаємо бонус до максимуму ТІЛЬКИ ТУТ
         maxHealth += hpBonusPerUpgrade; 
-        
-        // Повне лікування при покращенні стін
         currentHealth = maxHealth; 
 
-        // Ефекти
         if (SoundManager.Instance != null) 
             SoundManager.Instance.PlaySFX(SoundManager.Instance.constructionComplete);
 
@@ -113,18 +108,20 @@ public class Castle : MonoBehaviour
         UpdateUI();
         Debug.Log($"Castle Upgraded! Lvl {castleLevel}. New Max HP: {maxHealth}");
 
-        // Зберігаємо гру
+        if (hpSegments != null)
+        {
+            hpSegments.UpdateSegments(maxHealth); 
+        }
+
         if (GameManager.Instance != null) GameManager.Instance.SaveGame();
     }
 
-    // Використовується тільки при завантаженні або ініціалізації рівня
     void RecalculateMaxHealth()
     {
         maxHealth = baseHealth + ((castleLevel - 1) * hpBonusPerUpgrade);
         if (currentHealth > maxHealth) currentHealth = maxHealth;
     }
 
-    // Завантаження стану зі збережень
     public void LoadState(int savedLevel)
     {
         castleLevel = savedLevel;
@@ -133,6 +130,12 @@ public class Castle : MonoBehaviour
         RecalculateMaxHealth();
         currentHealth = maxHealth; 
         UpdateUI();
+
+        // ДОДАНО: Оновлюємо рисочки після завантаження гри!
+        if (hpSegments != null)
+        {
+            hpSegments.UpdateSegments(maxHealth);
+        }
     }
 
     void Die()

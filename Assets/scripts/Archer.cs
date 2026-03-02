@@ -43,7 +43,6 @@ public class Archer : MonoBehaviour
         formationPos = pos;
     }
 
-    // МЕТОД ДЛЯ ЗАВАНТАЖЕННЯ ЗБЕРЕЖЕННЯ
     public void LoadState(int savedHealth)
     {
         currentHealth = savedHealth;
@@ -108,6 +107,12 @@ public class Archer : MonoBehaviour
         else
         {
             MoveTo(formationPos); // Повернення в ширенгу
+            
+            // Якщо лучник уже стоїть у ширензі — змушуємо його дивитись вправо
+            if (Vector2.Distance(transform.position, formationPos) < 0.1f)
+            {
+                FlipSprite(transform.position.x + 1f);
+            }
         }
     }
 
@@ -138,7 +143,7 @@ public class Archer : MonoBehaviour
         if (animator != null) animator.SetTrigger("Attack");
     }
 
-    public void ShootArrow() // Викликається анімацією
+    public void ShootArrow() 
     {
         if (isDead) return;
         if (target == null || target.CompareTag("Untagged") || !target.gameObject.activeInHierarchy) return;
