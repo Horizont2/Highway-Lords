@@ -178,7 +178,7 @@ public class EnemySpearman : MonoBehaviour
     {
         if (isDead || target == null) return;
         if (hasHitThisAttack) return;
-        if (Vector2.Distance(transform.position, target.position) > attackRange + 1.0f) return;
+        if (Vector2.Distance(transform.position, target.position) > attackRange) return;
 
         hasHitThisAttack = true;
         if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.swordHit); 

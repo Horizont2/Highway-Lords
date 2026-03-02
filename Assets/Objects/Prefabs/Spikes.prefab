@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 4684696517043045096}
   - component: {fileID: 5520739021896407906}
   - component: {fileID: 3713775178526893378}
-  m_Layer: 6
+  m_Layer: 8
   m_Name: Border
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -86,7 +86,7 @@ GameObject:
   - component: {fileID: 2941496940830430095}
   - component: {fileID: 6826986049038109168}
   - component: {fileID: 4125612988009506667}
-  m_Layer: 6
+  m_Layer: 8
   m_Name: Fill
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -163,7 +163,7 @@ GameObject:
   - component: {fileID: 5085168597399146993}
   - component: {fileID: 2106778033462002492}
   - component: {fileID: 4087167481076850238}
-  m_Layer: 6
+  m_Layer: 8
   m_Name: Spikes
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -279,7 +279,7 @@ BoxCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0, y: 0}
+  m_Offset: {x: 0, y: 0.023964733}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
@@ -289,7 +289,7 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 1.13, y: 1.09}
+  m_Size: {x: 1.13, y: 2.039002}
   m_EdgeRadius: 0
 --- !u!114 &2106778033462002492
 MonoBehaviour:
@@ -332,7 +332,7 @@ GameObject:
   - component: {fileID: 6998943113749218758}
   - component: {fileID: 1197591187686661105}
   - component: {fileID: 8689440484107058357}
-  m_Layer: 6
+  m_Layer: 8
   m_Name: UnitHealthBar
   m_TagString: Untagged
   m_Icon: {fileID: 0}
