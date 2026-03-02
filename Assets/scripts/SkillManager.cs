@@ -1,20 +1,20 @@
 using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
-using UnityEngine.InputSystem;
+using UnityEngine.EventSystems;
 
 public class SkillManager : MonoBehaviour
 {
     [Header("Налаштування")]
     public GameObject rainArrowPrefab; 
-    public GameObject aimingReticle;   
+    public GameObject aimingReticle;   // Сюди кидаємо ПРЕФАБ з папки
     public Button skillButton;         
     public Image cooldownOverlay;      
     public GameObject lockIcon;        
 
     [Header("Візуал Кнопки")]
-    public Color normalColor = Color.white;      // Звичайний колір
-    public Color selectedColor = new Color(0.6f, 0.6f, 0.6f, 1f); // Затемнений (коли цілимось)
+    public Color normalColor = Color.white;      
+    public Color selectedColor = new Color(0.6f, 0.6f, 0.6f, 1f); 
 
     [Header("Баланс")]
     public int unlockWave = 30;        
@@ -25,18 +25,33 @@ public class SkillManager : MonoBehaviour
     private bool isUnlocked = false;
     private bool isAiming = false;
     private bool isCooldown = false;
-
-    private Plane groundPlane = new Plane(Vector3.forward, Vector3.zero);
+    private Camera mainCam;
+    
+    // Змінна для реального об'єкта прицілу на сцені
+    private GameObject currentReticleInstance; 
 
     void Start()
     {
-        if (aimingReticle) aimingReticle.SetActive(false);
+        mainCam = Camera.main;
+        if (mainCam == null) mainCam = FindFirstObjectByType<Camera>();
+
+        // Створюємо копію прицілу з префабу на старті гри
+        if (aimingReticle != null) 
+        {
+            currentReticleInstance = Instantiate(aimingReticle);
+            currentReticleInstance.transform.SetParent(null);
+            
+            // Налаштовуємо правильний розмір
+            float s = radius * 2f;
+            currentReticleInstance.transform.localScale = new Vector3(s, s, 1f);
+            
+            currentReticleInstance.SetActive(false);
+        }
         
-        // Налаштовуємо кнопку
         if (skillButton) 
         {
             skillButton.onClick.AddListener(OnSkillButtonClick);
-            skillButton.image.color = normalColor; // Старт з нормальним кольором
+            skillButton.image.color = normalColor; 
         }
         
         CheckUnlock();
@@ -48,82 +63,70 @@ public class SkillManager : MonoBehaviour
 
         if (isAiming)
         {
-            if (Mouse.current == null) return;
-            if (Camera.main == null) return;
+            if (mainCam == null) mainCam = FindFirstObjectByType<Camera>();
+            if (mainCam == null) return;
 
-            // Логіка променя (Raycast)
-            Ray ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
-            float enterDist;
-            Vector3 worldPos = Vector3.zero;
+            // Зчитуємо позицію миші
+            Vector3 rawMousePos = Input.mousePosition;
+            Vector2 mouseWorld2D = mainCam.ScreenToWorldPoint(rawMousePos);
+            Vector3 finalReticlePos = new Vector3(mouseWorld2D.x, mouseWorld2D.y, -5f);
 
-            if (groundPlane.Raycast(ray, out enterDist))
+            // Рухаємо СТВОРЕНИЙ приціл
+            if (currentReticleInstance != null)
             {
-                worldPos = ray.GetPoint(enterDist);
+                currentReticleInstance.transform.position = finalReticlePos;
+                if (!currentReticleInstance.activeSelf) currentReticleInstance.SetActive(true);
             }
 
-            // Рухаємо приціл
-            if (aimingReticle) 
+            // ЛКМ - Постріл
+            if (Input.GetMouseButtonDown(0))
             {
-                SpriteRenderer sr = aimingReticle.GetComponent<SpriteRenderer>();
-                if(sr) sr.sortingOrder = 2000; 
-
-                aimingReticle.transform.position = new Vector3(worldPos.x, worldPos.y, -2f);
-                if (!aimingReticle.activeSelf) aimingReticle.SetActive(true);
-            }
-
-            // ЛКМ - Стріляємо
-            if (Mouse.current.leftButton.wasPressedThisFrame)
-            {
-                if (!UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject())
+                if (EventSystem.current != null && !EventSystem.current.IsPointerOverGameObject())
                 {
-                    StartCoroutine(CastArrowRain(worldPos));
-                    StopAiming(); // Стрільнули - вимикаємо приціл
+                    StartCoroutine(CastArrowRain(finalReticlePos));
+                    StopAiming();
                 }
             }
-            // ПКМ - Скасування
-            else if (Mouse.current.rightButton.wasPressedThisFrame)
+            // ПКМ - Відміна
+            else if (Input.GetMouseButtonDown(1))
             {
                 StopAiming();
             }
         }
     }
 
-    // === ЛОГІКА КНОПКИ (УВІМКНУТИ / ВИМКНУТИ) ===
     public void OnSkillButtonClick()
     {
         if (!isUnlocked || isCooldown) return;
 
-        // ЯКЩО МИ ВЖЕ ЦІЛИМОСЬ -> СКАСУВАТИ
-        if (isAiming)
-        {
-            StopAiming();
-        }
-        // ЯКЩО НЕ ЦІЛИМОСЬ -> ПОЧАТИ
-        else
-        {
-            StartAiming();
-        }
+        if (isAiming) StopAiming();
+        else StartAiming();
     }
 
     void StartAiming()
     {
         isAiming = true;
-        if (aimingReticle) aimingReticle.SetActive(true);
         
-        // Змінюємо колір кнопки на темніший
+        if (currentReticleInstance != null)
+        {
+            currentReticleInstance.SetActive(true);
+        }
+        
         if (skillButton) skillButton.image.color = selectedColor;
     }
 
     void StopAiming()
     {
         isAiming = false;
-        if (aimingReticle) aimingReticle.SetActive(false);
-
-        // Повертаємо колір кнопки назад
-        if (skillButton) skillButton.image.color = normalColor;
+        
+        if (currentReticleInstance != null) 
+        {
+            currentReticleInstance.SetActive(false);
+        }
+        
+        if (skillButton && !isCooldown) skillButton.image.color = normalColor;
     }
 
-    // ... (CheckUnlock без змін) ...
     void CheckUnlock()
     {
         if (GameManager.Instance != null)
@@ -147,6 +150,7 @@ public class SkillManager : MonoBehaviour
                 }
             }
         }
+        else { isUnlocked = true; } // Для тестів
     }
 
     IEnumerator CastArrowRain(Vector3 targetPos)
@@ -176,9 +180,7 @@ public class SkillManager : MonoBehaviour
     IEnumerator CooldownRoutine()
     {
         isCooldown = true;
-        skillButton.interactable = false;
-        
-        // Повертаємо колір на білий, бо почався кулдаун
+        if (skillButton) skillButton.interactable = false;
         if (skillButton) skillButton.image.color = normalColor; 
 
         float timer = cooldownTime;
@@ -190,6 +192,7 @@ public class SkillManager : MonoBehaviour
         }
         isCooldown = false;
         if (cooldownOverlay) cooldownOverlay.fillAmount = 0;
-        skillButton.interactable = true;
+        
+        if (isUnlocked && skillButton) skillButton.interactable = true;
     }
 }
