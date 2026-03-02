@@ -9,6 +9,7 @@ public class CastleUpgradeUI : MonoBehaviour
     public Button upgradeButton;   // Сама кнопка
     public TextMeshProUGUI costText; // Текст ціни на кнопці (або під нею)
     public TextMeshProUGUI levelText; // Текст "Level 1" (опціонально)
+    public TextMeshProUGUI statsText; // Текст HP: current → next
 
     void Start()
     {
@@ -68,5 +69,12 @@ public class CastleUpgradeUI : MonoBehaviour
 
         if (levelText != null)
             levelText.text = $"Castle Lvl {castle.castleLevel}";
+
+        if (statsText != null)
+        {
+            int currentHp = castle.maxHealth;
+            int nextHp    = castle.maxHealth + castle.hpBonusPerUpgrade;
+            statsText.text = $"HP: {currentHp} → {nextHp}";
+        }
     }
 }
