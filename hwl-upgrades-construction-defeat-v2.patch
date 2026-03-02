@@ -1,0 +1,230 @@
+diff --git a/Assets/scripts/CastleUpgradeUI.cs b/Assets/scripts/CastleUpgradeUI.cs
+index 7493ab7..623e8f3 100644
+--- a/Assets/scripts/CastleUpgradeUI.cs
++++ b/Assets/scripts/CastleUpgradeUI.cs
+@@ -9,6 +9,7 @@ public class CastleUpgradeUI : MonoBehaviour
+     public Button upgradeButton;   // Сама кнопка
+     public TextMeshProUGUI costText; // Текст ціни на кнопці (або під нею)
+     public TextMeshProUGUI levelText; // Текст "Level 1" (опціонально)
++    public TextMeshProUGUI statsText; // Текст HP: current → next
+ 
+     void Start()
+     {
+@@ -68,5 +69,12 @@ public class CastleUpgradeUI : MonoBehaviour
+ 
+         if (levelText != null)
+             levelText.text = $"Castle Lvl {castle.castleLevel}";
++
++        if (statsText != null)
++        {
++            int currentHp = castle.maxHealth;
++            int nextHp    = castle.maxHealth + castle.hpBonusPerUpgrade;
++            statsText.text = $"HP: {currentHp} → {nextHp}";
++        }
+     }
+ }
+\ No newline at end of file
+diff --git a/Assets/scripts/GameManager.cs b/Assets/scripts/GameManager.cs
+index 933f979..491c874 100644
+--- a/Assets/scripts/GameManager.cs
++++ b/Assets/scripts/GameManager.cs
+@@ -136,6 +136,9 @@ public class GameManager : MonoBehaviour
+     public GameObject shopPanel;
+     public GameObject infoPanel; // ДОДАНО: Панель довідника
+ 
++    [Header("UI: Defeat Overlay")]
++    public TMPro.TMP_Text defeatText; // Текст "Avanpost control was lost" у центрі екрана
++
+     [Header("UI: Панелі (fallback поля)")]
+     public GameObject constructionPanelNew;
+     public GameObject barracksPanelNew;
+@@ -160,6 +163,11 @@ public class GameManager : MonoBehaviour
+     public Button towerButton;
+     public Button castleUpgradeButton;
+ 
++    // Пояснювальні тексти для Construction
++    public TMP_Text barracksInfoText;  // Units cap: current → next
++    public TMP_Text mineInfoText;      // Gold income: current → next
++    public TMP_Text castleInfoText;    // HP: current → next
++
+     // Нові групи для інтерфейсу вартості
+     public UICostGroup barracksCostUI;
+     public UICostGroup mineCostUI;
+@@ -170,6 +178,7 @@ public class GameManager : MonoBehaviour
+     [Header("UI: Панель Казарм (Barracks)")]
+     public Button upgradeLimitButton;
+     public UICostGroup upgradeLimitCostUI;
++    public TMP_Text upgradeLimitInfoText; // "Units cap: X → Y" або підказка при MAX
+     public Button unlockSpearmanButton;
+     public UICostGroup unlockSpearmanCostUI;
+ 
+@@ -1169,10 +1178,18 @@ public class GameManager : MonoBehaviour
+ 
+     public int GetDifficultyHealth() { return Mathf.RoundToInt(baseEnemyHealth * Mathf.Pow(enemyHpGrowth, currentWave - 1)); }
+     public int GetGoldReward() { return Mathf.RoundToInt(baseGoldReward * Mathf.Pow(goldRewardGrowth, currentWave)); }
+-    public int GetKnightDamage() { return Mathf.RoundToInt((10 + ((knightLevel - 1) * 5)) * globalDamageMultiplier); }
+-    public int GetArcherDamage() { return Mathf.RoundToInt((8 + ((archerLevel - 1) * 3)) * globalDamageMultiplier); }
+-    public int GetSpearmanDamage() { return Mathf.RoundToInt((12 + ((spearmanLevel - 1) * 6)) * globalDamageMultiplier); }
+-    public int GetTowerDamage() { return Mathf.RoundToInt((25 + ((towerLevel - 1) * 8)) * globalDamageMultiplier); }
++
++    // Поточні значення
++    public int GetKnightDamage()   { return GetKnightDamageAtLevel(knightLevel); }
++    public int GetArcherDamage()   { return GetArcherDamageAtLevel(archerLevel); }
++    public int GetSpearmanDamage() { return GetSpearmanDamageAtLevel(spearmanLevel); }
++    public int GetTowerDamage()    { return GetTowerDamageAtLevel(towerLevel); }
++
++    // Значення для будь-якого рівня (для "current → next" у UI)
++    public int GetKnightDamageAtLevel(int level)   { return Mathf.RoundToInt((10 + ((level   - 1) * 5)) * globalDamageMultiplier); }
++    public int GetArcherDamageAtLevel(int level)   { return Mathf.RoundToInt((8  + ((level   - 1) * 3)) * globalDamageMultiplier); }
++    public int GetSpearmanDamageAtLevel(int level) { return Mathf.RoundToInt((12 + ((level   - 1) * 6)) * globalDamageMultiplier); }
++    public int GetTowerDamageAtLevel(int level)    { return Mathf.RoundToInt((25 + ((level   - 1) * 8)) * globalDamageMultiplier); }
+     
+     public int GetBarracksCapLimit() 
+     { 
+@@ -1195,6 +1212,41 @@ public class GameManager : MonoBehaviour
+         return Mathf.RoundToInt(baseCost * multiplier); 
+     }
+ 
++    private void UpdateConstructionInfoUI()
++    {
++        // Barracks: Units cap current → max залежно від рівня казарми
++        if (barracksInfoText != null)
++        {
++            if (barracksLevel <= 0)
++            {
++                barracksInfoText.text = "+Unlock units / +cap";
++            }
++            else
++            {
++                int minCap = barracksBaseCap;
++                int maxCap = GetBarracksCapLimit();
++                barracksInfoText.text = $"Units cap: {minCap} → {maxCap}";
++            }
++        }
++
++        // Mine: простий опис рівня
++        if (mineInfoText != null)
++        {
++            if (!isMineBuilt || mineLevel <= 0)
++                mineInfoText.text = "+Gold income";
++            else
++                mineInfoText.text = $"Gold income: Lvl {mineLevel}";
++        }
++
++        // Castle: HP current → next
++        if (castleInfoText != null && castle != null)
++        {
++            int currentHp = castle.maxHealth;
++            int nextHp = currentHp + castle.hpBonusPerUpgrade;
++            castleInfoText.text = $"HP: {currentHp} → {nextHp}";
++        }
++    }
++
+     public void RegisterEnemy() 
+     { 
+         enemiesAlive++; 
+@@ -1419,10 +1471,25 @@ public class GameManager : MonoBehaviour
+         if (maxUnits >= currentCap) 
+         { 
+             UpdateCostUIGroup(upgradeLimitCostUI, ResourceType.Gold, 0, ResourceType.Wood, 0, "MAX"); 
++
++            // Пояснення при MAX
++            if (upgradeLimitInfoText != null)
++            {
++                upgradeLimitInfoText.text =
++                    $"Units cap: {maxUnits} (MAX)\n" +
++                    "Upgrade Barracks to unlock more unit slots";
++            }
+         } 
+         else 
+         { 
+             UpdateCostUIGroup(upgradeLimitCostUI, ResourceType.Gold, GetSlotUpgradeCost()); 
++
++            // Поточний → наступний ліміт
++            if (upgradeLimitInfoText != null)
++            {
++                int nextLimit = maxUnits + 1;
++                upgradeLimitInfoText.text = $"Units cap: {maxUnits} → {nextLimit}";
++            }
+         } 
+         
+         if (isSpearmanUnlocked) 
+@@ -1746,11 +1813,25 @@ public class GameManager : MonoBehaviour
+         
+         if(defeatPanel) defeatPanel.SetActive(true); 
+         
++        // Текст поразки
++        if (defeatText != null)
++            defeatText.text = "Avanpost control was lost";
++        
+         ClearProjectiles(); 
+         SaveGame(); 
+         
+         if (SoundManager.Instance != null) 
+             SoundManager.Instance.PlaySFX(SoundManager.Instance.defeat); 
++
++        // Авто-ретрай через 5 секунд реального часу
++        StartCoroutine(DefeatAutoRetry());
++    }
++
++    private IEnumerator DefeatAutoRetry()
++    {
++        // Чекаємо 5 секунд у незалежному від Time.timeScale просторі
++        yield return new WaitForSecondsRealtime(5f);
++        OnRetryButton();
+     }
+ 
+     public void OnRetryButton()
+@@ -2061,7 +2142,9 @@ public class GameManager : MonoBehaviour
+         
+         if (towerLevelText) 
+         {
+-            towerLevelText.text = $"Tower Lvl {towerLevel}\nDMG: {GetTowerDamage()}\n{towerWoodCost} W / {towerStoneCost} S";
++            int currentTowerDmg = GetTowerDamageAtLevel(towerLevel);
++            int nextTowerDmg    = GetTowerDamageAtLevel(towerLevel + 1);
++            towerLevelText.text = $"Tower Lvl {towerLevel}\nDMG: {currentTowerDmg} → {nextTowerDmg}\n{towerWoodCost} W / {towerStoneCost} S";
+         }
+         
+         if (castleUpgradeCostUI != null && castle != null) 
+@@ -2069,23 +2152,38 @@ public class GameManager : MonoBehaviour
+             UpdateCostUIGroup(castleUpgradeCostUI, ResourceType.Gold, castle.GetUpgradeCost());
+         }
+ 
++        // Оновлюємо пояснення в Construction панелі
++        UpdateConstructionInfoUI();
++
+         if (knightLevelText)
++        {
++            int currentDmg = GetKnightDamageAtLevel(knightLevel);
++            int nextDmg    = GetKnightDamageAtLevel(knightLevel + 1);
+             knightLevelText.text =
+-                $"Knights Lvl {knightLevel}\nDMG: {GetKnightDamage()}\n" +
++                $"Knights Lvl {knightLevel}\nDMG: {currentDmg} → {nextDmg}\n" +
+                 "<size=70%><color=#66FF66>Counters Archers</color>\n" +
+                 "<color=#FF6666>Vulnerable to Spearmen</color></size>";
++        }
+ 
+         if (archerLevelText)
++        {
++            int currentDmg = GetArcherDamageAtLevel(archerLevel);
++            int nextDmg    = GetArcherDamageAtLevel(archerLevel + 1);
+             archerLevelText.text =
+-                $"Archers Lvl {archerLevel}\nDMG: {GetArcherDamage()}\n" +
++                $"Archers Lvl {archerLevel}\nDMG: {currentDmg} → {nextDmg}\n" +
+                 "<size=70%><color=#66FF66>Counters Spearmen</color>\n" +
+                 "<color=#FF6666>Vulnerable to Knights & Cavalry</color></size>";
++        }
+ 
+         if (spearmanLevelText)
++        {
++            int currentDmg = GetSpearmanDamageAtLevel(spearmanLevel);
++            int nextDmg    = GetSpearmanDamageAtLevel(spearmanLevel + 1);
+             spearmanLevelText.text =
+-                $"Spearmen Lvl {spearmanLevel}\nDMG: {GetSpearmanDamage()}\n" +
++                $"Spearmen Lvl {spearmanLevel}\nDMG: {currentDmg} → {nextDmg}\n" +
+                 "<size=70%><color=#66FF66>Counters Cavalry (x2 DMG)</color>\n" +
+                 "<color=#FF6666>Vulnerable to Archers</color></size>";
++        }
+ 
+         UpdateCostUIGroup(knightUpgradeCostUI, ResourceType.Gold, knightUpgradeCost);
+         UpdateCostUIGroup(archerUpgradeCostUI, ResourceType.Gold, archerUpgradeCost);
