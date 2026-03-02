@@ -1,0 +1,121 @@
+diff --git a/Assets/scripts/Boss.cs b/Assets/scripts/Boss.cs
+index e9c3a25..0dd17f4 100644
+--- a/Assets/scripts/Boss.cs
++++ b/Assets/scripts/Boss.cs
+@@ -43,6 +43,15 @@ public class Boss : MonoBehaviour
+ 
+     void Update()
+     {
++        // Якщо замок уже впав – бос теж йде вліво за екран
++        if (GameManager.Instance != null && GameManager.Instance.isDefeated)
++        {
++            Vector3 dest = transform.position + Vector3.left * 5f;
++            FaceTarget(dest);
++            MoveTowards(dest);
++            return;
++        }
++
+         FindTarget();
+ 
+         if (target != null)
+diff --git a/Assets/scripts/EnemyArcher.cs b/Assets/scripts/EnemyArcher.cs
+index f3f8cd1..d6aa15f 100644
+--- a/Assets/scripts/EnemyArcher.cs
++++ b/Assets/scripts/EnemyArcher.cs
+@@ -75,6 +75,15 @@ public class EnemyArcher : MonoBehaviour
+     {
+         if (isDead) return;
+ 
++        // Якщо замок уже впав – просто біжимо вліво за екран і не стріляємо
++        if (GameManager.Instance != null && GameManager.Instance.isDefeated)
++        {
++            target = null;
++            if (animator) animator.SetBool("IsRunning", true);
++            if (rb != null) rb.linearVelocity = new Vector2(-speed, 0f);
++            return;
++        }
++
+         if (target != null && (target.CompareTag("Untagged") || !target.gameObject.activeInHierarchy)) 
+             target = null;
+ 
+diff --git a/Assets/scripts/EnemyHorse.cs b/Assets/scripts/EnemyHorse.cs
+index 6a3b41e..fc1c99f 100644
+--- a/Assets/scripts/EnemyHorse.cs
++++ b/Assets/scripts/EnemyHorse.cs
+@@ -68,6 +68,15 @@ public class EnemyHorse : MonoBehaviour
+     {
+         if (isDead) return;
+ 
++        // Якщо замок уже впав – просто біжимо вліво за екран
++        if (GameManager.Instance != null && GameManager.Instance.isDefeated)
++        {
++            target = null;
++            if (animator) animator.SetBool("IsRunning", true);
++            rb.linearVelocity = new Vector2(-speed, 0f);
++            return;
++        }
++
+         if (target != null && (target.CompareTag("Untagged") || !target.gameObject.activeInHierarchy)) 
+         {
+             target = null;
+diff --git a/Assets/scripts/EnemySpearman.cs b/Assets/scripts/EnemySpearman.cs
+index 7d126dc..de37f3a 100644
+--- a/Assets/scripts/EnemySpearman.cs
++++ b/Assets/scripts/EnemySpearman.cs
+@@ -67,6 +67,15 @@ public class EnemySpearman : MonoBehaviour
+     {
+         if (isDead) return;
+ 
++        // Якщо замок уже впав – просто біжимо вліво за екран
++        if (GameManager.Instance != null && GameManager.Instance.isDefeated)
++        {
++            target = null;
++            if (animator) animator.SetBool("IsRunning", true);
++            rb.linearVelocity = new Vector2(-speed, 0f);
++            return;
++        }
++
+         if (target != null && (!target.gameObject.activeInHierarchy || target.CompareTag("Untagged")))
+         {
+             target = null;
+diff --git a/Assets/scripts/GameManager.cs b/Assets/scripts/GameManager.cs
+index 320e4c6..de32a77 100644
+--- a/Assets/scripts/GameManager.cs
++++ b/Assets/scripts/GameManager.cs
+@@ -258,6 +258,8 @@ public class GameManager : MonoBehaviour
+     public TMP_Text defeatResourcesText;
+ 
+     [Header("Зв'язки")]
++    [HideInInspector] public bool isDefeated = false;
++
+     public Castle castle;
+     public Transform towerTransform;
+     public EnemySpawner spawner;
+@@ -1867,6 +1869,7 @@ public class GameManager : MonoBehaviour
+     public void OnRetryButton()
+     {
+         Time.timeScale = 1;
++        isDefeated = false;
+         if(defeatPanel) defeatPanel.SetActive(false);
+ 
+         // --- ДОДАНО: Мінімум 300 золота при рестарті ---
+diff --git a/Assets/scripts/Guard.cs b/Assets/scripts/Guard.cs
+index 2304b16..74d2e42 100644
+--- a/Assets/scripts/Guard.cs
++++ b/Assets/scripts/Guard.cs
+@@ -76,6 +76,15 @@ public class Guard : MonoBehaviour
+     {
+         if (isDead) return;
+ 
++        // Якщо замок уже впав – просто біжимо вліво за екран
++        if (GameManager.Instance != null && GameManager.Instance.isDefeated)
++        {
++            target = null;
++            if (animator) animator.SetBool("IsRunning", true);
++            if (rb != null) rb.linearVelocity = new Vector2(-speed, 0f);
++            return;
++        }
++
+         retargetTimer -= Time.deltaTime;
+         if (retargetTimer <= 0f)
+         {

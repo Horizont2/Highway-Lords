@@ -258,6 +258,8 @@ public class GameManager : MonoBehaviour
     public TMP_Text defeatResourcesText;
 
     [Header("Зв'язки")]
+    [HideInInspector] public bool isDefeated = false;
+
     public Castle castle;
     public Transform towerTransform;
     public EnemySpawner spawner;
@@ -1867,6 +1869,7 @@ public class GameManager : MonoBehaviour
     public void OnRetryButton()
     {
         Time.timeScale = 1;
+        isDefeated = false;
         if(defeatPanel) defeatPanel.SetActive(false);
 
         // --- ДОДАНО: Мінімум 300 золота при рестарті ---

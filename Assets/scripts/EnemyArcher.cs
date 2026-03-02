@@ -75,6 +75,15 @@ public class EnemyArcher : MonoBehaviour
     {
         if (isDead) return;
 
+        // Якщо замок уже впав – просто біжимо вліво за екран і не стріляємо
+        if (GameManager.Instance != null && GameManager.Instance.isDefeated)
+        {
+            target = null;
+            if (animator) animator.SetBool("IsRunning", true);
+            if (rb != null) rb.linearVelocity = new Vector2(-speed, 0f);
+            return;
+        }
+
         if (target != null && (target.CompareTag("Untagged") || !target.gameObject.activeInHierarchy)) 
             target = null;
 

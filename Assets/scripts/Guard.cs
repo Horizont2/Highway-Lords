@@ -76,6 +76,15 @@ public class Guard : MonoBehaviour
     {
         if (isDead) return;
 
+        // Якщо замок уже впав – просто біжимо вліво за екран
+        if (GameManager.Instance != null && GameManager.Instance.isDefeated)
+        {
+            target = null;
+            if (animator) animator.SetBool("IsRunning", true);
+            if (rb != null) rb.linearVelocity = new Vector2(-speed, 0f);
+            return;
+        }
+
         retargetTimer -= Time.deltaTime;
         if (retargetTimer <= 0f)
         {

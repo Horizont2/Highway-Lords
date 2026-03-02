@@ -67,6 +67,15 @@ public class EnemySpearman : MonoBehaviour
     {
         if (isDead) return;
 
+        // Якщо замок уже впав – просто біжимо вліво за екран
+        if (GameManager.Instance != null && GameManager.Instance.isDefeated)
+        {
+            target = null;
+            if (animator) animator.SetBool("IsRunning", true);
+            rb.linearVelocity = new Vector2(-speed, 0f);
+            return;
+        }
+
         if (target != null && (!target.gameObject.activeInHierarchy || target.CompareTag("Untagged")))
         {
             target = null;

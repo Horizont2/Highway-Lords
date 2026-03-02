@@ -43,6 +43,15 @@ public class Boss : MonoBehaviour
 
     void Update()
     {
+        // Якщо замок уже впав – бос теж йде вліво за екран
+        if (GameManager.Instance != null && GameManager.Instance.isDefeated)
+        {
+            Vector3 dest = transform.position + Vector3.left * 5f;
+            FaceTarget(dest);
+            MoveTowards(dest);
+            return;
+        }
+
         FindTarget();
 
         if (target != null)
