@@ -478,7 +478,6 @@ public class GameManager : MonoBehaviour
         if (upgradeArcherButton == null) upgradeArcherButton = FindButtonInRow(shop, "Spikes_Row", "Archers_Row");
         if (upgradeSpearmanButton == null) upgradeSpearmanButton = FindButtonInRow(shop, "Mine_Row", "Spearmen_Row");
         
-        // Знаходимо кнопку для Wall Archers (шукає рядок з таким іменем)
         if (upgradeWallArcherButton == null) upgradeWallArcherButton = FindButtonInRow(shop, "WallArcher_Row", "WallArchers_Row");
 
         if (closeConstructionBtn == null) closeConstructionBtn = FindUIButtonInPanel(construction, "CloseButton");
@@ -658,7 +657,6 @@ public class GameManager : MonoBehaviour
         if (upgradeArcherButton != null) { upgradeArcherButton.onClick.RemoveAllListeners(); upgradeArcherButton.onClick.AddListener(UpgradeArchers); }
         if (upgradeSpearmanButton != null) { upgradeSpearmanButton.onClick.RemoveAllListeners(); upgradeSpearmanButton.onClick.AddListener(UpgradeSpearman); }
         
-        // ДОДАНО: Кнопка лучників на стіні
         if (upgradeWallArcherButton != null) { upgradeWallArcherButton.onClick.RemoveAllListeners(); upgradeWallArcherButton.onClick.AddListener(UpgradeWallArchers); }
 
         if (upgradeLimitButton != null) { upgradeLimitButton.onClick.RemoveAllListeners(); upgradeLimitButton.onClick.AddListener(BuyUnitLimitUpgrade); }
@@ -2221,7 +2219,7 @@ public class GameManager : MonoBehaviour
         {
             int currentTowerDmg = GetTowerDamageAtLevel(towerLevel);
             int nextTowerDmg    = GetTowerDamageAtLevel(towerLevel + 1);
-            towerLevelText.text = $"Tower Lvl {towerLevel}\nDMG: {currentTowerDmg} → {nextTowerDmg}\n{towerWoodCost} W / {towerStoneCost} S";
+            towerLevelText.text = $"Tower Lvl {towerLevel}\nDMG: {currentTowerDmg} → <color=#66FF66>{nextTowerDmg}</color>\n{towerWoodCost} W / {towerStoneCost} S";
         }
         
         if (crossbowDamageText != null)
@@ -2266,7 +2264,7 @@ public class GameManager : MonoBehaviour
             int currentDmg = GetKnightDamageAtLevel(knightLevel);
             int nextDmg    = GetKnightDamageAtLevel(knightLevel + 1);
             knightLevelText.text =
-                $"Knights Lvl {knightLevel}\nDMG: {currentDmg} → {nextDmg}\n" +
+                $"Knights Lvl {knightLevel}\nDMG: {currentDmg} → <color=#66FF66>{nextDmg}</color>\n" +
                 "<size=70%><color=#66FF66>Counters Archers</color>\n" +
                 "<color=#FF6666>Vulnerable to Spearmen</color></size>";
         }
@@ -2276,7 +2274,7 @@ public class GameManager : MonoBehaviour
             int currentDmg = GetArcherDamageAtLevel(archerLevel);
             int nextDmg    = GetArcherDamageAtLevel(archerLevel + 1);
             archerLevelText.text =
-                $"Archers Lvl {archerLevel}\nDMG: {currentDmg} → {nextDmg}\n" +
+                $"Archers Lvl {archerLevel}\nDMG: {currentDmg} → <color=#66FF66>{nextDmg}</color>\n" +
                 "<size=70%><color=#66FF66>Counters Spearmen</color>\n" +
                 "<color=#FF6666>Vulnerable to Knights & Cavalry</color></size>";
         }
@@ -2286,7 +2284,7 @@ public class GameManager : MonoBehaviour
             int currentDmg = GetSpearmanDamageAtLevel(spearmanLevel);
             int nextDmg    = GetSpearmanDamageAtLevel(spearmanLevel + 1);
             spearmanLevelText.text =
-                $"Spearmen Lvl {spearmanLevel}\nDMG: {currentDmg} → {nextDmg}\n" +
+                $"Spearmen Lvl {spearmanLevel}\nDMG: {currentDmg} → <color=#66FF66>{nextDmg}</color>\n" +
                 "<size=70%><color=#66FF66>Counters Cavalry (x2 DMG)</color>\n" +
                 "<color=#FF6666>Vulnerable to Archers</color></size>";
         }
