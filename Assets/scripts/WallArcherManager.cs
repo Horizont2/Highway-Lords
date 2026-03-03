@@ -5,85 +5,76 @@ public class WallArcherManager : MonoBehaviour
 {
     [Header("Налаштування Лучників")]
     public GameObject wallArcherPrefab; // Префаб лучника для стіни
-    public Transform[] archerSlots;     // ТЕПЕР ТУТ МАЄ БУТИ 5 ПУСТИХ ОБ'ЄКТІВ
-
-    [Header("Економіка (Лучники)")]
-    public int currentLevel = 1;
-    public int baseUpgradeCost = 100;
-    public float costMultiplier = 1.3f;
+    public Transform[] archerSlots;     // 5 ПУСТИХ ОБ'ЄКТІВ НА СТІНІ
 
     [Header("Поточний стан")]
     public int activeSlotsCount = 2; // Базово 2 лучники на старті
     private List<GameObject> spawnedArchers = new List<GameObject>();
+    private int lastKnownLevel = -1;
 
-    void Start()
+    void Update()
     {
-        // Завантаження рівня з PlayerPrefs
-        currentLevel = PlayerPrefs.GetInt("WallArcherLevel", 1);
-        CalculateActiveSlots();
-        SpawnArchers();
-    }
-
-    public int GetUpgradeCost()
-    {
-        return Mathf.RoundToInt(baseUpgradeCost * Mathf.Pow(costMultiplier, currentLevel - 1));
-    }
-
-    public void UpgradeWallArchers()
-    {
-        currentLevel++;
-        PlayerPrefs.SetInt("WallArcherLevel", currentLevel);
-        
-        CalculateActiveSlots();
-        SpawnArchers(); // Оновлюємо кількість і силу
-        
-        // Тут можна додати звук або ефект апгрейду
+        // Перевіряємо, чи змінився рівень у GameManager
+        if (GameManager.Instance != null && lastKnownLevel != GameManager.Instance.wallArcherLevel)
+        {
+            lastKnownLevel = GameManager.Instance.wallArcherLevel;
+            CheckAndSpawnArchers();
+            
+            // Про всяк випадок кажемо всім живим лучникам оновити свій урон та аніматор
+            foreach (var archer in spawnedArchers)
+            {
+                if (archer != null)
+                {
+                    WallArcher logic = archer.GetComponent<WallArcher>();
+                    if (logic != null) logic.UpdateStats();
+                }
+            }
+        }
     }
 
     void CalculateActiveSlots()
     {
-        // Базово 2 слоти. 
-        // 3-й слот відкривається на 5 рівні, 4-й на 10-му, 5-й на 15-му.
-        if (currentLevel >= 5)
+        // Базово 2 слоти. 3-й відкривається на 5 рівні, 4-й на 10-му, 5-й на 15-му.
+        if (lastKnownLevel >= 5)
         {
-            // Формула: 2 базових + 1 за кожні повні 5 рівнів
-            activeSlotsCount = 2 + (currentLevel / 5);
+            activeSlotsCount = 2 + (lastKnownLevel / 5);
         }
         else
         {
             activeSlotsCount = 2;
         }
 
-        // Жорстко обмежуємо максимум до 5 (або до розміру масиву, якщо ви додали менше точок)
+        // Обмежуємо максимум кількістю точок спавну
         int maxAllowed = Mathf.Min(5, archerSlots.Length);
         activeSlotsCount = Mathf.Clamp(activeSlotsCount, 2, maxAllowed);
     }
 
-    public void SpawnArchers()
+    public void CheckAndSpawnArchers()
     {
-        // Видаляємо старих
-        foreach (var archer in spawnedArchers)
-        {
-            if (archer != null) Destroy(archer);
-        }
-        spawnedArchers.Clear();
+        CalculateActiveSlots();
 
-        // Спавнимо нових відповідно до кількості активних слотів
-        for (int i = 0; i < activeSlotsCount; i++)
+        // Спавнимо ТІЛЬКИ тих лучників, яких не вистачає
+        while (spawnedArchers.Count < activeSlotsCount)
         {
+            int i = spawnedArchers.Count; // Беремо наступний вільний слот
+            
             if (i < archerSlots.Length && archerSlots[i] != null)
             {
                 GameObject newArcher = Instantiate(wallArcherPrefab, archerSlots[i].position, Quaternion.identity);
-                newArcher.transform.SetParent(archerSlots[i]); // Робимо дочірнім
+                newArcher.transform.SetParent(archerSlots[i]); 
                 
-                // Передаємо їм поточний рівень (для розрахунку урону)
+                // Кажемо лучнику взяти свої стати з GameManager
                 WallArcher logic = newArcher.GetComponent<WallArcher>();
                 if (logic != null)
                 {
-                    logic.Initialize(currentLevel);
+                    logic.UpdateStats();
                 }
                 
                 spawnedArchers.Add(newArcher);
+            }
+            else
+            {
+                break; // Якщо слоти закінчилися
             }
         }
     }
