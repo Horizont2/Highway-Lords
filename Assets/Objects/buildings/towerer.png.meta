@@ -43,7 +43,7 @@ TextureImporter:
   maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
-    filterMode: 1
+    filterMode: 0
     aniso: 1
     mipBias: 0
     wrapU: 1
@@ -81,7 +81,7 @@ TextureImporter:
     maxTextureSize: 2048
     resizeAlgorithm: 0
     textureFormat: -1
-    textureCompression: 1
+    textureCompression: 0
     compressionQuality: 50
     crunchedCompression: 0
     allowsAlphaSplitting: 0
@@ -132,9 +132,9 @@ TextureImporter:
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: 2f5996364166e84d0800000000000000
+      spriteID: 8803e2647c7bbc44d9c934ca936a4577
       internalID: -3130452453222672910
       vertices: []
       indices: 
@@ -154,9 +154,9 @@ TextureImporter:
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: ba63737e8ef54ecd0800000000000000
+      spriteID: f3b1082e72fe43f40804e9f277be8336
       internalID: -2529791636759169365
       vertices: []
       indices: 
@@ -166,9 +166,9 @@ TextureImporter:
       name: towerer_2
       rect:
         serializedVersion: 2
-        x: 157
+        x: 156
         y: 22
-        width: 183
+        width: 184
         height: 202
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
@@ -176,9 +176,9 @@ TextureImporter:
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: e4a49fc72a7076500800000000000000
+      spriteID: 1224caeef4d6215478aef5a68aceb902
       internalID: 389288287253645902
       vertices: []
       indices: 

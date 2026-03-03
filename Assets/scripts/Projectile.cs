@@ -22,7 +22,6 @@ public class Projectile : MonoBehaviour
     }
 
     // === ВАРІАНТ 2: Прямий постріл (Для Лучників) ===
-    // Цей метод потрібен, щоб Archer.cs міг використовувати цей скрипт
     public void Initialize(Vector3 _targetPos, int _damage)
     {
         targetPosition = _targetPos;
@@ -121,7 +120,6 @@ public class Projectile : MonoBehaviour
             else if (hitObj.TryGetComponent<EnemySpearman>(out EnemySpearman es)) es.TakeDamage(damage);
             else if (hitObj.TryGetComponent<EnemyHorse>(out EnemyHorse eh)) eh.TakeDamage(damage);
             else if (hitObj.TryGetComponent<Boss>(out Boss b)) b.TakeDamage(damage);
-            // Віз прибрано звідси
         }
         
         Destroy(gameObject);

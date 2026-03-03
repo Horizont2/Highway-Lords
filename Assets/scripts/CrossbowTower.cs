@@ -2,9 +2,10 @@ using UnityEngine;
 
 public class CrossbowTower : MonoBehaviour
 {
-    [Header("Параметри стрільби")]
+    [Header("Параметри стрільби (Базові)")]
     public float range = 10f;
-    public float fireRate = 1f;
+    [Tooltip("Використовується тільки якщо GameManager відсутній")]
+    public float fallbackReloadTime = 2.5f; 
     private float fireCountdown = 0f;
 
     [Header("Налаштування Unity")]
@@ -50,7 +51,16 @@ public class CrossbowTower : MonoBehaviour
             if (fireCountdown <= 0f)
             {
                 Shoot(); 
-                fireCountdown = 1f / fireRate;
+                
+                // === НОВЕ: Беремо час перезарядки з GameManager ===
+                if (GameManager.Instance != null)
+                {
+                    fireCountdown = GameManager.Instance.GetCrossbowReloadTime();
+                }
+                else
+                {
+                    fireCountdown = fallbackReloadTime;
+                }
             }
             fireCountdown -= Time.deltaTime;
         }
@@ -69,8 +79,7 @@ public class CrossbowTower : MonoBehaviour
 
     void Shoot()
     {
-        // === ГОЛОВНИЙ ФІКС ===
-        // Перед самим пострілом робимо контрольну перевірку.
+        // Контрольна перевірка перед пострілом.
         // Якщо за час перезарядки ціль померла — скасовуємо постріл.
         if (!IsValidTarget(target))
         {
@@ -85,10 +94,11 @@ public class CrossbowTower : MonoBehaviour
 
             if (projectile != null)
             {
-                int damage = 30; 
+                int damage = 25; 
+                // === НОВЕ: Беремо урон для Арбалетної башні ===
                 if (GameManager.Instance != null)
                 {
-                    damage = GameManager.Instance.GetTowerDamage();
+                    damage = GameManager.Instance.GetCrossbowDamage();
                 }
 
                 projectile.Initialize(target, damage);

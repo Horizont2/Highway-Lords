@@ -1,13 +1,12 @@
 using UnityEngine;
-using System.Collections;
 
 public class CameraShake : MonoBehaviour
 {
     public static CameraShake Instance;
 
-    private Vector3 originalPos; // Щоб повернути камеру на місце
     private float shakeTimer;
     private float shakeAmount;
+    private Vector3 currentShakeOffset = Vector3.zero;
 
     void Awake()
     {
@@ -15,31 +14,28 @@ public class CameraShake : MonoBehaviour
         else Destroy(gameObject);
     }
 
-    void Start()
+    // Використовуємо LateUpdate, щоб трясти камеру ТІЛЬКИ ПІСЛЯ того, як CameraController її пересунув
+    void LateUpdate()
     {
-        // Запам'ятовуємо, де камера стояла на початку
-        originalPos = transform.localPosition;
-    }
+        // 1. Спочатку віднімаємо зсув від попереднього кадру, щоб повернути камеру на справжню позицію
+        transform.position -= currentShakeOffset;
+        currentShakeOffset = Vector3.zero;
 
-    void Update()
-    {
+        // 2. Якщо йде тряска - генеруємо новий зсув
         if (shakeTimer > 0)
         {
-            // Рухаємо камеру випадково в межах кола радіусом shakeAmount
-            transform.localPosition = originalPos + Random.insideUnitSphere * shakeAmount;
-            
-            // Зменшуємо час тряски
+            currentShakeOffset = Random.insideUnitSphere * shakeAmount;
+            currentShakeOffset.z = 0f; // Для 2D ігор вісь Z краще не трясти, щоб не глючила графіка!
+
+            // Додаємо зсув до позиції камери
+            transform.position += currentShakeOffset;
+
+            // Зменшуємо таймер
             shakeTimer -= Time.deltaTime;
-        }
-        else
-        {
-            // Повертаємо камеру точно на місце, коли час вийшов
-            shakeTimer = 0f;
-            transform.localPosition = originalPos;
         }
     }
 
-    // Цей метод ми будемо викликати з інших скриптів
+    // Цей метод ми викликаємо з інших скриптів
     public void Shake(float time, float amount)
     {
         shakeTimer = time;

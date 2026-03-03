@@ -179,10 +179,10 @@ TextureImporter:
       name: Cart_7
       rect:
         serializedVersion: 2
-        x: 152
+        x: 150
         y: 261
         width: 215
-        height: 160
+        height: 180
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -201,10 +201,10 @@ TextureImporter:
       name: Cart_8
       rect:
         serializedVersion: 2
-        x: 381
+        x: 377
         y: 261
-        width: 212
-        height: 161
+        width: 215
+        height: 180
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -223,13 +223,13 @@ TextureImporter:
       name: Cart_9
       rect:
         serializedVersion: 2
-        x: 594
+        x: 599
         y: 261
-        width: 222
-        height: 176
+        width: 215
+        height: 180
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 2, w: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
@@ -245,10 +245,10 @@ TextureImporter:
       name: Cart_10
       rect:
         serializedVersion: 2
-        x: 809
+        x: 823
         y: 261
-        width: 232
-        height: 164
+        width: 215
+        height: 180
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -269,8 +269,8 @@ TextureImporter:
         serializedVersion: 2
         x: 1051
         y: 261
-        width: 217
-        height: 166
+        width: 215
+        height: 180
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}

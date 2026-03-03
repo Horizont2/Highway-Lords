@@ -203,6 +203,20 @@ public class GameManager : MonoBehaviour
     public GameObject spearmanLockIcon;
     public bool dimSpearmanWhenLocked = true;
 
+    // ==========================================
+    // === НОВЕ: UI АРБАЛЕТНА БАШТА ===
+    // ==========================================
+    [Header("UI: Арбалетна Башта (Crossbow Tower)")]
+    public Button upgradeCrossbowDamageButton;
+    public Button upgradeCrossbowReloadButton;
+    
+    public TMP_Text crossbowDamageText;
+    public TMP_Text crossbowReloadText;
+
+    public UICostGroup crossbowDamageCostUI;
+    public UICostGroup crossbowReloadCostUI;
+    // ==========================================
+
     [Header("UI: Статистика")]
     public TMP_Text estimatedIncomeText;
 
@@ -329,6 +343,20 @@ public class GameManager : MonoBehaviour
     public int towerLevel = 1;
     public int towerWoodCost = 50;
     public int towerStoneCost = 20;
+
+    // ==========================================
+    // === НОВЕ: БАЛАНС АРБАЛЕТНОЇ БАШТІ ===
+    // ==========================================
+    [Header("Баланс: Арбалетна Башта (Crossbow Tower)")]
+    public int crossbowDamageLevel = 1;
+    public int crossbowReloadLevel = 1;
+    
+    public int crossbowBaseDamage = 25;
+    public float crossbowBaseReloadTime = 2.5f; // Початковий час між пострілами
+
+    public int crossbowDamageCostGold = 150;
+    public int crossbowReloadCostGold = 150;
+    // ==========================================
 
     [Header("Баланс: Хвилі")]
     public int currentWave = 1;
@@ -657,6 +685,11 @@ public class GameManager : MonoBehaviour
         if (upgradeSpearmanButton != null) { upgradeSpearmanButton.onClick.RemoveAllListeners(); upgradeSpearmanButton.onClick.AddListener(UpgradeSpearman); }
         if (upgradeLimitButton != null) { upgradeLimitButton.onClick.RemoveAllListeners(); upgradeLimitButton.onClick.AddListener(BuyUnitLimitUpgrade); }
         if (unlockSpearmanButton != null) { unlockSpearmanButton.onClick.RemoveAllListeners(); unlockSpearmanButton.onClick.AddListener(UnlockSpearman); }
+        
+        // НОВІ КНОПКИ: Арбалетна Башта
+        if (upgradeCrossbowDamageButton != null) { upgradeCrossbowDamageButton.onClick.RemoveAllListeners(); upgradeCrossbowDamageButton.onClick.AddListener(UpgradeCrossbowDamage); }
+        if (upgradeCrossbowReloadButton != null) { upgradeCrossbowReloadButton.onClick.RemoveAllListeners(); upgradeCrossbowReloadButton.onClick.AddListener(UpgradeCrossbowReload); }
+
         if (hireKnightButton != null) { hireKnightButton.onClick.RemoveAllListeners(); hireKnightButton.onClick.AddListener(HireKnight); }
         if (hireArcherButton != null) { hireArcherButton.onClick.RemoveAllListeners(); hireArcherButton.onClick.AddListener(HireArcher); }
         if (hireSpearmanButton != null) { hireSpearmanButton.onClick.RemoveAllListeners(); hireSpearmanButton.onClick.AddListener(HireSpearman); }
@@ -1188,12 +1221,20 @@ public class GameManager : MonoBehaviour
     public int GetArcherDamage()   { return GetArcherDamageAtLevel(archerLevel); }
     public int GetSpearmanDamage() { return GetSpearmanDamageAtLevel(spearmanLevel); }
     public int GetTowerDamage()    { return GetTowerDamageAtLevel(towerLevel); }
+    
+    // Нові значення для Арбалетної башні
+    public int GetCrossbowDamage() { return GetCrossbowDamageAtLevel(crossbowDamageLevel); }
+    public float GetCrossbowReloadTime() { return GetCrossbowReloadAtLevel(crossbowReloadLevel); }
 
     // Значення для будь-якого рівня (для "current → next" у UI)
     public int GetKnightDamageAtLevel(int level)   { return Mathf.RoundToInt((10 + ((level   - 1) * 5)) * globalDamageMultiplier); }
     public int GetArcherDamageAtLevel(int level)   { return Mathf.RoundToInt((8  + ((level   - 1) * 3)) * globalDamageMultiplier); }
     public int GetSpearmanDamageAtLevel(int level) { return Mathf.RoundToInt((12 + ((level   - 1) * 6)) * globalDamageMultiplier); }
     public int GetTowerDamageAtLevel(int level)    { return Mathf.RoundToInt((25 + ((level   - 1) * 8)) * globalDamageMultiplier); }
+
+    // Розрахунок характеристик арбалетної башні по рівнях
+    public int GetCrossbowDamageAtLevel(int level) { return Mathf.RoundToInt((crossbowBaseDamage + ((level - 1) * 12)) * globalDamageMultiplier); }
+    public float GetCrossbowReloadAtLevel(int level) { return Mathf.Max(0.5f, crossbowBaseReloadTime - ((level - 1) * 0.2f)); } // Кожен рівень прискорює на 0.2с
 
     public int GetBarracksCapLimit()
     {
@@ -1468,7 +1509,7 @@ public class GameManager : MonoBehaviour
         return 100 + (u * 50);
     }
 
-        void UpdateUpgradeMenuPrice()
+    void UpdateUpgradeMenuPrice()
     {
         int currentCap = GetBarracksCapLimit();
 
@@ -1599,6 +1640,49 @@ public class GameManager : MonoBehaviour
             gold -= spearmanUpgradeCost;
             spearmanLevel++;
             spearmanUpgradeCost = (int)(spearmanUpgradeCost * upgradeCostGrowth);
+
+            if (SoundManager.Instance != null && SoundManager.Instance.unitUpgradeSound != null)
+                SoundManager.Instance.PlaySFX(SoundManager.Instance.unitUpgradeSound);
+
+            SaveGame();
+            UpdateUI();
+        }
+        else
+        {
+            if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.error);
+        }
+    }
+
+    // ==========================================
+    // === МЕТОДИ ДЛЯ АРБАЛЕТНОЇ БАШТІ ===
+    // ==========================================
+    public void UpgradeCrossbowDamage()
+    {
+        if (gold >= crossbowDamageCostGold)
+        {
+            gold -= crossbowDamageCostGold;
+            crossbowDamageLevel++;
+            crossbowDamageCostGold = (int)(crossbowDamageCostGold * upgradeCostGrowth);
+
+            if (SoundManager.Instance != null && SoundManager.Instance.unitUpgradeSound != null)
+                SoundManager.Instance.PlaySFX(SoundManager.Instance.unitUpgradeSound);
+
+            SaveGame();
+            UpdateUI();
+        }
+        else
+        {
+            if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.error);
+        }
+    }
+
+    public void UpgradeCrossbowReload()
+    {
+        if (gold >= crossbowReloadCostGold)
+        {
+            gold -= crossbowReloadCostGold;
+            crossbowReloadLevel++;
+            crossbowReloadCostGold = (int)(crossbowReloadCostGold * upgradeCostGrowth);
 
             if (SoundManager.Instance != null && SoundManager.Instance.unitUpgradeSound != null)
                 SoundManager.Instance.PlaySFX(SoundManager.Instance.unitUpgradeSound);
@@ -1963,6 +2047,12 @@ public class GameManager : MonoBehaviour
         PlayerPrefs.SetInt("SavedTowerWoodCost", towerWoodCost);
         PlayerPrefs.SetInt("SavedTowerStoneCost", towerStoneCost);
 
+        // Збереження Арбалетної башти
+        PlayerPrefs.SetInt("SavedCrossbowDmgLevel", crossbowDamageLevel);
+        PlayerPrefs.SetInt("SavedCrossbowReloadLevel", crossbowReloadLevel);
+        PlayerPrefs.SetInt("SavedCrossbowDmgCost", crossbowDamageCostGold);
+        PlayerPrefs.SetInt("SavedCrossbowReloadCost", crossbowReloadCostGold);
+
         // Збереження Мета-Прогресії
         PlayerPrefs.SetInt("SavedGems", gems);
         PlayerPrefs.SetInt("SavedCurrentKills", currentKills);
@@ -2048,6 +2138,12 @@ public class GameManager : MonoBehaviour
         towerLevel = PlayerPrefs.GetInt("SavedTowerLevel", 1);
         towerWoodCost = PlayerPrefs.GetInt("SavedTowerWoodCost", 50);
         towerStoneCost = PlayerPrefs.GetInt("SavedTowerStoneCost", 20);
+
+        // Завантаження Арбалетної башти
+        crossbowDamageLevel = PlayerPrefs.GetInt("SavedCrossbowDmgLevel", 1);
+        crossbowReloadLevel = PlayerPrefs.GetInt("SavedCrossbowReloadLevel", 1);
+        crossbowDamageCostGold = PlayerPrefs.GetInt("SavedCrossbowDmgCost", 150);
+        crossbowReloadCostGold = PlayerPrefs.GetInt("SavedCrossbowReloadCost", 150);
 
         // Завантаження Мета-Прогресії
         gems = PlayerPrefs.GetInt("SavedGems", 0);
@@ -2135,6 +2231,12 @@ public class GameManager : MonoBehaviour
         enemiesAlive = 0;
         currentUnits = 0;
         isWaitingForNextWave = false;
+        
+        // Скидаємо прогрес арбалетної башні
+        crossbowDamageLevel = 1;
+        crossbowReloadLevel = 1;
+        crossbowDamageCostGold = 150;
+        crossbowReloadCostGold = 150;
 
         // Скидаємо мета-прогресію
         gems = 0;
@@ -2184,6 +2286,28 @@ public class GameManager : MonoBehaviour
             int nextTowerDmg    = GetTowerDamageAtLevel(towerLevel + 1);
             towerLevelText.text = $"Tower Lvl {towerLevel}\nDMG: {currentTowerDmg} → {nextTowerDmg}\n{towerWoodCost} W / {towerStoneCost} S";
         }
+        
+        // === ОНОВЛЕННЯ UI ДЛЯ АРБАЛЕТНОЇ БАШТІ ===
+        if (crossbowDamageText != null)
+        {
+            int curDmg = GetCrossbowDamageAtLevel(crossbowDamageLevel);
+            int nextDmg = GetCrossbowDamageAtLevel(crossbowDamageLevel + 1);
+            crossbowDamageText.text = $"Lvl {crossbowDamageLevel}\nDMG: {curDmg} → {nextDmg}";
+        }
+
+        if (crossbowReloadText != null)
+        {
+            float curRel = GetCrossbowReloadAtLevel(crossbowReloadLevel);
+            float nextRel = GetCrossbowReloadAtLevel(crossbowReloadLevel + 1);
+            crossbowReloadText.text = $"Lvl {crossbowReloadLevel}\nTime: {curRel:F1}s → {nextRel:F1}s";
+        }
+
+        UpdateCostUIGroup(crossbowDamageCostUI, ResourceType.Gold, crossbowDamageCostGold);
+        UpdateCostUIGroup(crossbowReloadCostUI, ResourceType.Gold, crossbowReloadCostGold);
+
+        UpdateButtonState(upgradeCrossbowDamageButton, gold >= crossbowDamageCostGold);
+        UpdateButtonState(upgradeCrossbowReloadButton, (gold >= crossbowReloadCostGold) && (GetCrossbowReloadAtLevel(crossbowReloadLevel) > 0.5f)); // не даємо покращувати швидше ніж 0.5с
+        // ===========================================
 
         if (castleUpgradeCostUI != null && castle != null)
         {

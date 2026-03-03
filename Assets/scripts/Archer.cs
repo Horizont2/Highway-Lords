@@ -162,6 +162,7 @@ public class Archer : MonoBehaviour
             if (arrowScript != null)
             {
                 int finalDamage = myDamage;
+                // Збираємо статтю про множник шкоди (якщо є)
                 if (myStats != null)
                 {
                     UnitStats targetStats = target.GetComponent<UnitStats>();
@@ -171,6 +172,7 @@ public class Archer : MonoBehaviour
                         finalDamage = Mathf.RoundToInt(myDamage * multiplier);
                     }
                 }
+                
                 arrowScript.Initialize(target, finalDamage);
             }
         }
@@ -220,9 +222,20 @@ public class Archer : MonoBehaviour
         foreach (GameObject go in enemies)
         {
             if (go.CompareTag("Untagged")) continue;
+            
+            // Перевірка: чи ворог перетнув лінію зіткнення?
+            if (GameManager.Instance != null && GameManager.Instance.engagementLine != null)
+            {
+                if (go.transform.position.x > GameManager.Instance.engagementLine.position.x) 
+                    continue; // Якщо ні — ігноруємо його
+            }
+
             float dist = Vector2.Distance(transform.position, go.transform.position);
             
-            if (dist < shortestDist && dist <= attackRange * 2.0f) 
+            // === НОВЕ: Прибрали ліміт зору ===
+            // Тепер лучник побачить ворога ОДРАЗУ, як той перетне лінію, 
+            // навіть якщо до нього бігти ще пів карти!
+            if (dist < shortestDist) 
             {
                 shortestDist = dist;
                 nearest = go.transform;
