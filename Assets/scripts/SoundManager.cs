@@ -17,6 +17,8 @@ public class SoundManager : MonoBehaviour
     public AudioClip swordHit;      
     public AudioClip enemyDeath;    
     public AudioClip knightHit;     
+    // === ДОДАНО ДЛЯ СЛОНА ===
+    public AudioClip heavyHitSound; 
 
     [Header("Руйнування")]
     public AudioClip cartBreak;     
@@ -28,25 +30,22 @@ public class SoundManager : MonoBehaviour
     public AudioClip buyItem;       
     public AudioClip error;
     public AudioClip clickSound;
-    // === НОВИЙ ЗВУК ДЛЯ ПОЛІПШЕННЯ ЮНІТІВ ===
     public AudioClip unitUpgradeSound; 
 
     [Header("Будівництво")]
-    public AudioClip constructionSound; // Початок будівництва
-    public AudioClip constructionComplete; // Завершення
+    public AudioClip constructionSound; 
+    public AudioClip constructionComplete; 
 
     [Header("Події гри")]
     public AudioClip waveStart;     
     public AudioClip victory;       
     public AudioClip defeat;        
 
-    // === Змінні гучності ===
     [HideInInspector] public float musicVolume = 0.5f;
     [HideInInspector] public float sfxVolume = 1f;
 
     void Awake()
     {
-        // Сінлтон: гарантує, що існує лише один SoundManager
         if (Instance == null) 
         {
             Instance = this;
@@ -57,14 +56,12 @@ public class SoundManager : MonoBehaviour
             return;
         }
 
-        // Завантажуємо збережену гучність
         musicVolume = PlayerPrefs.GetFloat("MusicVolume", 0.5f);
         sfxVolume = PlayerPrefs.GetFloat("SFXVolume", 1f);
     }
 
     void Start()
     {
-        // Застосовуємо гучність до джерел
         if (musicSource != null) musicSource.volume = musicVolume;
         if (sfxSource != null) sfxSource.volume = sfxVolume;
         
@@ -82,31 +79,24 @@ public class SoundManager : MonoBehaviour
         }
     }
 
-    // === ГОЛОВНИЙ МЕТОД ДЛЯ ЗВУКІВ ===
-    // volumeScale = 1.0f (стандартна гучність). 
-    // Якщо передати 0.5f, звук буде грати на 50% від загальної гучності.
     public void PlaySFX(AudioClip clip, float volumeScale = 1.0f)
     {
         if (sfxSource != null && clip != null)
         {
-            // Формула: (Гучність конкретного звуку) * (Загальна гучність ефектів)
             sfxSource.PlayOneShot(clip, volumeScale * sfxVolume);
         }
     }
 
-    // === БОНУС: МЕТОД ДЛЯ ВИПАДКОВОЇ ВИСОТИ ТОНУ (PITCH) ===
-    // Це робить стрільбу та удари менш монотонними (звук трохи різний щоразу)
     public void PlaySFXRandomPitch(AudioClip clip, float volumeScale = 1.0f)
     {
         if (sfxSource != null && clip != null)
         {
-            sfxSource.pitch = Random.Range(0.85f, 1.15f); // Змінюємо висоту звуку
+            sfxSource.pitch = Random.Range(0.85f, 1.15f); 
             sfxSource.PlayOneShot(clip, volumeScale * sfxVolume);
-            sfxSource.pitch = 1.0f; // Повертаємо назад
+            sfxSource.pitch = 1.0f; 
         }
     }
 
-    // === МЕТОДИ ДЛЯ НАЛАШТУВАНЬ ===
     public void SetMusicVolume(float volume)
     {
         musicVolume = volume;

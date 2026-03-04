@@ -127,6 +127,10 @@ public class GameManager : MonoBehaviour
     public GameObject shopPanel;
     public GameObject infoPanel; 
 
+    // === НОВЕ: ФОНОВЕ ЗАТЕМНЕННЯ ===
+    [Header("UI: Затемнення фону (Пауза)")]
+    public GameObject darkOverlay;
+
     [Header("UI: Defeat Overlay")]
     public TMPro.TMP_Text defeatText; 
 
@@ -177,12 +181,10 @@ public class GameManager : MonoBehaviour
     public Button upgradeArcherButton;
     public Button upgradeSpearmanButton;
     
-    // === НОВЕ: ЛУЧНИКИ НА СТІНІ ===
     [Header("UI: Wall Archers (Лучники на стіні)")]
     public Button upgradeWallArcherButton;
     public TMP_Text wallArcherLevelText;
     public UICostGroup wallArcherUpgradeCostUI;
-    // ==============================
 
     public TMP_Text knightLevelText;
     public TMP_Text archerLevelText;
@@ -311,12 +313,12 @@ public class GameManager : MonoBehaviour
     public int knightLevel = 1;
     public int archerLevel = 1;
     public int spearmanLevel = 1;
-    public int wallArcherLevel = 1; // === НОВЕ ===
+    public int wallArcherLevel = 1; 
 
     public int knightUpgradeCost = 100;
     public int archerUpgradeCost = 120;
     public int spearmanUpgradeCost = 110;
-    public int wallArcherUpgradeCost = 150; // === НОВЕ ===
+    public int wallArcherUpgradeCost = 150; 
 
     [Header("Розблокування (Unlock)")]
     public bool isSpearmanUnlocked = false;
@@ -383,6 +385,10 @@ public class GameManager : MonoBehaviour
         if (infoPanel) infoPanel.SetActive(false);
         if (metaShopPanel) metaShopPanel.SetActive(false);
         if (defeatPanel) defeatPanel.SetActive(false);
+
+        // Переконуємось, що на старті гри затемнення немає і час іде
+        if (darkOverlay != null) darkOverlay.SetActive(false);
+        Time.timeScale = 1f;
 
         UpdateUI();
         UpdateBarracksStateUI();
@@ -671,6 +677,42 @@ public class GameManager : MonoBehaviour
         if (nextWaveButton != null) { nextWaveButton.onClick.RemoveAllListeners(); nextWaveButton.onClick.AddListener(NextWave); }
     }
 
+    // =========================================================
+    // === НОВА ЛОГІКА ДЛЯ ПЕРЕВІРКИ ПАНЕЛЕЙ ТА ПАУЗИ ===
+    // =========================================================
+    public bool IsAnyPanelOpen()
+    {
+        if (constructionPanel != null && constructionPanel.activeSelf) return true;
+        if (constructionPanelNew != null && constructionPanelNew.activeSelf) return true;
+        
+        if (barracksUpgradePanel != null && barracksUpgradePanel.activeSelf) return true;
+        if (barracksPanelNew != null && barracksPanelNew.activeSelf) return true;
+        
+        if (shopPanel != null && shopPanel.activeSelf) return true;
+        if (shopPanelNew != null && shopPanelNew.activeSelf) return true;
+        
+        if (infoPanel != null && infoPanel.activeSelf) return true;
+        if (metaShopPanel != null && metaShopPanel.activeSelf) return true;
+
+        return false;
+    }
+
+    public void UpdatePauseAndOverlay()
+    {
+        bool anyOpen = IsAnyPanelOpen();
+
+        if (darkOverlay != null)
+        {
+            darkOverlay.SetActive(anyOpen);
+        }
+
+        if (!isDefeated)
+        {
+            Time.timeScale = anyOpen ? 0f : 1f;
+        }
+    }
+    // =========================================================
+
     public void UpdateFormationPositions()
     {
         AssignPositionsToGroup(activeKnights.Cast<MonoBehaviour>().ToList(), 0);
@@ -801,12 +843,13 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        if (currentWave % 10 == 0) currentWaveMilestones.Add(0.95f);
+        if (currentWave % 10 == 0 || currentWave % 25 == 0) 
+            currentWaveMilestones.Add(0.95f);
     }
 
     void SpawnEnemySquad()
     {
-        bool isBossMoment = (currentWave % 10 == 0) && currentWaveMilestones.Count <= 1;
+        bool isBossMoment = (currentWave % 10 == 0 || currentWave % 25 == 0) && currentWaveMilestones.Count <= 1;
         if (spawner != null) spawner.SpawnSquad(isBossMoment);
     }
 
@@ -833,6 +876,8 @@ public class GameManager : MonoBehaviour
                 if (shopPanelNew != null) shopPanelNew.SetActive(false);
                 if (infoPanel != null) infoPanel.SetActive(false);
             }
+            
+            UpdatePauseAndOverlay(); // Оновлюємо стан паузи
         }
     }
 
@@ -845,13 +890,13 @@ public class GameManager : MonoBehaviour
         {
             currentKills -= killsToNextGem;
             gems++;
-            killsToNextGem = Mathf.RoundToInt(killsToNextGem * 1.15f); // Наступний гем вимагає на 15% більше вбивств
+            killsToNextGem = Mathf.RoundToInt(killsToNextGem * 1.15f); 
             leveledUp = true;
         }
 
         if (leveledUp && SoundManager.Instance != null && SoundManager.Instance.coinPickup != null)
         {
-            SoundManager.Instance.PlaySFX(SoundManager.Instance.coinPickup); // Звук отримання кристала
+            SoundManager.Instance.PlaySFX(SoundManager.Instance.coinPickup); 
         }
 
         UpdateMetaUI();
@@ -961,6 +1006,8 @@ public class GameManager : MonoBehaviour
                 if (metaShopPanel != null) metaShopPanel.SetActive(false);
                 UpdateBarracksStateUI();
             }
+            
+            UpdatePauseAndOverlay(); // Оновлюємо стан паузи
         }
     }
 
@@ -985,6 +1032,8 @@ public class GameManager : MonoBehaviour
                 if (infoPanel != null) infoPanel.SetActive(false);
                 if (metaShopPanel != null) metaShopPanel.SetActive(false);
             }
+            
+            UpdatePauseAndOverlay(); // Оновлюємо стан паузи
         }
     }
 
@@ -1007,6 +1056,8 @@ public class GameManager : MonoBehaviour
                 if (infoPanel != null) infoPanel.SetActive(false);
                 if (metaShopPanel != null) metaShopPanel.SetActive(false);
             }
+            
+            UpdatePauseAndOverlay(); // Оновлюємо стан паузи
         }
     }
 
@@ -1029,6 +1080,8 @@ public class GameManager : MonoBehaviour
                 if (shopPanelNew != null) shopPanelNew.SetActive(false);
                 if (metaShopPanel != null) metaShopPanel.SetActive(false);
             }
+            
+            UpdatePauseAndOverlay(); // Оновлюємо стан паузи
         }
     }
 
@@ -1159,7 +1212,7 @@ public class GameManager : MonoBehaviour
     public int GetArcherDamage()   { return GetArcherDamageAtLevel(archerLevel); }
     public int GetSpearmanDamage() { return GetSpearmanDamageAtLevel(spearmanLevel); }
     public int GetTowerDamage()    { return GetTowerDamageAtLevel(towerLevel); }
-    public int GetWallArcherDamage() { return GetWallArcherDamageAtLevel(wallArcherLevel); } // НОВЕ
+    public int GetWallArcherDamage() { return GetWallArcherDamageAtLevel(wallArcherLevel); } 
 
     public int GetCrossbowDamage() { return GetCrossbowDamageAtLevel(crossbowDamageLevel); }
     public float GetCrossbowReloadTime() { return GetCrossbowReloadAtLevel(crossbowReloadLevel); }
@@ -1168,16 +1221,15 @@ public class GameManager : MonoBehaviour
     public int GetKnightDamageAtLevel(int level)   { return Mathf.RoundToInt((10 + ((level   - 1) * 5)) * globalDamageMultiplier); }
     public int GetArcherDamageAtLevel(int level)   { return Mathf.RoundToInt((8  + ((level   - 1) * 3)) * globalDamageMultiplier); }
     public int GetSpearmanDamageAtLevel(int level) { return Mathf.RoundToInt((12 + ((level   - 1) * 6)) * globalDamageMultiplier); }
-    public int GetWallArcherDamageAtLevel(int level) { return Mathf.RoundToInt((10 + ((level - 1) * 4)) * globalDamageMultiplier); } // Формула для лучників на стіні
+    public int GetWallArcherDamageAtLevel(int level) { return Mathf.RoundToInt((10 + ((level - 1) * 4)) * globalDamageMultiplier); } 
     public int GetTowerDamageAtLevel(int level)    { return Mathf.RoundToInt((25 + ((level   - 1) * 8)) * globalDamageMultiplier); }
 
     public int GetCrossbowDamageAtLevel(int level) { return Mathf.RoundToInt((crossbowBaseDamage + ((level - 1) * 12)) * globalDamageMultiplier); }
     public float GetCrossbowReloadAtLevel(int level) { return Mathf.Max(0.5f, crossbowBaseReloadTime - ((level - 1) * 0.2f)); }
 
-    // === НОВЕ: Повертає індекс аніматора для лучників на стіні (кожні 5 рівнів) ===
     public int GetWallArcherSkinIndex()
     {
-        return (wallArcherLevel - 1) / 5; // 1-5 лвл = 0, 6-10 = 1, 11-15 = 2 і т.д.
+        return (wallArcherLevel - 1) / 5; 
     }
 
     public int GetBarracksCapLimit()
@@ -1579,7 +1631,6 @@ public class GameManager : MonoBehaviour
         }
     }
     
-    // === НОВЕ: Метод прокачки лучників на стіні ===
     public void UpgradeWallArchers()
     {
         if(gold >= wallArcherUpgradeCost)
@@ -1591,7 +1642,6 @@ public class GameManager : MonoBehaviour
             if (SoundManager.Instance != null && SoundManager.Instance.unitUpgradeSound != null)
                 SoundManager.Instance.PlaySFX(SoundManager.Instance.unitUpgradeSound);
 
-            // Миттєво оновлюємо всіх лучників на стіні (урон та аніматор)
             WallArcher[] archersOnWall = FindObjectsByType<WallArcher>(FindObjectsSortMode.None);
             foreach(var wa in archersOnWall)
             {
@@ -1953,6 +2003,8 @@ public class GameManager : MonoBehaviour
 
         UpdateUI();
         UpdateBarracksStateUI();
+        
+        UpdatePauseAndOverlay(); // Оновлюємо стан паузи (вимикаємо, якщо панелі закриті)
         StartCoroutine(RecalculateUnitsNextFrame());
     }
 
@@ -2194,6 +2246,7 @@ public class GameManager : MonoBehaviour
         UpdateUI();
         UpdateBarracksStateUI();
         UpdateMetaUI();
+        UpdatePauseAndOverlay();
 
         Debug.Log("Збереження видалено! (Кеш очищено)");
     }
@@ -2289,13 +2342,11 @@ public class GameManager : MonoBehaviour
                 "<color=#FF6666>Vulnerable to Archers</color></size>";
         }
         
-        // === ОНОВЛЕННЯ ТЕКСТУ ЛУЧНИКІВ НА СТІНІ ===
         if (wallArcherLevelText != null)
         {
             int currentDmg = GetWallArcherDamageAtLevel(wallArcherLevel);
             int nextDmg    = GetWallArcherDamageAtLevel(wallArcherLevel + 1);
             
-            // Рахуємо скільки лвл залишилося до наступного скіна (кожні 5 лвл)
             int levelsUntilSkin = 5 - ((wallArcherLevel - 1) % 5);
 
             wallArcherLevelText.text =

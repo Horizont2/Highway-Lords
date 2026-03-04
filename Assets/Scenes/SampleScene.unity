@@ -2301,8 +2301,8 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "Spearmen Lvl 1\nDMG: 12 \u2192 18\n<size=70%><color=#66FF66>Counters Cavalry
-    (x2 DMG)</color>\n<color=#FF6666>Vulnerable to Archers</color></size>"
+  m_text: "Spearmen Lvl 1\nDMG: 12 \u2192 <color=#66FF66>18</color>\n<size=70%><color=#66FF66>Counters
+    Cavalry (x2 DMG)</color>\n<color=#FF6666>Vulnerable to Archers</color></size>"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -2830,7 +2830,7 @@ Transform:
   m_GameObject: {fileID: 245660677}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.02, y: 1.81, z: 0}
+  m_LocalPosition: {x: 0.13, y: 1.81, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2900,7 +2900,7 @@ SpriteRenderer:
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: -1
   m_MaskInteraction: 0
   m_Sprite: {fileID: 2825033196090830139, guid: 7c0d66d637c930945ba4da3b159a1563, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -3369,9 +3369,9 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 1207745723}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 376.33704, y: -55}
   m_SizeDelta: {x: 732.6741, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &326978142
@@ -5805,7 +5805,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8962101977573020415, guid: edf0f77fae2ddcf409161c8206cdda0b, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 9004318351930937838, guid: edf0f77fae2ddcf409161c8206cdda0b, type: 3}
       propertyPath: m_Sprite
@@ -6770,7 +6770,7 @@ GameObject:
   - component: {fileID: 393828635}
   - component: {fileID: 393828637}
   m_Layer: 8
-  m_Name: build_2
+  m_Name: BuilderBase
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -7806,8 +7806,8 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "Archers Lvl 1\nDMG: 8 \u2192 11\n<size=70%><color=#66FF66>Counters Spearmen</color>\n<color=#FF6666>Vulnerable
-    to Knights & Cavalry</color></size>"
+  m_text: "Archers Lvl 1\nDMG: 8 \u2192 <color=#66FF66>11</color>\n<size=70%><color=#66FF66>Counters
+    Spearmen</color>\n<color=#FF6666>Vulnerable to Knights & Cavalry</color></size>"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -8978,9 +8978,9 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 1922299286}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 376.33704, y: -55}
   m_SizeDelta: {x: 732.6741, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &519572986
@@ -9444,13 +9444,14 @@ RectTransform:
   - {fileID: 728804237}
   - {fileID: 301497819}
   - {fileID: 993023596}
-  - {fileID: 582325106}
   - {fileID: 827031067}
+  - {fileID: 1248152688}
+  - {fileID: 777702340}
   - {fileID: 1533259555}
   - {fileID: 2075620690}
-  - {fileID: 777702340}
   - {fileID: 1341793962}
   - {fileID: 358700807}
+  - {fileID: 582325106}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -9897,8 +9898,8 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "Knights Lvl 1\nDMG: 10 \u2192 15\n<size=70%><color=#66FF66>Counters Archers</color>\n<color=#FF6666>Vulnerable
-    to Spearmen</color></size>"
+  m_text: "Knights Lvl 1\nDMG: 10 \u2192 <color=#66FF66>15</color>\n<size=70%><color=#66FF66>Counters
+    Archers</color>\n<color=#FF6666>Vulnerable to Spearmen</color></size>"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -11516,9 +11517,9 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 1241585326}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 352.1841, y: -55}
   m_SizeDelta: {x: 684.3682, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &620327691
@@ -12323,8 +12324,8 @@ CanvasGroup:
   m_GameObject: {fileID: 659398357}
   m_Enabled: 1
   m_Alpha: 1
-  m_Interactable: 0
-  m_BlocksRaycasts: 0
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
   m_IgnoreParentGroups: 0
 --- !u!114 &659398360
 MonoBehaviour:
@@ -13906,6 +13907,7 @@ MonoBehaviour:
   barracksUpgradePanel: {fileID: 55858803}
   shopPanel: {fileID: 1297042851}
   infoPanel: {fileID: 1444750998}
+  darkOverlay: {fileID: 1248152687}
   defeatText: {fileID: 140605429}
   constructionPanelNew: {fileID: 0}
   barracksPanelNew: {fileID: 0}
@@ -14011,7 +14013,7 @@ MonoBehaviour:
     icon2: {fileID: 0}
     text2: {fileID: 0}
   estimatedIncomeText: {fileID: 1275269570}
-  barracksPrefab: {fileID: 6764874580450039627, guid: ce119f0dd6efc464984a5c99b1c8cb54, type: 3}
+  barracksPrefab: {fileID: 84740929953092863, guid: ce119f0dd6efc464984a5c99b1c8cb54, type: 3}
   barracksSpawnPoint: {fileID: 1109546991}
   barracksLevel: 0
   barracksBaseCap: 5
@@ -14038,7 +14040,7 @@ MonoBehaviour:
   defeatPanel: {fileID: 582325103}
   defeatResourcesText: {fileID: 0}
   isDefeated: 0
-  castle: {fileID: 0}
+  castle: {fileID: 2045128154}
   towerTransform: {fileID: 2051167356}
   spawner: {fileID: 2082535973}
   buildButtonSprite: {fileID: 5848100888455855099, guid: e519cc8515e9f4d4fbb0f0db57abcec4, type: 3}
@@ -19683,7 +19685,7 @@ SpriteRenderer:
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: -1
   m_MaskInteraction: 0
   m_Sprite: {fileID: 2825033196090830139, guid: 7c0d66d637c930945ba4da3b159a1563, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -21069,7 +21071,7 @@ Transform:
   m_GameObject: {fileID: 960197828}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.08000001, y: -1.19, z: 0}
+  m_LocalPosition: {x: 0.070000246, y: -1.19, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -22406,7 +22408,7 @@ Transform:
   m_GameObject: {fileID: 1100116533}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.14000002, y: -2.71, z: 0}
+  m_LocalPosition: {x: 0.010000244, y: -2.71, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -24072,6 +24074,81 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!1 &1248152687
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1248152688}
+  - component: {fileID: 1248152690}
+  - component: {fileID: 1248152689}
+  m_Layer: 5
+  m_Name: DarkOverlay
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!224 &1248152688
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1248152687}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 526542133}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1248152689
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1248152687}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+  m_Material: {fileID: 0}
+  m_Color: {r: 0, g: 0, b: 0, a: 0.5882353}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 0}
+  m_Type: 0
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
+--- !u!222 &1248152690
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1248152687}
+  m_CullTransparentMesh: 1
 --- !u!1 &1248424102
 GameObject:
   m_ObjectHideFlags: 0
@@ -24471,7 +24548,7 @@ SpriteRenderer:
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: -1
   m_MaskInteraction: 0
   m_Sprite: {fileID: 2825033196090830139, guid: 7c0d66d637c930945ba4da3b159a1563, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -28804,7 +28881,7 @@ Transform:
   m_GameObject: {fileID: 1546097445}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.14000002, y: -2, z: 0}
+  m_LocalPosition: {x: 0.010000244, y: -2, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -29042,7 +29119,7 @@ Transform:
   m_GameObject: {fileID: 1559604852}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.02000001, y: 2.56, z: 0}
+  m_LocalPosition: {x: 0.13000025, y: 2.56, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -31076,7 +31153,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: New Text
+  m_text: "HP: 0 \u2192 50"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -31646,9 +31723,9 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 1442940749}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 328.8999, y: -55}
   m_SizeDelta: {x: 637.7998, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1715327563
@@ -33396,7 +33473,7 @@ SpriteRenderer:
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: -1
   m_MaskInteraction: 0
   m_Sprite: {fileID: 2825033196090830139, guid: 7c0d66d637c930945ba4da3b159a1563, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -36052,6 +36129,7 @@ MonoBehaviour:
   swordHit: {fileID: 8300000, guid: 2d793401ace67d04488a114d0d7adc9a, type: 3}
   enemyDeath: {fileID: 8300000, guid: c3f67efcfa9282444b86422c2d59211f, type: 3}
   knightHit: {fileID: 0}
+  heavyHitSound: {fileID: 0}
   cartBreak: {fileID: 8300000, guid: f1f86b6d68ed2f248806fc48a9e080f0, type: 3}
   castleDamage: {fileID: 8300000, guid: e688dde0cf968304dbd161b59c0b5cc2, type: 3}
   woodBreak: {fileID: 0}
@@ -36162,7 +36240,7 @@ MonoBehaviour:
     m_SelectOnRight: {fileID: 0}
   m_Transition: 1
   m_Colors:
-    m_NormalColor: {r: 0.4, g: 0.4, b: 0.4, a: 1}
+    m_NormalColor: {r: 0.40000004, g: 0.40000004, b: 0.40000004, a: 1}
     m_HighlightedColor: {r: 0.4, g: 0.4, b: 0.4, a: 1}
     m_PressedColor: {r: 0.4, g: 0.4, b: 0.4, a: 1}
     m_SelectedColor: {r: 0.4, g: 0.4, b: 0.4, a: 1}
@@ -36287,7 +36365,7 @@ SpriteRenderer:
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: -1
   m_MaskInteraction: 0
   m_Sprite: {fileID: 2825033196090830139, guid: 7c0d66d637c930945ba4da3b159a1563, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -37132,7 +37210,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::HealthBarSegments
   tickPrefab: {fileID: 7610278067087881724, guid: 8d940aa0894980b4bacacdc6d8a88acb, type: 3}
   tickContainer: {fileID: 1308098853}
-  healthPerSegment: 150
+  healthPerSegment: 90
 --- !u!222 &2008926771
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -37696,9 +37774,9 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 358700813}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 376.33704, y: -55}
   m_SizeDelta: {x: 732.6741, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2060706850
@@ -40212,7 +40290,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8730152402138158285, guid: edf0f77fae2ddcf409161c8206cdda0b, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8738965794522541567, guid: edf0f77fae2ddcf409161c8206cdda0b, type: 3}
       propertyPath: m_AnchorMax.x
@@ -40601,6 +40679,7 @@ MonoBehaviour:
     unlockWave: 1
     isBoss: 0
     isCart: 0
+    isElephant: 0
     spawnWeight: 65
     baseGoldReward: 15
   - name: Archer
@@ -40609,6 +40688,7 @@ MonoBehaviour:
     unlockWave: 3
     isBoss: 0
     isCart: 0
+    isElephant: 0
     spawnWeight: 60
     baseGoldReward: 20
   - name: SpearMan
@@ -40617,23 +40697,26 @@ MonoBehaviour:
     unlockWave: 15
     isBoss: 0
     isCart: 0
+    isElephant: 0
     spawnWeight: 45
     baseGoldReward: 15
-  - name: Cart
-    prefab: {fileID: 7094710359589817124, guid: bf3a672c33b52704b98828d634502da0, type: 3}
+  - name: 
+    prefab: {fileID: 0}
     icon: {fileID: 0}
     unlockWave: 3
     isBoss: 0
     isCart: 1
-    spawnWeight: 40
+    isElephant: 0
+    spawnWeight: 1
     baseGoldReward: 15
-  - name: BossCart
-    prefab: {fileID: 1746554694460533465, guid: 4009e0e1e41c87d4db5723efcaa69607, type: 3}
+  - name: 
+    prefab: {fileID: 0}
     icon: {fileID: 0}
     unlockWave: 10
     isBoss: 1
     isCart: 0
-    spawnWeight: 100
+    isElephant: 0
+    spawnWeight: 1
     baseGoldReward: 15
   - name: HorseMan
     prefab: {fileID: 1963238479798434343, guid: 23c65bd8f3d9f8041a98b9aa0c0073a3, type: 3}
@@ -40641,7 +40724,17 @@ MonoBehaviour:
     unlockWave: 25
     isBoss: 0
     isCart: 0
+    isElephant: 0
     spawnWeight: 35
+    baseGoldReward: 15
+  - name: Elephant
+    prefab: {fileID: 7503803624944779944, guid: 68c29c7885befff4a9e6c4245187fe52, type: 3}
+    icon: {fileID: 0}
+    unlockWave: 1
+    isBoss: 0
+    isCart: 0
+    isElephant: 1
+    spawnWeight: 100
     baseGoldReward: 15
   bossEscortMin: 3
   bossEscortMax: 5
@@ -41749,6 +41842,10 @@ PrefabInstance:
     - target: {fileID: 7310054471005490529, guid: eac12fb7dd9811a45823ae87ffd97c7d, type: 3}
       propertyPath: m_LocalPosition.y
       value: -1.194
+      objectReference: {fileID: 0}
+    - target: {fileID: 7460366517211631069, guid: eac12fb7dd9811a45823ae87ffd97c7d, type: 3}
+      propertyPath: m_SortingOrder
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7774839515235082425, guid: eac12fb7dd9811a45823ae87ffd97c7d, type: 3}
       propertyPath: m_Layer

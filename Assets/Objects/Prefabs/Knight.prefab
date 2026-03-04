@@ -496,6 +496,10 @@ MonoBehaviour:
   attackRange: 1.1
   attackRate: 1
   maxHealth: 100
+  allyLayer:
+    serializedVersion: 2
+    m_Bits: 64
+  stopDistance: 0.6
   obstacleLayer:
     serializedVersion: 2
     m_Bits: 256

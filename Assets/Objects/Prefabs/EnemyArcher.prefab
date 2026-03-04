@@ -290,10 +290,15 @@ MonoBehaviour:
   timeBetweenShots: 2
   damage: 10
   maxHealth: 40
+  allyLayer:
+    serializedVersion: 2
+    m_Bits: 128
+  stopDistance: 0.6
   obstacleLayer:
     serializedVersion: 2
     m_Bits: 256
   avoidanceForce: 2
+  aggroRadius: 8
   arrowPrefab: {fileID: 1033900623364985726, guid: 9c172f6cb9b4e1f4fa91dd18d763bf19, type: 3}
   firePoint: {fileID: 7403795274767799181}
 --- !u!50 &-3927244361706051883

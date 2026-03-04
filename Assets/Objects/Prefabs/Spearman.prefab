@@ -560,6 +560,10 @@ MonoBehaviour:
   attackRange: 1.5
   attackRate: 0.8
   maxHealth: 90
+  allyLayer:
+    serializedVersion: 2
+    m_Bits: 64
+  stopDistance: 0.6
   obstacleLayer:
     serializedVersion: 2
     m_Bits: 256
@@ -568,7 +572,6 @@ MonoBehaviour:
   animator: {fileID: 748861169845927127}
   spriteRenderer: {fileID: 0}
   currentHealth: 0
-  patrolRadius: 2.5
 --- !u!114 &8848170959403996306
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -8,9 +8,13 @@ public class Knight : MonoBehaviour
 
     [Header("Характеристики")]
     public float speed = 3.0f;
-    public float attackRange = 0.8f;
+    public float attackRange = 0.2f; 
     public float attackRate = 1f;
     public int maxHealth = 120;
+
+    [Header("Запобігання стеку")]
+    public LayerMask allyLayer; 
+    public float stopDistance = 0.6f;
 
     [Header("Навігація (Обхід)")]
     public LayerMask obstacleLayer; 
@@ -34,7 +38,6 @@ public class Knight : MonoBehaviour
     private Boss targetBoss; 
 
     private Vector3 startPoint;
-    public float patrolRadius = 3f;
     private Rigidbody2D rb; 
     private bool isDead = false;
 
@@ -42,15 +45,18 @@ public class Knight : MonoBehaviour
     private Vector3 formationPos;
     private UnitStats myStats;
 
-    public void SetFormationPosition(Vector3 pos)
-    {
-        formationPos = pos;
+    public void SetFormationPosition(Vector3 pos) 
+    { 
+        formationPos = pos; 
     }
 
     public void LoadState(int savedHealth)
     {
         currentHealth = savedHealth;
-        if (healthBar != null) healthBar.SetHealth(currentHealth, maxHealth);
+        if (healthBar != null) 
+        {
+            healthBar.SetHealth(currentHealth, maxHealth);
+        }
     }
 
     void Start()
@@ -60,15 +66,25 @@ public class Knight : MonoBehaviour
         rb.gravityScale = 0; 
         rb.freezeRotation = true; 
 
-        if(spriteRenderer == null) spriteRenderer = GetComponent<SpriteRenderer>();
+        if(spriteRenderer == null) 
+        {
+            spriteRenderer = GetComponent<SpriteRenderer>();
+        }
+        
         myStats = GetComponent<UnitStats>();
 
         startPoint = transform.position;
-        if (formationPos == Vector3.zero) formationPos = startPoint;
+        if (formationPos == Vector3.zero) 
+        {
+            formationPos = startPoint;
+        }
         
         originalScale = transform.localScale;
 
-        if (currentHealth <= 0) currentHealth = maxHealth;
+        if (currentHealth <= 0) 
+        {
+            currentHealth = maxHealth;
+        }
 
         if (healthBar != null)
         {
@@ -81,16 +97,27 @@ public class Knight : MonoBehaviour
             GameManager.Instance.UpdateUI();
             myDamage = GameManager.Instance.GetKnightDamage();
             if (GameManager.Instance.knightLevel > 1 && spriteRenderer != null) 
+            {
                 spriteRenderer.color = new Color(1f, 0.9f, 0.9f);
+            }
         }
-        else myDamage = 10;
+        else 
+        {
+            myDamage = 10;
+        }
+
+        if (animator != null) 
+        {
+            animator.speed = Random.Range(0.9f, 1.1f);
+        }
+        nextAttackTime = Time.time + Random.Range(0f, 0.3f);
     }
 
     void Update()
     {
         if (isDead) return;
 
-        if (GameManager.Instance != null)
+        if (GameManager.Instance != null) 
         {
             myDamage = GameManager.Instance.GetKnightDamage();
         }
@@ -121,27 +148,43 @@ public class Knight : MonoBehaviour
         }
         else
         {
-            MoveTo(formationPos); // Повернення в ширенгу
-            
-            // Якщо лицар вже стоїть на своєму місці — змушуємо його дивитись вправо
-            if (Vector2.Distance(transform.position, formationPos) < 0.1f)
+            MoveTo(formationPos); 
+            if (Vector2.Distance(transform.position, formationPos) < 0.1f) 
             {
                 FlipSprite(transform.position.x + 1f); 
             }
         }
     }
 
+    void StopMoving()
+    {
+        rb.linearVelocity = Vector2.zero;
+        if (animator) 
+        {
+            animator.SetBool("IsMoving", false);
+        }
+    }
+
+    float GetDistanceToTarget(Transform t)
+    {
+        Collider2D targetCol = t.GetComponent<Collider2D>();
+        Collider2D myCol = GetComponent<Collider2D>();
+        if (targetCol != null && myCol != null)
+        {
+            ColliderDistance2D dist = Physics2D.Distance(myCol, targetCol);
+            if (dist.isValid) return dist.distance;
+        }
+        return Vector2.Distance(transform.position, t.position);
+    }
+
     void EngageEnemy(Transform target)
     {
-        Vector3 moveDestination = target.position;
         FlipSprite(target.position.x);
-        float distance = Vector2.Distance(transform.position, target.position);
+        float distanceToTarget = GetDistanceToTarget(target);
 
-        if (distance <= attackRange)
+        if (distanceToTarget <= attackRange)
         {
-            rb.linearVelocity = Vector2.zero; 
-            if (animator) animator.SetBool("IsMoving", false);
-            
+            StopMoving();
             if (Time.time >= nextAttackTime)
             {
                 Attack();
@@ -150,33 +193,51 @@ public class Knight : MonoBehaviour
         }
         else
         {
-            MoveTo(moveDestination);
+            MoveTo(target.position);
         }
     }
 
     void MoveTo(Vector3 targetPosition)
     {
-        if (Vector2.Distance(transform.position, targetPosition) < 0.1f)
+        if (Vector2.Distance(transform.position, targetPosition) < 0.05f)
         {
-            rb.linearVelocity = Vector2.zero;
-            if (animator) animator.SetBool("IsMoving", false);
+            StopMoving();
             return;
         }
 
         if (GameManager.Instance != null)
         {
             if (GameManager.Instance.rightBoundary != null && targetPosition.x > GameManager.Instance.rightBoundary.position.x)
+            {
                 targetPosition.x = GameManager.Instance.rightBoundary.position.x;
+            }
             if (GameManager.Instance.leftBoundary != null && targetPosition.x < GameManager.Instance.leftBoundary.position.x)
+            {
                 targetPosition.x = GameManager.Instance.leftBoundary.position.x;
+            }
         }
         
-        if (animator) animator.SetBool("IsMoving", true);
         FlipSprite(targetPosition.x);
-        
         Vector2 direction = (targetPosition - transform.position).normalized;
 
-        RaycastHit2D hit = Physics2D.Raycast(transform.position, direction, checkDistance, obstacleLayer);
+        if (targetPosition != formationPos)
+        {
+            Vector2 rayOrigin = transform.position + Vector3.up * 0.3f;
+            RaycastHit2D allyHit = Physics2D.CircleCast(rayOrigin, 0.3f, direction, stopDistance, allyLayer);
+            
+            if (allyHit.collider != null && allyHit.collider.gameObject != gameObject)
+            {
+                StopMoving();
+                return;
+            }
+        }
+
+        if (animator) 
+        {
+            animator.SetBool("IsMoving", true);
+        }
+        
+        RaycastHit2D hit = Physics2D.Raycast(transform.position + Vector3.up * 0.3f, direction, checkDistance, obstacleLayer);
         if (hit.collider != null && hit.collider.gameObject != gameObject)
         {
             float dodgeDirY = (transform.position.y >= hit.collider.bounds.center.y) ? 1f : -1f;
@@ -191,18 +252,26 @@ public class Knight : MonoBehaviour
     void FlipSprite(float targetX)
     {
         float absX = Mathf.Abs(originalScale.x);
-        if (targetX > transform.position.x)
+        if (targetX > transform.position.x) 
+        {
             transform.localScale = new Vector3(-absX, originalScale.y, originalScale.z); 
-        else if (targetX < transform.position.x)
+        }
+        else if (targetX < transform.position.x) 
+        {
             transform.localScale = new Vector3(absX, originalScale.y, originalScale.z); 
+        }
     }
 
     void FindNearestTarget()
     {
-        targetBoss = null; targetHorse = null; targetGuard = null; 
-        targetSpearman = null; targetArcher = null;
+        targetBoss = null; 
+        targetHorse = null; 
+        targetGuard = null; 
+        targetSpearman = null; 
+        targetArcher = null;
 
-        float minX = -1000f; float maxX = 1000f;
+        float minX = -1000f; 
+        float maxX = 1000f;
         if (GameManager.Instance != null)
         {
             if (GameManager.Instance.leftBoundary) minX = GameManager.Instance.leftBoundary.position.x - 2f;
@@ -218,24 +287,53 @@ public class Knight : MonoBehaviour
             if (go.CompareTag("Untagged")) continue;
             
             if (GameManager.Instance != null && GameManager.Instance.engagementLine != null)
+            {
                 if (go.transform.position.x > GameManager.Instance.engagementLine.position.x) continue;
+            }
             
             if (go.transform.position.x > maxX || go.transform.position.x < minX) continue;
 
             float dist = Vector2.Distance(transform.position, go.transform.position);
 
-            if (go.GetComponent<Boss>()) { if (dist < shortestDist) { shortestDist = dist; targetBoss = go.GetComponent<Boss>(); } continue; }
-            if (go.GetComponent<EnemyHorse>() && !targetBoss) { if (dist < shortestDist) { shortestDist = dist; targetHorse = go.GetComponent<EnemyHorse>(); } continue; }
-            if (go.GetComponent<Guard>() && !targetBoss && !targetHorse) { if (dist < shortestDist) { shortestDist = dist; targetGuard = go.GetComponent<Guard>(); } continue; }
-            if (go.GetComponent<EnemySpearman>() && !targetBoss && !targetHorse && !targetGuard) { if (dist < shortestDist) { shortestDist = dist; targetSpearman = go.GetComponent<EnemySpearman>(); } continue; }
-            if (go.GetComponent<EnemyArcher>() && !targetBoss && !targetHorse && !targetGuard && !targetSpearman) { if (dist < shortestDist) { shortestDist = dist; targetArcher = go.GetComponent<EnemyArcher>(); } continue; }
+            if (go.GetComponent<Boss>()) 
+            { 
+                if (dist < shortestDist) { shortestDist = dist; targetBoss = go.GetComponent<Boss>(); } 
+                continue; 
+            }
+            if (go.GetComponent<EnemyHorse>()) 
+            { 
+                if (dist < shortestDist) { shortestDist = dist; targetHorse = go.GetComponent<EnemyHorse>(); } 
+                continue; 
+            }
+            if (go.GetComponent<Guard>()) 
+            { 
+                if (dist < shortestDist) { shortestDist = dist; targetGuard = go.GetComponent<Guard>(); } 
+                continue; 
+            }
+            if (go.GetComponent<EnemySpearman>()) 
+            { 
+                if (dist < shortestDist) { shortestDist = dist; targetSpearman = go.GetComponent<EnemySpearman>(); } 
+                continue; 
+            }
+            if (go.GetComponent<EnemyArcher>()) 
+            { 
+                if (dist < shortestDist) { shortestDist = dist; targetArcher = go.GetComponent<EnemyArcher>(); } 
+                continue; 
+            }
         }
     }
 
     void Attack()
     {
-        if (animator) animator.SetTrigger("Attack");
-        if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.swordHit);
+        if (animator) 
+        {
+            animator.SetTrigger("Attack");
+        }
+        
+        if (SoundManager.Instance != null) 
+        {
+            SoundManager.Instance.PlaySFX(SoundManager.Instance.swordHit);
+        }
         
         int finalDamage = myDamage;
         UnitStats targetStats = null;
@@ -263,11 +361,23 @@ public class Knight : MonoBehaviour
     {
         if (isDead) return;
         currentHealth -= damage;
-        if (healthBar != null) healthBar.SetHealth(currentHealth, maxHealth);
-        if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.knightHit);
+        
+        if (healthBar != null) 
+        {
+            healthBar.SetHealth(currentHealth, maxHealth);
+        }
+        
+        if (SoundManager.Instance != null) 
+        {
+            SoundManager.Instance.PlaySFX(SoundManager.Instance.knightHit);
+        }
         
         GameManager.CreateDamagePopup(transform.position, damage);
-        if (currentHealth <= 0) Die();
+        
+        if (currentHealth <= 0) 
+        {
+            Die();
+        }
     }
 
     void Die()
@@ -276,25 +386,32 @@ public class Knight : MonoBehaviour
         isDead = true;
         gameObject.tag = "Untagged";
 
-        if (rb != null)
-        {
-            rb.linearVelocity = Vector2.zero;
-            rb.bodyType = RigidbodyType2D.Static;
-        }
+        StopMoving();
+        rb.bodyType = RigidbodyType2D.Static;
         
         Collider2D col = GetComponent<Collider2D>();
-        if (col != null) col.enabled = false; 
+        if (col != null) 
+        {
+            col.enabled = false; 
+        }
 
-        if (GameManager.Instance != null && !GameManager.Instance.isResettingUnits)
+        if (GameManager.Instance != null && !GameManager.Instance.isResettingUnits) 
         {
             GameManager.Instance.OnUnitDeath(gameObject, "Knight"); 
         }
 
-        if (healthBar != null) healthBar.gameObject.SetActive(false);
-        Transform shadow = transform.Find("Shadow");
-        if (shadow != null) shadow.gameObject.SetActive(false);
+        if (healthBar != null) 
+        {
+            healthBar.gameObject.SetActive(false);
+        }
 
-        if (animator)
+        Transform shadow = transform.Find("Shadow");
+        if (shadow != null) 
+        {
+            shadow.gameObject.SetActive(false);
+        }
+
+        if (animator) 
         {
             animator.Rebind();
             animator.Update(0f);
@@ -302,7 +419,8 @@ public class Knight : MonoBehaviour
         }
         
         transform.Rotate(0, 0, -90);
-        if (spriteRenderer != null)
+        
+        if (spriteRenderer != null) 
         {
             spriteRenderer.color = new Color(0.6f, 0.6f, 0.6f);
             spriteRenderer.sortingOrder = 0; 

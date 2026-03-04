@@ -12,6 +12,7 @@ public class EnemyConfig
     public int unlockWave = 1;    
     public bool isBoss = false;   
     public bool isCart = false;   
+    public bool isElephant = false; // === НОВЕ: Галочка для слона ===
     [Range(1, 100)] public int spawnWeight = 50; 
     public int baseGoldReward = 15; 
 }
@@ -35,78 +36,73 @@ public class EnemySpawner : MonoBehaviour
     // Внутрішні змінні
     private List<EnemyConfig> currentWavePool = new List<EnemyConfig>(); 
     private EnemyConfig bossConfig;
-    private EnemyConfig cartConfig; // Окремо зберігаємо конфг воза
+    private EnemyConfig cartConfig; 
+    private EnemyConfig elephantConfig; // === НОВЕ: Конфіг слона ===
     
     private int currentWaveNumber;
     private bool isBossWave = false;
     private bool isCartWave = false;
-    private bool hasSpawnedCartThisWave = false; // Запобіжник для воза
+    private bool isElephantWave = false; // === НОВЕ ===
+    private bool hasSpawnedCartThisWave = false; 
 
-    /// <summary>
-    /// Готує пул ворогів для хвилі. Викликається з GameManager.NextWave()
-    /// </summary>
     public void PrepareForWave(int waveNumber)
     {
         currentWaveNumber = waveNumber;
         isBossWave = (waveNumber % 10 == 0);
+        isElephantWave = (waveNumber % 25 == 0); // Слон кожні 25 хвиль
         
-        // Віз виходить кожну 3-тю хвилю, окрім хвиль босів
         isCartWave = (!isBossWave && waveNumber % 3 == 0);
-        hasSpawnedCartThisWave = false; // Скидаємо перед новою хвилею
+        hasSpawnedCartThisWave = false; 
         
         PrepareEnemyPool(waveNumber);
         UpdateWaveUI();
     }
 
-    /// <summary>
-    /// Головний метод для виклику з GameManager, коли прогрес-бар досягає мітки.
-    /// </summary>
-    public void SpawnSquad(bool forceBoss = false)
+    public void SpawnSquad(bool isBossMoment = false)
     {
-        StartCoroutine(SpawnSquadRoutine(forceBoss));
+        StartCoroutine(SpawnSquadRoutine(isBossMoment));
     }
 
-    private IEnumerator SpawnSquadRoutine(bool forceBoss)
+    private IEnumerator SpawnSquadRoutine(bool isBossMoment)
     {
-        EnemyConfig squadType = null;
-        int count = 0;
+        List<EnemyConfig> squadToSpawn = new List<EnemyConfig>();
 
-        if (forceBoss && isBossWave && bossConfig != null)
+        // 1. ПЕРЕВІРКА НА СПЕЦІАЛЬНИХ ЮНІТІВ (Бос, Слон, Віз)
+        if (isBossMoment)
         {
-            // 1. Спочатку спавнимо самого боса
-            SpawnEnemy(bossConfig);
-            
-            // 2. Потім готуємо його охорону (випадкові вороги з пулу, не вози)
-            squadType = GetWeightedRandomEnemy(false); 
-            count = Random.Range(bossEscortMin, bossEscortMax + 1);
+            if (isBossWave && bossConfig != null) squadToSpawn.Add(bossConfig);
+            if (isElephantWave && elephantConfig != null) squadToSpawn.Add(elephantConfig);
         }
         else if (isCartWave && !hasSpawnedCartThisWave && cartConfig != null)
         {
-            // ГАРАНТОВАНИЙ СПАВН ВОЗА (Тільки 1 раз за хвилю)
-            squadType = cartConfig;
-            count = 1;
+            squadToSpawn.Add(cartConfig);
             hasSpawnedCartThisWave = true;
         }
-        else
+
+        // 2. ДОДАЄМО ЗВИЧАЙНУ ПІХОТУ (Змішаний загін)
+        int escortCount = 0;
+        
+        if (isBossMoment && (isBossWave || isElephantWave)) 
+            escortCount = Random.Range(bossEscortMin, bossEscortMax + 1);
+        else if (squadToSpawn.Count == 0) // Якщо це звичайний тік без воза і босів
+            escortCount = Random.Range(3, 6);
+
+        // === НОВЕ: Змішування юнітів ===
+        // Вибираємо випадкового ворога для КОЖНОГО місця в загоні окремо
+        for (int i = 0; i < escortCount; i++)
         {
-            // Звичайний загін: вибираємо тип ворога
-            squadType = GetWeightedRandomEnemy(true);
-            
-            if (squadType != null)
-            {
-                // Якщо рандом таки вибрав віз з пулу - він виходить один, піхота - загоном
-                count = squadType.isCart ? 1 : Random.Range(3, 6); 
-            }
+            EnemyConfig randomUnit = GetWeightedRandomEnemy(false);
+            if (randomUnit != null) squadToSpawn.Add(randomUnit);
         }
 
-        // Вибираємо випадкову точку спавну
+        // 3. СПАВНИМО ЗАГІН З ЗАТРИМКОЮ
         Transform sp = (spawnPoints != null && spawnPoints.Length > 0) 
             ? spawnPoints[Random.Range(0, spawnPoints.Length)] 
             : transform;
 
-        for (int i = 0; i < count; i++)
+        foreach (var unitConfig in squadToSpawn)
         {
-            SpawnEnemy(squadType, sp.position);
+            SpawnEnemy(unitConfig, sp.position);
             yield return new WaitForSeconds(fastSpawnDelay);
         }
     }
@@ -115,10 +111,7 @@ public class EnemySpawner : MonoBehaviour
     {
         if (config == null || config.prefab == null) return;
 
-        // Визначаємо позицію
         Vector3 pos = basePos ?? transform.position;
-
-        // Розкид, щоб вороги в загоні не злипалися в одну точку
         pos += new Vector3(Random.Range(-0.4f, 0.4f), Random.Range(-0.8f, 0.8f), 0);
         
         Instantiate(config.prefab, pos, Quaternion.identity);
@@ -131,21 +124,19 @@ public class EnemySpawner : MonoBehaviour
         currentWavePool.Clear();
         bossConfig = isBossWave ? allEnemies.Find(e => e.isBoss) : null;
         cartConfig = isCartWave ? allEnemies.Find(e => e.isCart && e.unlockWave <= wave) : null;
+        elephantConfig = isElephantWave ? allEnemies.Find(e => e.isElephant) : null; // Шукаємо слона
 
-        // Фільтруємо доступних ворогів за рівнем хвилі
         var available = allEnemies
-            .Where(e => e.unlockWave <= wave && !e.isBoss && !e.isCart)
+            .Where(e => e.unlockWave <= wave && !e.isBoss && !e.isCart && !e.isElephant) // Відсікаємо всіх спеціальних
             .OrderByDescending(e => e.unlockWave)
             .ToList();
 
         if (available.Count == 0 && allEnemies.Count > 0) 
             available.Add(allEnemies[0]);
 
-        // ГАРАНТІЯ: додаємо найновішого/найсильнішого ворога
         currentWavePool.Add(available[0]);
         available.RemoveAt(0);
 
-        // Набираємо випадково ще типи для різноманіття (разом 2 або 3 типи)
         int targetTypeCount = Random.Range(2, 4);
         var extraEnemies = available.OrderBy(x => Random.value).ToList();
 
@@ -155,15 +146,15 @@ public class EnemySpawner : MonoBehaviour
             currentWavePool.Add(enemy);
         }
 
-        // Додаємо воза в пул для відображення в UI
         if (cartConfig != null) currentWavePool.Add(cartConfig);
+        if (elephantConfig != null) currentWavePool.Add(elephantConfig);
     }
 
     EnemyConfig GetWeightedRandomEnemy(bool allowCarts)
     {
         if (currentWavePool.Count == 0) return null;
 
-        var pool = allowCarts ? currentWavePool : currentWavePool.Where(e => !e.isCart).ToList();
+        var pool = allowCarts ? currentWavePool : currentWavePool.Where(e => !e.isCart && !e.isElephant && !e.isBoss).ToList();
         if (pool.Count == 0) pool = currentWavePool;
 
         int totalWeight = pool.Sum(e => e.spawnWeight);
@@ -197,16 +188,10 @@ public class EnemySpawner : MonoBehaviour
         
         float waveMultiplier = 1.0f + (currentWaveNumber * 0.1f);
         float avgGold = (float)currentWavePool.Average(e => e.baseGoldReward) * waveMultiplier;
-        
-        // Приблизний розрахунок (приблизно 15 ворогів за хвилю в новій системі загонів)
         return Mathf.RoundToInt(avgGold * 15);
     }
 
-    public void StopSpawning()
-    {
-        StopAllCoroutines();
-    }
-
+    public void StopSpawning() { StopAllCoroutines(); }
     public void ClearEnemies()
     {
         GameObject[] enemies = GameObject.FindGameObjectsWithTag("Enemy");

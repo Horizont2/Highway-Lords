@@ -26,6 +26,9 @@ public class CameraController : MonoBehaviour
     void Update()
     {
         // Не рухаємо камеру, якщо гравець програв
+        if (GameManager.Instance != null && GameManager.Instance.IsAnyPanelOpen()) 
+        return;
+        
         if (GameManager.Instance != null && GameManager.Instance.isDefeated)
             return;
 

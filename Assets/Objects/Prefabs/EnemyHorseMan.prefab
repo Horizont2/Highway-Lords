@@ -138,10 +138,15 @@ MonoBehaviour:
   attackCooldown: 2
   damage: 25
   maxHealth: 90
+  allyLayer:
+    serializedVersion: 2
+    m_Bits: 128
+  stopDistance: 0.6
   obstacleLayer:
     serializedVersion: 2
     m_Bits: 256
   avoidanceForce: 2
+  aggroRadius: 6
 --- !u!50 &674153827350579809
 Rigidbody2D:
   serializedVersion: 5

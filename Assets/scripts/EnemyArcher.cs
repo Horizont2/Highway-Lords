@@ -9,20 +9,20 @@ public class EnemyArcher : MonoBehaviour
 
     [Header("Характеристики")]
     public float speed = 2.5f;
-    public float attackRange = 6.5f;
+    public float attackRange = 6.0f;
     public float timeBetweenShots = 2.0f;
     public int damage = 10;
     public int maxHealth = 40; 
     
+    [Header("Запобігання стеку")]
+    public LayerMask allyLayer; 
+    public float stopDistance = 0.5f;
+
     [Header("Навігація та Агро")]
     public LayerMask obstacleLayer; 
     public float avoidanceForce = 2.0f;
     public float aggroRadius = 8.0f; 
     private float retargetTimer = 0f;
-
-    [Header("Поведінка")]
-    private float safeDistanceBehindTank = 2.0f;
-    private float maxTankWaitDistance = 15.0f; 
 
     [Header("Стрільба")]
     public GameObject arrowPrefab;
@@ -40,6 +40,7 @@ public class EnemyArcher : MonoBehaviour
     private SpriteRenderer spriteRenderer;
 
     private Transform myCart;
+    private float myLaneY;
     private UnitStats myStats;
 
     void Start()
@@ -48,7 +49,6 @@ public class EnemyArcher : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         spriteRenderer = GetComponent<SpriteRenderer>();
         myStats = GetComponent<UnitStats>();
-
         originalScale = transform.localScale;
 
         if (GameManager.Instance != null)
@@ -58,7 +58,7 @@ public class EnemyArcher : MonoBehaviour
             GameManager.Instance.RegisterEnemy();
         }
         
-        currentHealth = maxHealth;
+        currentHealth = maxHealth; 
         _maxHealth = maxHealth;
 
         if (healthBar != null)
@@ -68,24 +68,44 @@ public class EnemyArcher : MonoBehaviour
         }
 
         Cart cartScript = FindFirstObjectByType<Cart>();
-        if (cartScript != null) myCart = cartScript.transform;
+        if (cartScript != null) 
+        {
+            myCart = cartScript.transform;
+        }
+
+        float baseY = (myCart != null) ? myCart.position.y : transform.position.y;
+        float[] laneOffsets = { 0f, -0.8f, -1.6f, -2.4f };
+        myLaneY = baseY + laneOffsets[Random.Range(0, laneOffsets.Length)];
+
+        if (animator != null) 
+        {
+            animator.speed = Random.Range(0.9f, 1.1f);
+        }
+        nextShotTime = Time.time + Random.Range(0f, 0.5f);
     }
 
     void Update()
     {
         if (isDead) return;
 
-        // Якщо стіна уже впала – просто біжимо вліво за екран і не стріляємо
         if (GameManager.Instance != null && GameManager.Instance.isDefeated)
         {
-            target = null;
-            if (animator) animator.SetBool("IsRunning", true);
-            if (rb != null) rb.linearVelocity = new Vector2(-speed, 0f);
+            target = null; 
+            if (animator) 
+            {
+                animator.SetBool("IsRunning", true);
+            }
+            if (rb != null) 
+            {
+                rb.linearVelocity = new Vector2(-speed, 0f); 
+            }
             return;
         }
 
         if (target != null && (target.CompareTag("Untagged") || !target.gameObject.activeInHierarchy)) 
+        {
             target = null;
+        }
 
         retargetTimer -= Time.deltaTime;
         if (retargetTimer <= 0f)
@@ -94,105 +114,62 @@ public class EnemyArcher : MonoBehaviour
             retargetTimer = 0.25f;
         }
 
-        Vector2 finalVelocity = Vector2.zero;
-        bool shouldMove = false;
-
         if (target != null)
         {
-            bool isStructure = target.TryGetComponent<Spikes>(out _) || target.TryGetComponent<Wall>(out _);
-            float distanceToTarget;
-
-            if (isStructure)
-            {
-                Collider2D targetCol = target.GetComponent<Collider2D>();
-                if (targetCol != null) distanceToTarget = Vector2.Distance(transform.position, targetCol.ClosestPoint(transform.position));
-                else distanceToTarget = Mathf.Abs(transform.position.x - target.position.x);
-            }
-            else
-            {
-                distanceToTarget = Vector2.Distance(transform.position, target.position);
-            }
-
             FaceTarget(target.position);
+            float distX = Mathf.Abs(transform.position.x - target.position.x);
 
-            if (distanceToTarget > attackRange)
+            if (distX <= attackRange)
             {
-                if (ShouldWaitForTank())
+                if (Mathf.Abs(transform.position.y - myLaneY) > 0.1f)
                 {
-                    finalVelocity = Vector2.zero;
-                    shouldMove = false;
-                    if (IsBlockingCart()) { finalVelocity = GetDodgeVector(); shouldMove = true; }
+                    Vector3 dest = new Vector3(transform.position.x, myLaneY, transform.position.z);
+                    MoveTowards(dest);
                 }
                 else
                 {
-                    Vector3 targetPosFixed = target.position;
-                    // Лучники не змінюють свій Y кардинально, коли йдуть на замок/барикаду, 
-                    // щоб стріляти рівним фронтом, а не збиратися в купу.
-                    if (isStructure) 
-                    {
-                        targetPosFixed.y = transform.position.y;
+                    StopMoving();
+                    AimAtTarget();
+                    if (Time.time > nextShotTime) 
+                    { 
+                        if (animator != null) animator.SetTrigger("Attack"); 
+                        nextShotTime = Time.time + timeBetweenShots; 
                     }
-
-                    Vector2 direction = (targetPosFixed - transform.position).normalized;
-                    if (IsBlockingCart()) direction = ApplyCartAvoidance(direction);
-                    direction = ApplyWallAvoidance(direction);
-
-                    finalVelocity = direction * speed;
-                    shouldMove = true;
-                    if (firePoint) firePoint.localRotation = Quaternion.identity;
                 }
             }
             else
             {
-                if (IsBlockingCart())
-                {
-                    finalVelocity = GetDodgeVector();
-                    shouldMove = true;
-                }
-                else
-                {
-                    AimAtTarget();
-                    if (Time.time > nextShotTime)
-                    {
-                        if (animator != null) animator.SetTrigger("Attack"); 
-                        nextShotTime = Time.time + timeBetweenShots;
-                    }
-                }
+                Vector3 dest = new Vector3(target.position.x, myLaneY, transform.position.z);
+                MoveTowards(dest);
             }
         }
         else
         {
-            if (!ShouldWaitForTank())
-            {
-                Vector3 destination = transform.position + Vector3.left;
-                FaceTarget(destination);
-                Vector2 direction = (destination - transform.position).normalized;
-                if (IsBlockingCart()) direction = ApplyCartAvoidance(direction);
-                direction = ApplyWallAvoidance(direction);
-
-                finalVelocity = direction * speed;
-                shouldMove = true;
-            }
+            Vector3 destination = new Vector3(transform.position.x - 5f, myLaneY, transform.position.z);
+            FaceTarget(destination); 
+            MoveTowards(destination);
         }
+    }
 
-        rb.linearVelocity = finalVelocity; 
-        if (animator) animator.SetBool("IsRunning", shouldMove);
+    void StopMoving() 
+    { 
+        rb.linearVelocity = Vector2.zero; 
+        if (animator) 
+        {
+            animator.SetBool("IsRunning", false); 
+        }
     }
 
     void FindTarget()
     {
-        float minDistance = Mathf.Infinity;
+        float minDistance = Mathf.Infinity; 
         Transform closestUnit = null;
 
         void CheckDistance(Transform t)
         {
             if (t == null || !t.gameObject.activeInHierarchy || t.CompareTag("Untagged")) return;
             float dist = Vector2.Distance(transform.position, t.position);
-            if (dist < minDistance)
-            {
-                minDistance = dist;
-                closestUnit = t;
-            }
+            if (dist < minDistance) { minDistance = dist; closestUnit = t; }
         }
 
         Knight[] knights = FindObjectsByType<Knight>(FindObjectsSortMode.None);
@@ -204,46 +181,28 @@ public class EnemyArcher : MonoBehaviour
         Spearman[] spearmen = FindObjectsByType<Spearman>(FindObjectsSortMode.None); 
         foreach (Spearman s in spearmen) CheckDistance(s.transform);
 
-        if (GameManager.Instance != null && GameManager.Instance.currentSpikes != null)
+        if (GameManager.Instance != null && GameManager.Instance.currentSpikes != null) 
+        {
             CheckDistance(GameManager.Instance.currentSpikes.transform);
+        }
 
-        if (closestUnit != null && minDistance <= aggroRadius)
+        if (closestUnit != null && minDistance <= aggroRadius) 
         {
             target = closestUnit;
         }
-        else
+        else if (GameManager.Instance != null && GameManager.Instance.castle != null) 
         {
-            if (GameManager.Instance != null && GameManager.Instance.castle != null)
-            {
-                target = GameManager.Instance.castle.transform;
-            }
-            else
-            {
-                target = null;
-            }
+            target = GameManager.Instance.castle.transform;
+        }
+        else 
+        {
+            target = null;
         }
     }
 
     public void ShootArrow()
     {
-        if (isDead) return;
-        if (target == null || target.CompareTag("Untagged") || !target.gameObject.activeInHierarchy) return;
-
-        bool isStructure = target.TryGetComponent<Spikes>(out _) || target.TryGetComponent<Wall>(out _);
-        float dist;
-
-        if (isStructure)
-        {
-            Collider2D targetCol = target.GetComponent<Collider2D>();
-            if (targetCol != null) dist = Vector2.Distance(transform.position, targetCol.ClosestPoint(transform.position));
-            else dist = Mathf.Abs(transform.position.x - target.position.x);
-        }
-        else
-        {
-            dist = Vector2.Distance(transform.position, target.position);
-        }
-
-        if (dist > attackRange + 1.5f) return;
+        if (isDead || target == null || target.CompareTag("Untagged") || !target.gameObject.activeInHierarchy) return;
 
         if (arrowPrefab != null && firePoint != null)
         {
@@ -254,101 +213,66 @@ public class EnemyArcher : MonoBehaviour
             if (p != null)
             {
                 int finalDamage = damage;
-                
                 if (myStats != null)
                 {
                     UnitStats targetStats = target.GetComponent<UnitStats>();
-                    if (targetStats != null)
+                    if (targetStats != null) 
                     {
                         float multiplier = GameManager.GetDamageMultiplier(myStats.category, targetStats.category);
                         finalDamage = Mathf.RoundToInt(damage * multiplier);
                     }
                 }
-
                 p.Initialize(target.position, finalDamage);
             }
             
-            if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.arrowShoot);
-        }
-    }
-
-    Vector2 GetDodgeVector()
-    {
-        Vector2 evadeDir = (transform.position.y > myCart.position.y) ? Vector2.up : Vector2.down;
-        return evadeDir * speed;
-    }
-
-    Vector2 ApplyCartAvoidance(Vector2 dir)
-    {
-        float yDiff = transform.position.y - myCart.position.y;
-        float avoidY = yDiff > 0 ? 1f : -1f;
-        dir.y += avoidY * 2.5f;
-        return dir.normalized;
-    }
-
-    Vector2 ApplyWallAvoidance(Vector2 dir)
-    {
-        RaycastHit2D hit = Physics2D.Raycast(transform.position, dir, 1.5f, obstacleLayer);
-        if (hit.collider != null)
-        {
-            bool hitMyTarget = false;
-            if (target != null)
+            if (SoundManager.Instance != null) 
             {
-                if (hit.collider.transform == target || hit.collider.transform.IsChildOf(target))
-                {
-                    hitMyTarget = true;
-                }
-            }
-
-            if (!hitMyTarget)
-            {
-                dir += hit.normal * avoidanceForce;
-                return dir.normalized;
+                SoundManager.Instance.PlaySFX(SoundManager.Instance.arrowShoot);
             }
         }
-        return dir;
     }
 
-    bool ShouldWaitForTank()
+    void MoveTowards(Vector3 destination)
     {
-        Guard[] guards = FindObjectsByType<Guard>(FindObjectsSortMode.None);
+        if (Vector2.Distance(transform.position, destination) < 0.05f) 
+        { 
+            StopMoving(); 
+            return; 
+        }
+
+        Vector2 direction = (destination - transform.position).normalized;
+        Vector2 rayOrigin = transform.position + Vector3.up * 0.3f;
+        Vector2 checkDir = new Vector2(direction.x, 0).normalized; 
+        RaycastHit2D allyHit = Physics2D.CircleCast(rayOrigin, 0.3f, checkDir, stopDistance, allyLayer);
         
-        float myX = transform.position.x;
-        float forwardMostX = 9999f; 
-        bool hasRelevantTank = false;
-
-        foreach (Guard g in guards) 
+        if (allyHit.collider != null && allyHit.collider.gameObject != gameObject)
         {
-            if (g.CompareTag("Untagged")) continue;
-
-            float guardX = g.transform.position.x;
-            float distanceToGuard = Mathf.Abs(myX - guardX);
-
-            if (guardX < myX && distanceToGuard < maxTankWaitDistance) 
+            if (Mathf.Abs(allyHit.collider.transform.position.y - transform.position.y) < 0.4f) 
             { 
-                if (guardX < forwardMostX) forwardMostX = guardX; 
-                hasRelevantTank = true; 
+                StopMoving(); 
+                return; 
             }
         }
 
-        return hasRelevantTank && myX < (forwardMostX + safeDistanceBehindTank);
-    }
-
-    bool IsBlockingCart()
-    {
-        if (myCart == null) return false;
-        if (transform.position.x < myCart.position.x && Vector2.Distance(transform.position, myCart.position) < 3.5f)
-            if (Mathf.Abs(transform.position.y - myCart.position.y) < 1.2f) return true;
-        return false;
+        if (animator) 
+        {
+            animator.SetBool("IsRunning", true);
+        }
+        
+        rb.linearVelocity = direction * speed;
     }
 
     void FaceTarget(Vector3 targetPos)
     {
         float absX = Mathf.Abs(originalScale.x);
-        if (targetPos.x > transform.position.x)
+        if (targetPos.x > transform.position.x) 
+        {
             transform.localScale = new Vector3(absX, originalScale.y, originalScale.z); 
-        else
+        }
+        else 
+        {
             transform.localScale = new Vector3(-absX, originalScale.y, originalScale.z); 
+        }
     }
 
     void AimAtTarget()
@@ -356,7 +280,11 @@ public class EnemyArcher : MonoBehaviour
         if (firePoint != null && target != null)
         {
             Vector3 direction = target.position - firePoint.position;
-            if (transform.localScale.x < 0) { direction.x = -direction.x; direction.y = -direction.y; }
+            if (transform.localScale.x < 0) 
+            { 
+                direction.x = -direction.x; 
+                direction.y = -direction.y; 
+            }
             float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
             firePoint.localRotation = Quaternion.Euler(0, 0, angle);
         }
@@ -366,51 +294,76 @@ public class EnemyArcher : MonoBehaviour
     {
         if (isDead) return;
         currentHealth -= damageAmount;
-        if (healthBar != null) healthBar.SetHealth(currentHealth, _maxHealth);
+        
+        if (healthBar != null) 
+        {
+            healthBar.SetHealth(currentHealth, _maxHealth);
+        }
         
         GameManager.CreateDamagePopup(transform.position, damageAmount);
         
-        if (currentHealth <= 0) Die();
+        if (currentHealth <= 0) 
+        {
+            Die();
+        }
     }
 
     void Die()
     {
         if (isDead) return;
-        isDead = true;
-        
+        isDead = true; 
         gameObject.tag = "Untagged";
         
-        if (healthBar != null) healthBar.gameObject.SetActive(false);
-        Transform shadow = transform.Find("Shadow");
-        if (shadow != null) shadow.gameObject.SetActive(false);
+        StopMoving(); 
+        rb.bodyType = RigidbodyType2D.Static;
         
-        if (TryGetComponent<EnemyStats>(out EnemyStats stats))
+        Collider2D col = GetComponent<Collider2D>(); 
+        if (col != null) 
+        {
+            col.enabled = false;
+        }
+        
+        if (healthBar != null) 
+        {
+            healthBar.gameObject.SetActive(false);
+        }
+        
+        Transform shadow = transform.Find("Shadow"); 
+        if (shadow != null) 
+        {
+            shadow.gameObject.SetActive(false);
+        }
+        
+        if (TryGetComponent<EnemyStats>(out EnemyStats stats)) 
         {
             stats.GiveGold();
         }
-        else
+        else if (GameManager.Instance != null) 
         {
-            if (GameManager.Instance != null) GameManager.Instance.UnregisterEnemy();
+            GameManager.Instance.UnregisterEnemy();
         }
         
-        if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.enemyDeath);
+        if (SoundManager.Instance != null) 
+        {
+            SoundManager.Instance.PlaySFX(SoundManager.Instance.enemyDeath);
+        }
         
         if (animator) 
-        {
+        { 
             animator.Rebind(); 
             animator.Update(0f); 
-            animator.enabled = false;
+            animator.enabled = false; 
         }
-
-        if (rb) { rb.linearVelocity = Vector2.zero; rb.bodyType = RigidbodyType2D.Static; }
-        
-        Collider2D col = GetComponent<Collider2D>();
-        if (col) col.enabled = false;
         
         transform.Rotate(0, 0, -90);
-        if (spriteRenderer != null) { spriteRenderer.color = new Color(0.6f, 0.6f, 0.6f); spriteRenderer.sortingOrder = 0; }
         
-        this.enabled = false;
+        if (spriteRenderer != null) 
+        { 
+            spriteRenderer.color = Color.gray; 
+            spriteRenderer.sortingOrder = 0; 
+        }
+        
+        this.enabled = false; 
         Destroy(gameObject, 5f);
     }
 }

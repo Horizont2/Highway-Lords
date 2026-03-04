@@ -16,6 +16,7 @@ GameObject:
   - component: {fileID: 5623369616671492540}
   - component: {fileID: -5343067577273034550}
   - component: {fileID: -8034015485172157605}
+  - component: {fileID: 2319109693727612147}
   m_Layer: 7
   m_Name: Warrior
   m_TagString: Enemy
@@ -137,11 +138,15 @@ MonoBehaviour:
   attackRange: 1
   damage: 15
   health: 60
-  goldReward: 15
+  allyLayer:
+    serializedVersion: 2
+    m_Bits: 128
+  stopDistance: 0.6
   obstacleLayer:
     serializedVersion: 2
     m_Bits: 256
   avoidanceForce: 2
+  aggroRadius: 3.5
   attackCooldown: 1.5
 --- !u!50 &7558637577704485117
 Rigidbody2D:
@@ -232,6 +237,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UnitStats
   category: 0
+--- !u!114 &2319109693727612147
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1433358896237211573}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e24c8a0e4c32de341be2bc8c90c77f1c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyStats
+  baseGoldReward: 15
+  currentGoldReward: 0
 --- !u!1 &3372462893775986678
 GameObject:
   m_ObjectHideFlags: 0
