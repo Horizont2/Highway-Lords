@@ -138,10 +138,6 @@ MonoBehaviour:
   attackCooldown: 2
   damage: 25
   maxHealth: 90
-  allyLayer:
-    serializedVersion: 2
-    m_Bits: 128
-  stopDistance: 0.6
   obstacleLayer:
     serializedVersion: 2
     m_Bits: 256
@@ -245,7 +241,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e24c8a0e4c32de341be2bc8c90c77f1c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyStats
-  baseGoldReward: 35
+  baseGoldReward: 25
   currentGoldReward: 0
 --- !u!1 &2543682886453868071
 GameObject:

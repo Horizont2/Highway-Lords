@@ -9,7 +9,7 @@ public class EnemyElephant : MonoBehaviour
     public int damage = 40;
     
     [Header("Атака")]
-    public float attackRange = 2.5f; // Більший радіус атаки через розмір
+    public float attackRange = 2.5f; 
     public float attackCooldown = 3.0f;
     private float lastAttackTime = 0f;
 
@@ -19,16 +19,33 @@ public class EnemyElephant : MonoBehaviour
     private Transform targetCastle;
     private bool isDead = false;
 
+    private float _baseMaxHealth;
+    private int _baseDamage;
+    private int _baseGoldReward;
+
+    void Awake()
+    {
+        _baseMaxHealth = maxHealth;
+        _baseDamage = damage;
+        _baseGoldReward = goldReward;
+    }
+
     void Start()
     {
         anim = GetComponent<Animator>();
+
+        if (GameManager.Instance != null)
+        {
+            int wave = GameManager.Instance.currentWave;
+            maxHealth = EconomyConfig.GetEnemyHealth(Mathf.RoundToInt(_baseMaxHealth), wave);
+            damage = EconomyConfig.GetEnemyDamage(_baseDamage, wave);
+            goldReward = EconomyConfig.GetEnemyGoldDrop(_baseGoldReward, wave);
+        }
+
         currentHealth = maxHealth;
 
-        // Пошук замку
         if (GameManager.Instance != null && GameManager.Instance.castle != null)
-        {
             targetCastle = GameManager.Instance.castle.transform;
-        }
     }
 
     void Update()
@@ -39,19 +56,13 @@ public class EnemyElephant : MonoBehaviour
 
         if (distanceToCastle > attackRange)
         {
-            // Йдемо до замку
             transform.position = Vector3.MoveTowards(transform.position, targetCastle.position, moveSpeed * Time.deltaTime);
             anim.SetBool("isWalking", true);
         }
         else
         {
-            // Стоїмо і б'ємо
             anim.SetBool("isWalking", false);
-
-            if (Time.time - lastAttackTime >= attackCooldown)
-            {
-                Attack();
-            }
+            if (Time.time - lastAttackTime >= attackCooldown) Attack();
         }
     }
 
@@ -60,15 +71,12 @@ public class EnemyElephant : MonoBehaviour
         lastAttackTime = Time.time;
         anim.SetTrigger("Attack");
 
-        // Урон по замку (викликається через Animation Event або прямо тут)
         if (GameManager.Instance != null && GameManager.Instance.castle != null)
         {
             GameManager.Instance.castle.TakeDamage(damage);
             GameManager.Instance.ShowDamage(damage, targetCastle.position);
             
-            // Звук атаки слона
-            if (SoundManager.Instance != null) 
-                SoundManager.Instance.PlaySFX(SoundManager.Instance.heavyHitSound);
+            if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.heavyHitSound);
         }
     }
 
@@ -79,10 +87,7 @@ public class EnemyElephant : MonoBehaviour
         currentHealth -= amount;
         GameManager.CreateDamagePopup(transform.position + Vector3.up, Mathf.RoundToInt(amount));
 
-        if (currentHealth <= 0)
-        {
-            Die();
-        }
+        if (currentHealth <= 0) Die();
     }
 
     void Die()
@@ -90,8 +95,6 @@ public class EnemyElephant : MonoBehaviour
         isDead = true;
         anim.SetTrigger("Die");
         GetComponent<Collider2D>().enabled = false;
-        
-        // Вимикаємо скрипт, щоб він не рухався під час анімації смерті
         this.enabled = false;
 
         if (GameManager.Instance != null)
@@ -101,6 +104,6 @@ public class EnemyElephant : MonoBehaviour
             GameManager.Instance.UnregisterEnemy();
         }
 
-        Destroy(gameObject, 3f); // Зникає через 3 секунди після смерті
+        Destroy(gameObject, 3f); 
     }
 }

@@ -7,7 +7,7 @@ public class SkillManager : MonoBehaviour
 {
     [Header("Налаштування")]
     public GameObject rainArrowPrefab; 
-    public GameObject aimingReticle;   // Сюди кидаємо ПРЕФАБ з папки
+    public GameObject aimingReticle;   
     public Button skillButton;         
     public Image cooldownOverlay;      
     public GameObject lockIcon;        
@@ -19,15 +19,13 @@ public class SkillManager : MonoBehaviour
     [Header("Баланс")]
     public int unlockWave = 30;        
     public float cooldownTime = 15f;   
-    public int arrowsCount = 20;       
+    public int baseArrowsCount = 20;       
     public float radius = 3.0f;        
 
     private bool isUnlocked = false;
     private bool isAiming = false;
     private bool isCooldown = false;
     private Camera mainCam;
-    
-    // Змінна для реального об'єкта прицілу на сцені
     private GameObject currentReticleInstance; 
 
     void Start()
@@ -35,16 +33,13 @@ public class SkillManager : MonoBehaviour
         mainCam = Camera.main;
         if (mainCam == null) mainCam = FindFirstObjectByType<Camera>();
 
-        // Створюємо копію прицілу з префабу на старті гри
         if (aimingReticle != null) 
         {
             currentReticleInstance = Instantiate(aimingReticle);
             currentReticleInstance.transform.SetParent(null);
             
-            // Налаштовуємо правильний розмір
             float s = radius * 2f;
             currentReticleInstance.transform.localScale = new Vector3(s, s, 1f);
-            
             currentReticleInstance.SetActive(false);
         }
         
@@ -66,19 +61,16 @@ public class SkillManager : MonoBehaviour
             if (mainCam == null) mainCam = FindFirstObjectByType<Camera>();
             if (mainCam == null) return;
 
-            // Зчитуємо позицію миші
             Vector3 rawMousePos = Input.mousePosition;
             Vector2 mouseWorld2D = mainCam.ScreenToWorldPoint(rawMousePos);
             Vector3 finalReticlePos = new Vector3(mouseWorld2D.x, mouseWorld2D.y, -5f);
 
-            // Рухаємо СТВОРЕНИЙ приціл
             if (currentReticleInstance != null)
             {
                 currentReticleInstance.transform.position = finalReticlePos;
                 if (!currentReticleInstance.activeSelf) currentReticleInstance.SetActive(true);
             }
 
-            // ЛКМ - Постріл
             if (Input.GetMouseButtonDown(0))
             {
                 if (EventSystem.current != null && !EventSystem.current.IsPointerOverGameObject())
@@ -87,7 +79,6 @@ public class SkillManager : MonoBehaviour
                     StopAiming();
                 }
             }
-            // ПКМ - Відміна
             else if (Input.GetMouseButtonDown(1))
             {
                 StopAiming();
@@ -98,7 +89,6 @@ public class SkillManager : MonoBehaviour
     public void OnSkillButtonClick()
     {
         if (!isUnlocked || isCooldown) return;
-
         if (isAiming) StopAiming();
         else StartAiming();
     }
@@ -106,24 +96,14 @@ public class SkillManager : MonoBehaviour
     void StartAiming()
     {
         isAiming = true;
-        
-        if (currentReticleInstance != null)
-        {
-            currentReticleInstance.SetActive(true);
-        }
-        
+        if (currentReticleInstance != null) currentReticleInstance.SetActive(true);
         if (skillButton) skillButton.image.color = selectedColor;
     }
 
     void StopAiming()
     {
         isAiming = false;
-        
-        if (currentReticleInstance != null) 
-        {
-            currentReticleInstance.SetActive(false);
-        }
-        
+        if (currentReticleInstance != null) currentReticleInstance.SetActive(false);
         if (skillButton && !isCooldown) skillButton.image.color = normalColor;
     }
 
@@ -150,7 +130,7 @@ public class SkillManager : MonoBehaviour
                 }
             }
         }
-        else { isUnlocked = true; } // Для тестів
+        else { isUnlocked = true; } 
     }
 
     IEnumerator CastArrowRain(Vector3 targetPos)
@@ -158,14 +138,21 @@ public class SkillManager : MonoBehaviour
         StartCoroutine(CooldownRoutine());
         if (SoundManager.Instance) SoundManager.Instance.PlaySFX(SoundManager.Instance.arrowShoot); 
 
-        for (int i = 0; i < arrowsCount; i++)
+        int totalArrows = baseArrowsCount;
+        
+        if (GameManager.Instance != null)
+        {
+            // БОНУС ДО КІЛЬКОСТІ СТРІЛ УВІМКНЕНО!
+            totalArrows += GameManager.Instance.metaVolleyBarrage;
+        }
+
+        for (int i = 0; i < totalArrows; i++)
         {
             float offsetX = Random.Range(-radius, radius);
             Vector3 spawnPos = new Vector3(targetPos.x + offsetX - 3f, targetPos.y + 12f, -2f);
             Vector3 hitPos = new Vector3(targetPos.x + offsetX, targetPos.y, -2f);
 
             GameObject arrow = Instantiate(rainArrowPrefab, spawnPos, Quaternion.identity);
-            
             SpriteRenderer sr = arrow.GetComponent<SpriteRenderer>();
             if(sr != null) sr.sortingOrder = 2001;
 
@@ -173,7 +160,7 @@ public class SkillManager : MonoBehaviour
             float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
             arrow.transform.rotation = Quaternion.Euler(0, 0, angle);
 
-            yield return new WaitForSeconds(Random.Range(0.05f, 0.1f));
+            yield return new WaitForSeconds(Random.Range(0.04f, 0.08f));
         }
     }
 

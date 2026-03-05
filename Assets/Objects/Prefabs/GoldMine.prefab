@@ -174,7 +174,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7e96bfcb696276d45abf163ebf563dd0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GoldMine
-  productionInterval: 5
+  productionInterval: 10
   baseGoldAmount: 10
-  increasePerLevel: 5
   miningEffect: {fileID: 0}

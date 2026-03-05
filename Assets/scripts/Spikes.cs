@@ -3,86 +3,66 @@ using UnityEngine;
 public class Spikes : MonoBehaviour
 {
     [Header("UI")]
-    public HealthBar healthBar; // Не забудь перетягнути сюди HealthBarCanvas з префабу
+    public HealthBar healthBar; 
 
     [Header("Характеристики")]
-    public int health = 300; 
+    public int baseHealth = 300; 
+    private int currentHealth;
     private int maxHealth;
 
     [Header("Ефекти")]
-    public GameObject destroyEffect; // Опціонально: ефект вибуху/трісок
+    public GameObject destroyEffect; 
 
     void Start()
     {
-        maxHealth = health;
-
-        // 1. Реєструємось у GameManager
+        // === НОВА ЕКОНОМІКА: Здоров'я барикади росте разом із хвилями ===
         if (GameManager.Instance != null)
         {
-            // Якщо раптом стара барикада ще існує - видаляємо її
+            int wave = GameManager.Instance.currentWave;
+            // Використовуємо криву ворогів, щоб барикада завжди тримала удар пропорційно етапу гри
+            maxHealth = EconomyConfig.GetEnemyHealth(baseHealth, wave);
+            
             if (GameManager.Instance.currentSpikes != null && GameManager.Instance.currentSpikes != this)
             {
                 Destroy(GameManager.Instance.currentSpikes.gameObject);
             }
             GameManager.Instance.currentSpikes = this;
         }
+        else
+        {
+            maxHealth = baseHealth;
+        }
 
-        // 2. Налаштовуємо Health Bar
+        currentHealth = maxHealth;
+
         if (healthBar != null)
         {
-            healthBar.targetTransform = transform; // Прив'язуємо бар до барикади
-            healthBar.SetHealth(health, maxHealth);
+            healthBar.targetTransform = transform; 
+            healthBar.SetHealth(currentHealth, maxHealth);
         }
     }
 
     public void TakeDamage(int damage)
     {
-        health -= damage;
+        currentHealth -= damage;
 
-        // Оновлюємо смужку життя
-        if (healthBar != null)
-        {
-            healthBar.SetHealth(health, maxHealth);
-        }
+        if (healthBar != null) healthBar.SetHealth(currentHealth, maxHealth);
+        if (GameManager.Instance != null) GameManager.Instance.ShowDamage(damage, transform.position);
+        if (CameraShake.Instance != null) CameraShake.Instance.Shake(0.05f, 0.1f);
 
-        // Показуємо цифри шкоди
-        if (GameManager.Instance != null)
-        {
-            GameManager.Instance.ShowDamage(damage, transform.position);
-        }
-        
-        // Легка тряска камери
-        if (CameraShake.Instance != null) 
-        {
-            CameraShake.Instance.Shake(0.05f, 0.1f);
-        }
-
-        if (health <= 0)
-        {
-            BreakSpikes();
-        }
+        if (currentHealth <= 0) BreakSpikes();
     }
 
     void BreakSpikes()
     {
-        // Повідомляємо менеджеру, що барикади більше немає
         if (GameManager.Instance != null)
         {
             GameManager.Instance.currentSpikes = null;
-            GameManager.Instance.UpdateUI(); // Оновлюємо кнопку, щоб можна було будувати знову
+            GameManager.Instance.UpdateUI(); 
         }
 
-        // Звук руйнування (використовуємо castleDamage, щоб не було помилок)
-        if (SoundManager.Instance != null)
-        {
-            SoundManager.Instance.PlaySFX(SoundManager.Instance.castleDamage);
-        }
-
-        // Ефект руйнування
-        if (destroyEffect != null)
-        {
-            Instantiate(destroyEffect, transform.position, Quaternion.identity);
-        }
+        if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.castleDamage);
+        if (destroyEffect != null) Instantiate(destroyEffect, transform.position, Quaternion.identity);
 
         Destroy(gameObject);
     }

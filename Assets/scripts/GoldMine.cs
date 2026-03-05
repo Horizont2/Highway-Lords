@@ -5,11 +5,10 @@ public class GoldMine : MonoBehaviour
 {
     [Header("Налаштування")]
     public float productionInterval = 5f; // Як часто дає золото (секунди)
-    public int baseGoldAmount = 10;       // Базовий дохід на 1 рівні
-    public int increasePerLevel = 5;      // +5 золота за кожен наступний рівень
+    public int baseGoldAmount = 10;       // Базовий дохід
 
     [Header("Візуал")]
-    public GameObject miningEffect; // (Опціонально) Партикли при видобутку
+    public GameObject miningEffect; // Партикли при видобутку
 
     private void Start()
     {
@@ -24,20 +23,26 @@ public class GoldMine : MonoBehaviour
 
             if (GameManager.Instance != null)
             {
-                // Отримуємо поточний рівень шахти з менеджера
                 int currentLevel = GameManager.Instance.mineLevel;
-                
-                // Якщо раптом рівень 0 (помилка), вважаємо як 1
                 if (currentLevel < 1) currentLevel = 1;
 
-                // Формула: База + (Рівень - 1) * Приріст
-                int amount = baseGoldAmount + ((currentLevel - 1) * increasePerLevel);
+                // === НОВА ЕКОНОМІКА: Квадратичне зростання доходу ===
+                // База + (Рівень * 10) + (Рівень^2 * 0.2)
+                int amount = Mathf.RoundToInt(baseGoldAmount + (currentLevel * 10f) + (Mathf.Pow(currentLevel, 2) * 0.2f));
+
+                // Місце для майбутнього бонусу за кристали (Mine Income)
+                /*
+                if (BonusManager.Instance != null) 
+                {
+                    amount = Mathf.RoundToInt(amount * BonusManager.Instance.GetMineIncomeMultiplier());
+                }
+                */
 
                 // Додаємо золото
                 GameManager.Instance.AddResource(ResourceType.Gold, amount);
                 GameManager.Instance.ShowResourcePopup(ResourceType.Gold, amount, transform.position);
 
-                // Ефект (якщо є)
+                // Ефект
                 if (miningEffect != null) Instantiate(miningEffect, transform.position, Quaternion.identity);
             }
         }

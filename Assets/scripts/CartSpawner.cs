@@ -2,8 +2,8 @@ using UnityEngine;
 
 public class CartSpawner : MonoBehaviour
 {
-    public GameObject cartPrefab; // Шаблон воза
-    public float spawnRate = 3f;  // Раз на скільки секунд
+    public GameObject cartPrefab; 
+    public float spawnRate = 3f;  
     float nextSpawn = 0f;
 
     void Update()
@@ -17,7 +17,6 @@ public class CartSpawner : MonoBehaviour
 
     void SpawnCart()
     {
-        // Створюємо віз у позиції спавнера
         Instantiate(cartPrefab, transform.position, Quaternion.identity);
     }
 }

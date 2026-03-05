@@ -1,0 +1,620 @@
+fileFormatVersion: 2
+guid: e318167b6a07330499d65a14990f5e91
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -8770457531803952965
+    second: BonusPanel_0
+  - first:
+      213: -4169798562427601176
+    second: BonusPanel_1
+  - first:
+      213: 575819074338724717
+    second: BonusPanel_2
+  - first:
+      213: -5196459438809996723
+    second: BonusPanel_3
+  - first:
+      213: 2321213898107441941
+    second: BonusPanel_4
+  - first:
+      213: -5829990290564113553
+    second: BonusPanel_5
+  - first:
+      213: -6892605674712563565
+    second: BonusPanel_6
+  - first:
+      213: 2615391132573784545
+    second: BonusPanel_7
+  - first:
+      213: -569279445556265138
+    second: BonusPanel_8
+  - first:
+      213: 7610215708312102003
+    second: BonusPanel_9
+  - first:
+      213: 756613198428352073
+    second: BonusPanel_10
+  - first:
+      213: 7304927351742162829
+    second: BonusPanel_11
+  - first:
+      213: 3179706985010223226
+    second: BonusPanel_12
+  - first:
+      213: -5845851679650754714
+    second: BonusPanel_13
+  - first:
+      213: -4953567717328306597
+    second: BonusPanel_14
+  - first:
+      213: -8714333563518999846
+    second: BonusPanel_15
+  - first:
+      213: 7653495456461868171
+    second: BonusPanel_16
+  - first:
+      213: -7116458752585561106
+    second: BonusPanel_17
+  - first:
+      213: -4191286073959080968
+    second: BonusPanel_18
+  - first:
+      213: 8558833530299379008
+    second: BonusPanel_19
+  - first:
+      213: 8539034344146130363
+    second: BonusPanel_20
+  - first:
+      213: -705369039689697701
+    second: BonusPanel_21
+  - first:
+      213: -7258854041557104153
+    second: BonusPanel_22
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 0
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: BonusPanel_0
+      rect:
+        serializedVersion: 2
+        x: 113
+        y: 1220
+        width: 760
+        height: 835
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bb81d2bb753194680800000000000000
+      internalID: -8770457531803952965
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BonusPanel_1
+      rect:
+        serializedVersion: 2
+        x: 933
+        y: 1350
+        width: 580
+        height: 712
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8ee719dcc46e126c0800000000000000
+      internalID: -4169798562427601176
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BonusPanel_2
+      rect:
+        serializedVersion: 2
+        x: 1590
+        y: 572
+        width: 1923
+        height: 1508
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d6b9ad4b568bdf700800000000000000
+      internalID: 575819074338724717
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BonusPanel_3
+      rect:
+        serializedVersion: 2
+        x: 3560
+        y: 1812
+        width: 193
+        height: 260
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d4221042ca772e7b0800000000000000
+      internalID: -5196459438809996723
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BonusPanel_4
+      rect:
+        serializedVersion: 2
+        x: 3888
+        y: 1845
+        width: 785
+        height: 195
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 513d464fdbb963020800000000000000
+      internalID: 2321213898107441941
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BonusPanel_5
+      rect:
+        serializedVersion: 2
+        x: 4773
+        y: 1837
+        width: 202
+        height: 208
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f6b13f628b6b71fa0800000000000000
+      internalID: -5829990290564113553
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BonusPanel_6
+      rect:
+        serializedVersion: 2
+        x: 3673
+        y: 1440
+        width: 347
+        height: 350
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3908aed48ab8850a0800000000000000
+      internalID: -6892605674712563565
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BonusPanel_7
+      rect:
+        serializedVersion: 2
+        x: 4168
+        y: 1440
+        width: 342
+        height: 350
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1e954cdc06cbb4420800000000000000
+      internalID: 2615391132573784545
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BonusPanel_8
+      rect:
+        serializedVersion: 2
+        x: 4615
+        y: 1440
+        width: 340
+        height: 347
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e4fffa54c538918f0800000000000000
+      internalID: -569279445556265138
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BonusPanel_14
+      rect:
+        serializedVersion: 2
+        x: 3655
+        y: 677
+        width: 375
+        height: 390
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b5ebdcdf764614bb0800000000000000
+      internalID: -4953567717328306597
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BonusPanel_15
+      rect:
+        serializedVersion: 2
+        x: 4133
+        y: 677
+        width: 377
+        height: 390
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ad2af246bc7701780800000000000000
+      internalID: -8714333563518999846
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BonusPanel_16
+      rect:
+        serializedVersion: 2
+        x: 4600
+        y: 677
+        width: 380
+        height: 390
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b8cc974519da63a60800000000000000
+      internalID: 7653495456461868171
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BonusPanel_17
+      rect:
+        serializedVersion: 2
+        x: 128
+        y: 122
+        width: 1355
+        height: 283
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: eeb0b6918724d3d90800000000000000
+      internalID: -7116458752585561106
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BonusPanel_18
+      rect:
+        serializedVersion: 2
+        x: 1665
+        y: 132
+        width: 1353
+        height: 370
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8fb90a9a58f85d5c0800000000000000
+      internalID: -4191286073959080968
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BonusPanel_19
+      rect:
+        serializedVersion: 2
+        x: 3128
+        y: 100
+        width: 407
+        height: 400
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 04d6239cfb517c670800000000000000
+      internalID: 8558833530299379008
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BonusPanel_20
+      rect:
+        serializedVersion: 2
+        x: 3685
+        y: 95
+        width: 310
+        height: 440
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bb5d0b78e7eb08670800000000000000
+      internalID: 8539034344146130363
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BonusPanel_21
+      rect:
+        serializedVersion: 2
+        x: 4098
+        y: 137
+        width: 397
+        height: 385
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b56bcb978960636f0800000000000000
+      internalID: -705369039689697701
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BonusPanel_22
+      rect:
+        serializedVersion: 2
+        x: 4593
+        y: 112
+        width: 417
+        height: 425
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7e9849055be534b90800000000000000
+      internalID: -7258854041557104153
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: c3013080f330ee243b5749db2a559b0a
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries:
+      - key: SpriteEditor.SliceSettings
+        value: '{"sliceOnImport":false,"gridCellCount":{"x":1.0,"y":1.0},"gridSpriteSize":{"x":64.0,"y":64.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.5,"y":0.5},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":0,"pivotUnitMode":0,"slicingType":0,"keepEmptyRects":false,"isAlternate":false}'
+    nameFileIdTable:
+      BonusPanel_0: -8770457531803952965
+      BonusPanel_1: -4169798562427601176
+      BonusPanel_10: 756613198428352073
+      BonusPanel_11: 7304927351742162829
+      BonusPanel_12: 3179706985010223226
+      BonusPanel_13: -5845851679650754714
+      BonusPanel_14: -4953567717328306597
+      BonusPanel_15: -8714333563518999846
+      BonusPanel_16: 7653495456461868171
+      BonusPanel_17: -7116458752585561106
+      BonusPanel_18: -4191286073959080968
+      BonusPanel_19: 8558833530299379008
+      BonusPanel_2: 575819074338724717
+      BonusPanel_20: 8539034344146130363
+      BonusPanel_21: -705369039689697701
+      BonusPanel_22: -7258854041557104153
+      BonusPanel_3: -5196459438809996723
+      BonusPanel_4: 2321213898107441941
+      BonusPanel_5: -5829990290564113553
+      BonusPanel_6: -6892605674712563565
+      BonusPanel_7: 2615391132573784545
+      BonusPanel_8: -569279445556265138
+      BonusPanel_9: 7610215708312102003
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

@@ -17,91 +17,71 @@ public class CrossbowTower : MonoBehaviour
 
     void Update()
     {
-        // === 1. ВИБІР ЦІЛІ ===
-        
-        // Спочатку перевіряємо, чи є ручна ціль від гравця
+        // 1. ВИБІР ЦІЛІ
         if (GameManager.Instance != null && GameManager.Instance.manualTarget != null)
         {
             Transform manual = GameManager.Instance.manualTarget;
-            
-            // Перевіряємо, чи ручна ціль валідна
-            if (IsValidTarget(manual))
-            {
-                target = manual;
-            }
-            else
-            {
-                // Ручна ціль померла або вийшла з радіусу -> шукаємо найближчу
-                UpdateTarget();
-            }
+            if (IsValidTarget(manual)) target = manual;
+            else UpdateTarget();
         }
         else
         {
-            // Автоматичний режим
-            // Якщо поточної цілі немає АБО вона стала невалідною (померла/вийшла)
-            if (!IsValidTarget(target))
-            {
-                UpdateTarget();
-            }
+            if (!IsValidTarget(target)) UpdateTarget();
         }
 
-        // === 2. СТРІЛЬБА ===
+        // 2. СТРІЛЬБА ТА ПЕРЕЗАРЯДКА
         if (target != null)
         {
             if (fireCountdown <= 0f)
             {
-                Shoot(); 
-                
-                // === НОВЕ: Беремо час перезарядки з GameManager ===
+                Shoot();
                 if (GameManager.Instance != null)
                 {
                     fireCountdown = GameManager.Instance.GetCrossbowReloadTime();
                 }
-                else
+                else 
                 {
                     fireCountdown = fallbackReloadTime;
                 }
             }
+        }
+
+        if (fireCountdown > 0f)
+        {
             fireCountdown -= Time.deltaTime;
         }
     }
 
-    // Допоміжна функція для перевірки цілі (щоб не дублювати код)
     bool IsValidTarget(Transform t)
     {
         if (t == null) return false;
         if (!t.gameObject.activeInHierarchy) return false;
-        if (t.CompareTag("Untagged")) return false; // Якщо вже труп
-        if (Vector2.Distance(transform.position, t.position) > range) return false;
+        if (t.CompareTag("Untagged")) return false;
         
-        return true;
+        float dist = Vector2.Distance(transform.position, t.position);
+        return dist <= range;
     }
 
     void Shoot()
     {
-        // Контрольна перевірка перед пострілом.
-        // Якщо за час перезарядки ціль померла — скасовуємо постріл.
-        if (!IsValidTarget(target))
-        {
-            target = null;
-            return; // Не стріляємо!
-        }
-
         if (projectilePrefab != null && firePoint != null)
         {
-            GameObject bulletGO = Instantiate(projectilePrefab, firePoint.position, Quaternion.identity);
-            Projectile projectile = bulletGO.GetComponent<Projectile>();
-
-            if (projectile != null)
+            GameObject projGO = Instantiate(projectilePrefab, firePoint.position, firePoint.rotation);
+            
+            int damage = 25; 
+            if (GameManager.Instance != null)
             {
-                int damage = 25; 
-                // === НОВЕ: Беремо урон для Арбалетної башні ===
-                if (GameManager.Instance != null)
-                {
-                    damage = GameManager.Instance.GetCrossbowDamage();
-                }
+                damage = GameManager.Instance.GetCrossbowDamage();
+            }
 
-                projectile.Initialize(target, damage);
+            // ФІКС: Використовуємо правильні класи снарядів
+            if (projGO.TryGetComponent<Projectile>(out Projectile proj))
+            {
+                proj.Initialize(target.position, damage);
+            }
+            else if (projGO.TryGetComponent<Arrow>(out Arrow arrowScript))
+            {
+                arrowScript.Initialize(target, damage);
             }
         }
 
@@ -113,14 +93,12 @@ public class CrossbowTower : MonoBehaviour
 
     void UpdateTarget()
     {
-        // Оптимізація: шукаємо тільки ворогів
         GameObject[] enemies = GameObject.FindGameObjectsWithTag("Enemy");
         float shortestDistance = Mathf.Infinity;
         Transform nearestEnemy = null;
 
         foreach (GameObject enemy in enemies)
         {
-            // Додаткова перевірка, про всяк випадок
             if (enemy.CompareTag("Untagged")) continue;
 
             float dist = Vector2.Distance(transform.position, enemy.transform.position);
@@ -132,14 +110,8 @@ public class CrossbowTower : MonoBehaviour
             }
         }
 
-        if (nearestEnemy != null && shortestDistance <= range) 
-        {
-            target = nearestEnemy;
-        }
-        else 
-        {
-            target = null;
-        }
+        if (nearestEnemy != null && shortestDistance <= range) target = nearestEnemy;
+        else target = null;
     }
 
     void OnDrawGizmosSelected()

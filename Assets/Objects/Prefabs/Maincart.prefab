@@ -105,7 +105,6 @@ GameObject:
   - component: {fileID: 7351759989603160334}
   - component: {fileID: 5142474997283871533}
   - component: {fileID: 1954897457908756503}
-  - component: {fileID: 8386267328693790027}
   m_Layer: 7
   m_Name: Maincart
   m_TagString: Untagged
@@ -225,10 +224,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Cart
   speed: 2
   stopOffsetFromWall: -2.5
-  minWood: 5
-  maxWood: 15
-  minStone: 3
-  maxStone: 8
+  minWood: 15
+  maxWood: 30
+  minStone: 5
+  maxStone: 15
 --- !u!61 &5142474997283871533
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -302,20 +301,6 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 0
---- !u!114 &8386267328693790027
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7094710359589817124}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e24c8a0e4c32de341be2bc8c90c77f1c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnemyStats
-  baseGoldReward: 50
-  currentGoldReward: 0
 --- !u!1 &8259139618657100650
 GameObject:
   m_ObjectHideFlags: 0

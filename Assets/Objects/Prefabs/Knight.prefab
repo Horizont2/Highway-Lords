@@ -493,13 +493,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Knight
   healthBar: {fileID: 1549675884150965726}
   speed: 2.2
-  attackRange: 1.1
+  attackRange: 1
   attackRate: 1
-  maxHealth: 100
-  allyLayer:
-    serializedVersion: 2
-    m_Bits: 64
-  stopDistance: 0.6
+  maxHealth: 120
   obstacleLayer:
     serializedVersion: 2
     m_Bits: 256

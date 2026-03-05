@@ -7,36 +7,34 @@ public class RainArrow : MonoBehaviour
     
     void Start()
     {
-        // Знищити стрілу через 3 секунди, якщо вона нікуди не влучила (на всяк випадок)
+        // === НОВЕ: Місце для бонусу урону від кристалів ===
+        /*
+        if (BonusManager.Instance != null)
+        {
+            damage += BonusManager.Instance.GetExtraVolleyDamage();
+        }
+        */
         Destroy(gameObject, 3.0f);
     }
 
     void Update()
     {
-        // Рух стріли вперед (куди вона дивиться)
         transform.Translate(Vector3.right * speed * Time.deltaTime);
     }
 
     void OnTriggerEnter2D(Collider2D other)
     {
-        // 1. Влучили у ВОРОГА
         if (other.CompareTag("Enemy"))
         {
-            // Наносимо урон
             if (other.TryGetComponent<Guard>(out Guard g)) g.TakeDamage(damage);
             else if (other.TryGetComponent<EnemyArcher>(out EnemyArcher a)) a.TakeDamage(damage);
             else if (other.TryGetComponent<EnemyHorse>(out EnemyHorse h)) h.TakeDamage(damage);
             else if (other.TryGetComponent<EnemySpearman>(out EnemySpearman s)) s.TakeDamage(damage);
-            // Віз прибрано звідси
             
-            // Ефект/Звук можна додати тут
-
-            Destroy(gameObject); // Знищуємо стрілу
+            Destroy(gameObject); 
         }
-        // 2. Влучили в ЗЕМЛЮ
         else if (other.CompareTag("Ground"))
         {
-            // Тут можна додати ефект пилу або звук втикання в землю
             Destroy(gameObject);
         }
     }
