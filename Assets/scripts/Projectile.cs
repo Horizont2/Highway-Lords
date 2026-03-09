@@ -6,84 +6,126 @@ public class Projectile : MonoBehaviour
     public float speed = 15f;
     public int damage = 20;
     public float rotationOffset = -90f; // Коригування кута спрайта
+    [Tooltip("Висота, куди летить стріла (щоб влучати в тіло, а не в п'яти)")]
+    public float targetHeightOffset = 0.5f; 
 
     private Transform targetTransform; // Для самонаведення
-    private Vector3 targetPosition;    // Для прямого пострілу
+    private Vector3 targetPosition;    // Для прямого пострілу / остання відома позиція
     private bool homing = false;       // Режим самонаведення?
     private bool isInitialized = false;
 
-    // === ВАРІАНТ 1: Самонаведення (Для Вежі) ===
+    private Vector3 moveDir; 
+    private bool hasHit = false; // Захист від подвійного урону
+
+    // === ВАРІАНТ 1: Самонаведення (Для Вежі та Лучників) ===
     public void Initialize(Transform _target, int _damage)
     {
         targetTransform = _target;
         damage = _damage;
         homing = true;
         isInitialized = true;
+
+        if (targetTransform != null) 
+        {
+            targetPosition = targetTransform.position + Vector3.up * targetHeightOffset;
+        }
+        else
+        {
+            targetPosition = transform.position + transform.right * 10f;
+        }
+        
+        UpdateRotation();
     }
 
-    // === ВАРІАНТ 2: Прямий постріл (Для Лучників) ===
+    // === ВАРІАНТ 2: Прямий постріл (по координатах) ===
     public void Initialize(Vector3 _targetPos, int _damage)
     {
-        targetPosition = _targetPos;
+        targetPosition = _targetPos + Vector3.up * targetHeightOffset;
         damage = _damage;
         homing = false;
         isInitialized = true;
         
-        // Одразу повертаємо в бік цілі
-        Vector3 dir = (targetPosition - transform.position).normalized;
-        float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
-        transform.rotation = Quaternion.Euler(0, 0, angle + rotationOffset);
-        
-        // Видаляємо через 3 секунди, якщо нікуди не влучив
-        Destroy(gameObject, 3f);
+        UpdateRotation();
+        Destroy(gameObject, 3f); // Знищення через 3 секунди, якщо нікуди не влучили
+    }
+
+    void UpdateRotation()
+    {
+        moveDir = (targetPosition - transform.position).normalized;
+        if (moveDir != Vector3.zero)
+        {
+            float angle = Mathf.Atan2(moveDir.y, moveDir.x) * Mathf.Rad2Deg;
+            transform.rotation = Quaternion.Euler(0, 0, angle + rotationOffset);
+        }
     }
 
     void Update()
     {
-        if (!isInitialized) return;
+        if (!isInitialized || hasHit) return;
 
-        Vector3 moveDir;
+        float distanceThisFrame = speed * Time.deltaTime;
 
         if (homing)
         {
-            // === Логіка самонаведення ===
-            if (targetTransform != null)
+            // Якщо ціль жива, оновлюємо її позицію (слідкуємо за нею)
+            if (targetTransform != null && targetTransform.gameObject.activeInHierarchy && !targetTransform.CompareTag("Untagged"))
             {
-                targetPosition = targetTransform.position;
+                targetPosition = targetTransform.position + Vector3.up * targetHeightOffset;
             }
-            // Якщо ціль зникла, летимо в останню відому точку
-            
-            moveDir = (targetPosition - transform.position).normalized;
-            
-            // Поворот
-            float angle = Mathf.Atan2(moveDir.y, moveDir.x) * Mathf.Rad2Deg;
-            transform.rotation = Quaternion.Euler(0, 0, angle + rotationOffset);
+            // Якщо ціль померла - targetPosition просто залишиться останньою записаною точкою (стріла полетить в труп)
 
-            if (Vector3.Distance(transform.position, targetPosition) < 0.2f)
+            UpdateRotation();
+
+            // Перевірка влучання по дистанції (ігноруємо Z для 2D)
+            Vector2 currentPos2D = new Vector2(transform.position.x, transform.position.y);
+            Vector2 targetPos2D = new Vector2(targetPosition.x, targetPosition.y);
+
+            if (Vector2.Distance(currentPos2D, targetPos2D) <= distanceThisFrame)
             {
-                HitTarget();
+                // Якщо долетіли і ціль ще жива - б'ємо
+                if (targetTransform != null && !targetTransform.CompareTag("Untagged"))
+                {
+                    HitTarget(targetTransform.gameObject);
+                }
+                else
+                {
+                    // Ціль вже мертва, просто знищуємо стрілу (ніби встрягла в землю)
+                    Destroy(gameObject);
+                }
                 return;
             }
         }
-        else
+
+        // Захист Raycast: щоб швидка стріла не пролетіла крізь тонкого ворога за 1 кадр
+        RaycastHit2D hit = Physics2D.Raycast(transform.position, moveDir, distanceThisFrame);
+        if (hit.collider != null)
         {
-            // === Логіка прямого польоту ===
-             moveDir = (targetPosition - transform.position).normalized;
+            if (hit.collider.CompareTag("Enemy"))
+            {
+                if (!hit.collider.CompareTag("Untagged"))
+                {
+                    HitTarget(hit.collider.gameObject);
+                }
+                return;
+            }
+            else if (hit.collider.CompareTag("Ground") || hit.collider.CompareTag("Boundary"))
+            {
+                Destroy(gameObject);
+                return;
+            }
         }
 
-        transform.Translate(moveDir * speed * Time.deltaTime, Space.World);
+        // Фізично рухаємо стрілу
+        transform.position += moveDir * distanceThisFrame;
     }
-
-    private bool hasHit = false;
 
     void OnTriggerEnter2D(Collider2D other)
     {
         if (hasHit) return;
-        // Ігноруємо стріли та свої юніти
+        
         if (other.CompareTag("Projectile") || other.CompareTag("Player") || other.CompareTag("PlayerUnit")) return;
         
-        // Знищення об границі екрану
-        if (other.CompareTag("Boundary"))
+        if (other.CompareTag("Boundary") || other.CompareTag("Ground"))
         {
             Destroy(gameObject);
             return;
@@ -91,35 +133,24 @@ public class Projectile : MonoBehaviour
 
         if (other.CompareTag("Enemy"))
         {
-            // Перевіряємо, чи це не труп
             if (other.CompareTag("Untagged")) return;
-            if (other.GetComponent<Guard>() && other.GetComponent<Guard>().enabled == false) return;
+            
+            // Якщо це Guard, перевіряємо, чи він не мертвий (enabled == false)
+            if (other.TryGetComponent<Guard>(out Guard g) && !g.enabled) return;
 
-            hasHit = true;
             HitTarget(other.gameObject);
         }
-        
-        // Влучання в землю
-        if (other.CompareTag("Ground")) Destroy(gameObject);
     }
 
-    void HitTarget(GameObject specificHit = null)
+    void HitTarget(GameObject specificHit)
     {
-        GameObject hitObj = specificHit;
-        
-        // Якщо самонаведення і ми просто долетіли до цілі
-        if (hitObj == null && homing && targetTransform != null) 
-        {
-            hitObj = targetTransform.gameObject;
-        }
+        if (hasHit) return;
+        hasHit = true; 
 
-        if (hitObj != null)
+        // Відправляємо урон будь-якому об'єкту, у якого є метод TakeDamage
+        if (specificHit != null)
         {
-            if (hitObj.TryGetComponent<Guard>(out Guard g)) g.TakeDamage(damage);
-            else if (hitObj.TryGetComponent<EnemyArcher>(out EnemyArcher ea)) ea.TakeDamage(damage);
-            else if (hitObj.TryGetComponent<EnemySpearman>(out EnemySpearman es)) es.TakeDamage(damage);
-            else if (hitObj.TryGetComponent<EnemyHorse>(out EnemyHorse eh)) eh.TakeDamage(damage);
-            else if (hitObj.TryGetComponent<Boss>(out Boss b)) b.TakeDamage(damage);
+            specificHit.SendMessage("TakeDamage", damage, SendMessageOptions.DontRequireReceiver);
         }
         
         Destroy(gameObject);

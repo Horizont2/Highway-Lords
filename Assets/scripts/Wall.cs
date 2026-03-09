@@ -14,24 +14,30 @@ public class WallTier
 
 public class Wall : MonoBehaviour
 {
+    [Header("=== БАЛАНС СТІНИ ===")]
     public int baseHealth = 100; 
     public int hpBonusPerUpgrade = 50;
     public HealthBarSegments hpSegments;
     
+    [Header("=== ЕКОНОМІКА ===")]
     public int wallLevel = 1;
     public int baseUpgradeCost = 150;    
     public float costMultiplier = 1.5f;  
 
+    [Header("=== ВІЗУАЛ (ТИРИ ТА ПОШКОДЖЕННЯ) ===")]
     public SpriteRenderer wallSpriteRenderer;
     public List<WallTier> wallTiers; 
     private WallTier currentTier;
 
+    [Header("=== СТАН (Read Only) ===")]
     public int maxHealth;
     public int currentHealth;
     public bool isDead = false;
 
+    [Header("=== UI & КОМПОНЕНТИ ===")]
     public Image healthBarFill; 
     public Transform spawnPoint; 
+    public Gradient hpGradient; // Градієнт для зміни кольору ХП
 
     private float regenTimer = 0f;
 
@@ -192,6 +198,14 @@ public class Wall : MonoBehaviour
     void UpdateUI()
     {
         if (healthBarFill != null && maxHealth > 0)
-            healthBarFill.fillAmount = (float)currentHealth / maxHealth;
+        {
+            float hpPercent = (float)currentHealth / maxHealth;
+            
+            // Змінюємо заповнення
+            healthBarFill.fillAmount = hpPercent;
+            
+            // Застосовуємо колір з градієнта
+            healthBarFill.color = hpGradient.Evaluate(hpPercent);
+        }
     }
 }

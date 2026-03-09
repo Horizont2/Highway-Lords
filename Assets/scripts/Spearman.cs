@@ -1,10 +1,14 @@
 using UnityEngine;
+using UnityEngine.UI;
+using System.Collections;
 
 [RequireComponent(typeof(Rigidbody2D))]
 public class Spearman : MonoBehaviour
 {
-    [Header("UI")]
-    public HealthBar healthBar;
+    [Header("Ефекти Grow Empire")]
+    public Image healthBarFill;
+    public GameObject hitParticlePrefab;
+    private Color defaultColor = Color.white;
 
     [Header("Характеристики")]
     public float speed = 2.2f;          
@@ -49,7 +53,7 @@ public class Spearman : MonoBehaviour
     public void LoadState(int savedHealth)
     {
         currentHealth = savedHealth;
-        if (healthBar != null) healthBar.SetHealth(currentHealth, maxHealth);
+        UpdateHealthBar();
     }
 
     void Start()
@@ -86,11 +90,8 @@ public class Spearman : MonoBehaviour
 
         if (currentHealth <= 0) currentHealth = maxHealth;
 
-        if (healthBar != null)
-        {
-            healthBar.targetTransform = transform;
-            healthBar.SetHealth(currentHealth, maxHealth);
-        }
+        if (spriteRenderer != null) defaultColor = spriteRenderer.color;
+        UpdateHealthBar();
     }
 
     void Update()
@@ -269,9 +270,33 @@ public class Spearman : MonoBehaviour
     {
         if (isDead) return;
         currentHealth -= damage;
-        if (healthBar != null) healthBar.SetHealth(currentHealth, maxHealth);
-        GameManager.CreateDamagePopup(transform.position, damage);
+        UpdateHealthBar();
+
+        Vector3 popupPos = transform.position + new Vector3(Random.Range(-0.3f, 0.3f), Random.Range(0.5f, 1.2f), 0);
+        GameManager.CreateDamagePopup(popupPos, damage);
+
+        if (hitParticlePrefab != null)
+        {
+            GameObject particles = Instantiate(hitParticlePrefab, transform.position + Vector3.up * 0.5f, Quaternion.identity);
+            Destroy(particles, 1f);
+        }
+
+        if (spriteRenderer != null) StartCoroutine(FlashColor());
+
         if (currentHealth <= 0) Die();
+    }
+
+    void UpdateHealthBar()
+    {
+        if (healthBarFill != null)
+            healthBarFill.fillAmount = Mathf.Clamp01((float)currentHealth / maxHealth);
+    }
+
+    private IEnumerator FlashColor()
+    {
+        spriteRenderer.color = new Color(1f, 0.4f, 0.4f); 
+        yield return new WaitForSeconds(0.1f);
+        if (!isDead) spriteRenderer.color = defaultColor; 
     }
 
     void Die()
@@ -288,7 +313,9 @@ public class Spearman : MonoBehaviour
             GameManager.Instance.OnUnitDeath(gameObject, "Spearman"); 
         }
 
-        if (healthBar != null) healthBar.gameObject.SetActive(false);
+        if (healthBarFill != null && healthBarFill.transform.parent != null) 
+            healthBarFill.transform.parent.gameObject.SetActive(false);
+
         if (animator) { animator.Rebind(); animator.Update(0f); animator.enabled = false; }
         transform.Rotate(0, 0, -90);
         if (spriteRenderer != null) { spriteRenderer.color = Color.gray; spriteRenderer.sortingOrder = 0; }

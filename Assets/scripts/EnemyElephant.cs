@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.UI; // Обов'язково для роботи з UI
 
 public class EnemyElephant : MonoBehaviour
 {
@@ -12,6 +13,13 @@ public class EnemyElephant : MonoBehaviour
     public float attackRange = 2.5f; 
     public float attackCooldown = 3.0f;
     private float lastAttackTime = 0f;
+
+    [Header("UI Хелсбар (Сегментований)")]
+    public GameObject healthBarCanvas;      // Загальний об'єкт Canvas хелсбару, щоб сховати при смерті
+    public Image healthBarFill;             // Картинка самого заповнення (червона/зелена смужка)
+    public Transform segmentsContainer;     // Порожній об'єкт поверх хелсбару для ліній
+    public GameObject segmentDividerPrefab; // Префаб чорної вертикальної лінії
+    public float healthPerSegment = 500f;   // Скільки ХП містить один сегмент (кубік)
 
     [Header("Посилання")]
     public int goldReward = 150;
@@ -46,6 +54,10 @@ public class EnemyElephant : MonoBehaviour
 
         if (GameManager.Instance != null && GameManager.Instance.castle != null)
             targetCastle = GameManager.Instance.castle.transform;
+
+        // Генеруємо смужки та оновлюємо ХП при появі
+        GenerateSegments();
+        UpdateHealthBar();
     }
 
     void Update()
@@ -87,7 +99,51 @@ public class EnemyElephant : MonoBehaviour
         currentHealth -= amount;
         GameManager.CreateDamagePopup(transform.position + Vector3.up, Mathf.RoundToInt(amount));
 
+        UpdateHealthBar();
+
         if (currentHealth <= 0) Die();
+    }
+
+    void UpdateHealthBar()
+    {
+        if (healthBarFill != null)
+        {
+            // Оновлюємо заповнення від 0 до 1
+            healthBarFill.fillAmount = Mathf.Clamp01(currentHealth / maxHealth);
+        }
+    }
+
+    void GenerateSegments()
+    {
+        if (segmentsContainer == null || segmentDividerPrefab == null) return;
+
+        // Спочатку очищаємо старі лінії (якщо вони були)
+        foreach (Transform child in segmentsContainer)
+        {
+            Destroy(child.gameObject);
+        }
+
+        // Рахуємо, скільки всього шматочків має бути
+        int segmentCount = Mathf.CeilToInt(maxHealth / healthPerSegment);
+
+        // Якщо менше 2 сегментів (тобто <500 ХП), розділювачі не потрібні
+        if (segmentCount <= 1) return;
+
+        // Створюємо розділювачі (на 1 менше, ніж загальна кількість сегментів)
+        for (int i = 1; i < segmentCount; i++)
+        {
+            GameObject divider = Instantiate(segmentDividerPrefab, segmentsContainer);
+            RectTransform rt = divider.GetComponent<RectTransform>();
+            
+            // Вираховуємо відсоток позиції (наприклад, 33%, 66% тощо)
+            float percent = (float)i / segmentCount;
+            
+            // Розставляємо якорі так, щоб лінія стояла рівно на своєму відсотку
+            rt.anchorMin = new Vector2(percent, 0);
+            rt.anchorMax = new Vector2(percent, 1);
+            rt.anchoredPosition = Vector2.zero;
+            rt.sizeDelta = new Vector2(rt.sizeDelta.x, 0); // Висота підлаштовується під контейнер
+        }
     }
 
     void Die()
@@ -95,7 +151,10 @@ public class EnemyElephant : MonoBehaviour
         isDead = true;
         anim.SetTrigger("Die");
         GetComponent<Collider2D>().enabled = false;
-        this.enabled = false;
+        this.enabled = false; // Вимикаємо скрипт
+
+        // Ховаємо хелсбар при смерті
+        if (healthBarCanvas != null) healthBarCanvas.SetActive(false);
 
         if (GameManager.Instance != null)
         {

@@ -1,0 +1,376 @@
+fileFormatVersion: 2
+guid: ea40454d78e06c34f9c645f468bba69f
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 4123632479063097851
+    second: gemicon_0
+  - first:
+      213: -435730741709655189
+    second: gemicon_1
+  - first:
+      213: 5280910035513793910
+    second: gemicon_2
+  - first:
+      213: -2417810356151204934
+    second: gemicon_3
+  - first:
+      213: -3144985243880599442
+    second: gemicon_4
+  - first:
+      213: 4037052931363060718
+    second: gemicon_5
+  - first:
+      213: -5832741550277205581
+    second: gemicon_6
+  - first:
+      213: -169208479880403249
+    second: gemicon_7
+  - first:
+      213: 2467889244062216965
+    second: gemicon_8
+  - first:
+      213: -2798224045475595626
+    second: gemicon_9
+  - first:
+      213: 1632900299998367870
+    second: gemicon_10
+  - first:
+      213: -1234748213391255562
+    second: gemicon_11
+  - first:
+      213: -4401119013874869025
+    second: gemicon_12
+  - first:
+      213: 1585008415724944140
+    second: gemicon_13
+  - first:
+      213: 1046392229750738689
+    second: gemicon_14
+  - first:
+      213: -6216164761917304713
+    second: gemicon_15
+  - first:
+      213: -6550249363339304083
+    second: gemicon_16
+  - first:
+      213: 8831134843080694631
+    second: gemicon_17
+  - first:
+      213: 6902059549689540535
+    second: gemicon_18
+  - first:
+      213: 1092604076537045158
+    second: gemicon_19
+  - first:
+      213: 9167691635596220463
+    second: gemicon_20
+  - first:
+      213: 5316488631929542396
+    second: gemicon_21
+  - first:
+      213: 6704645251816771087
+    second: gemicon_22
+  - first:
+      213: 2816212510417398303
+    second: gemicon_23
+  - first:
+      213: 8922311200907155331
+    second: gemicon_24
+  - first:
+      213: -4013015049172310384
+    second: gemicon_25
+  - first:
+      213: 7648131277598311829
+    second: gemicon_26
+  - first:
+      213: -4805598122973719337
+    second: gemicon_27
+  - first:
+      213: 1533699450661666920
+    second: gemicon_28
+  - first:
+      213: -5328052116410985313
+    second: gemicon_29
+  - first:
+      213: -2198419665476085471
+    second: gemicon_30
+  - first:
+      213: 7249129950013431325
+    second: gemicon_31
+  - first:
+      213: -1128253587881854184
+    second: gemicon_32
+  - first:
+      213: -4171674734713417531
+    second: gemicon_33
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 0
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: gemicon_0
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 3995
+        width: 5
+        height: 5
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bf1c1da44e51a3930800000000000000
+      internalID: 4123632479063097851
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: gemicon_1
+      rect:
+        serializedVersion: 2
+        x: 3995
+        y: 3995
+        width: 5
+        height: 5
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b63bda2f239f3f9f0800000000000000
+      internalID: -435730741709655189
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: gemicon_21
+      rect:
+        serializedVersion: 2
+        x: 1648
+        y: 65
+        width: 704
+        height: 719
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cf610962e36f7c940800000000000000
+      internalID: 5316488631929542396
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: gemicon_32
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 5
+        height: 5
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 81bfdbde653a750f0800000000000000
+      internalID: -1128253587881854184
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: gemicon_33
+      rect:
+        serializedVersion: 2
+        x: 3995
+        y: 0
+        width: 5
+        height: 5
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5c05fe66eeb3b16c0800000000000000
+      internalID: -4171674734713417531
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: e753dacb889811745826330b2974c9fe
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      gemicon_0: 4123632479063097851
+      gemicon_1: -435730741709655189
+      gemicon_10: 1632900299998367870
+      gemicon_11: -1234748213391255562
+      gemicon_12: -4401119013874869025
+      gemicon_13: 1585008415724944140
+      gemicon_14: 1046392229750738689
+      gemicon_15: -6216164761917304713
+      gemicon_16: -6550249363339304083
+      gemicon_17: 8831134843080694631
+      gemicon_18: 6902059549689540535
+      gemicon_19: 1092604076537045158
+      gemicon_2: 5280910035513793910
+      gemicon_20: 9167691635596220463
+      gemicon_21: 5316488631929542396
+      gemicon_22: 6704645251816771087
+      gemicon_23: 2816212510417398303
+      gemicon_24: 8922311200907155331
+      gemicon_25: -4013015049172310384
+      gemicon_26: 7648131277598311829
+      gemicon_27: -4805598122973719337
+      gemicon_28: 1533699450661666920
+      gemicon_29: -5328052116410985313
+      gemicon_3: -2417810356151204934
+      gemicon_30: -2198419665476085471
+      gemicon_31: 7249129950013431325
+      gemicon_32: -1128253587881854184
+      gemicon_33: -4171674734713417531
+      gemicon_4: -3144985243880599442
+      gemicon_5: 4037052931363060718
+      gemicon_6: -5832741550277205581
+      gemicon_7: -169208479880403249
+      gemicon_8: 2467889244062216965
+      gemicon_9: -2798224045475595626
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

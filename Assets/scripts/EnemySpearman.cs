@@ -1,11 +1,15 @@
 using UnityEngine;
+using UnityEngine.UI;
+using System.Collections;
 
 [RequireComponent(typeof(Rigidbody2D))]
 [RequireComponent(typeof(EnemyStats))]
 public class EnemySpearman : MonoBehaviour
 {
-    [Header("UI")]
-    public HealthBar healthBar;
+    [Header("Ефекти Grow Empire")]
+    public Image healthBarFill;
+    public GameObject hitParticlePrefab;
+    private Color defaultColor = Color.white;
 
     [Header("Характеристики")]
     public float speed = 1.8f;
@@ -65,11 +69,8 @@ public class EnemySpearman : MonoBehaviour
         currentHealth = maxHealth;
         _maxHealth = maxHealth;
 
-        if (healthBar != null)
-        {
-            healthBar.targetTransform = transform;
-            healthBar.SetHealth(currentHealth, _maxHealth);
-        }
+        if (spriteRenderer != null) defaultColor = spriteRenderer.color;
+        UpdateHealthBar();
     }
 
     void Update()
@@ -205,9 +206,33 @@ public class EnemySpearman : MonoBehaviour
     {
         if (isDead) return;
         currentHealth -= damageAmount;
-        if (healthBar != null) healthBar.SetHealth(currentHealth, _maxHealth);
-        GameManager.CreateDamagePopup(transform.position, damageAmount);
+        UpdateHealthBar();
+
+        Vector3 popupPos = transform.position + new Vector3(Random.Range(-0.3f, 0.3f), Random.Range(0.5f, 1.2f), 0);
+        GameManager.CreateDamagePopup(popupPos, damageAmount);
+
+        if (hitParticlePrefab != null)
+        {
+            GameObject particles = Instantiate(hitParticlePrefab, transform.position + Vector3.up * 0.5f, Quaternion.identity);
+            Destroy(particles, 1f);
+        }
+
+        if (spriteRenderer != null) StartCoroutine(FlashColor());
+
         if (currentHealth <= 0) Die();
+    }
+
+    void UpdateHealthBar()
+    {
+        if (healthBarFill != null)
+            healthBarFill.fillAmount = Mathf.Clamp01((float)currentHealth / _maxHealth);
+    }
+
+    private IEnumerator FlashColor()
+    {
+        spriteRenderer.color = new Color(1f, 0.4f, 0.4f); 
+        yield return new WaitForSeconds(0.1f);
+        if (!isDead) spriteRenderer.color = defaultColor; 
     }
 
     void Die()
@@ -215,6 +240,10 @@ public class EnemySpearman : MonoBehaviour
         if (isDead) return;
         isDead = true;
         gameObject.tag = "Untagged";
+
+        if (healthBarFill != null && healthBarFill.transform.parent != null) 
+            healthBarFill.transform.parent.gameObject.SetActive(false);
+
         if (rb != null) { rb.linearVelocity = Vector2.zero; rb.bodyType = RigidbodyType2D.Static; }
         Collider2D col = GetComponent<Collider2D>();
         if (col != null) col.enabled = false;
