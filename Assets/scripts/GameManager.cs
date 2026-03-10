@@ -42,12 +42,12 @@ public class GameManager : MonoBehaviour
     [Header("=== МЕТА-ПРОГРЕСІЯ (КРИСТАЛИ) ===")]
     public int gems = 0;
     
-    public int metaFortifiedWalls = 0;   // +200 HP
-    public int metaPrecisionBows = 0;    // +15% Ranged Dmg
-    public int metaVolleyBarrage = 0;    // +1 Extra Arrow
-    public int metaTrophyBounty = 0;     // +5% Gold
-    public int metaEfficientCarts = 0;   // +10% Ore
-    public int metaMendingMasonry = 0;   // +1% HP Regen/sec
+    public int metaFortifiedWalls = 0;   
+    public int metaPrecisionBows = 0;    
+    public int metaVolleyBarrage = 0;    
+    public int metaTrophyBounty = 0;     
+    public int metaEfficientCarts = 0;   
+    public int metaMendingMasonry = 0;   
 
     [Header("Прогрес Кристалів (Шкала)")]
     public int currentKills = 0;
@@ -96,12 +96,6 @@ public class GameManager : MonoBehaviour
 
     private Coroutine uiFadeCoroutine; 
     private Dictionary<RectTransform, Vector2> originalBtnPositions = new Dictionary<RectTransform, Vector2>();
-
-    public void SetManualTarget(Transform target)
-    {
-        manualTarget = target;
-        if (targetIndicator != null) targetIndicator.Show(target);
-    }
 
     [HideInInspector] public float globalDamageMultiplier = 1.0f;
 
@@ -155,6 +149,11 @@ public class GameManager : MonoBehaviour
     public Button barracksIconButton;
     public Button openShopButton;
     public Button openInfoButton; 
+    
+    [Header("Ефекти пульсації кнопок")]
+    public UIPulseEffect shopPulse;
+    public UIPulseEffect barracksPulse;
+    public UIPulseEffect buildPulse;
 
     [Header("UI: Кнопки хрестики")]
     public Button closeConstructionBtn;
@@ -389,7 +388,6 @@ public class GameManager : MonoBehaviour
         CloseAllPanels();
         if (defeatPanel) defeatPanel.SetActive(false);
 
-        // ХОВАЄМО ІНТЕРФЕЙС ХВИЛІ ПРИ СТАРТІ
         ToggleWaveHUD(false);
 
         UpdateUI();
@@ -410,6 +408,12 @@ public class GameManager : MonoBehaviour
         }
 
         StartCoroutine(WaveWatchdog());
+    }
+
+    public void SetManualTarget(Transform target)
+    {
+        manualTarget = target;
+        if (targetIndicator != null) targetIndicator.Show(target);
     }
 
     private void ToggleWaveHUD(bool show)
@@ -529,12 +533,14 @@ public class GameManager : MonoBehaviour
         if (shopPanelNew != null) shopPanelNew.SetActive(false);
         if (infoPanel != null) infoPanel.SetActive(false);
         if (metaShopPanel != null) metaShopPanel.SetActive(false);
+        
+        UpdateUI(); // Оновлюємо пульсацію при закритті
     }
 
     private void OnWaveFullyCleared()
     {
-        ToggleWaveHUD(false); // Ховаємо інтерфейс хвилі
-        TriggerUIFade(true);  // Повертаємо всі кнопки і Череп
+        ToggleWaveHUD(false); 
+        TriggerUIFade(true);  
 
         if (Camera.main != null)
         {
@@ -542,7 +548,6 @@ public class GameManager : MonoBehaviour
             if (camCtrl != null) camCtrl.ReturnToBase();
         }
     }
-    // ==========================================
 
     void SetupMetaButtons()
     {
@@ -888,7 +893,6 @@ public class GameManager : MonoBehaviour
 
         isWaitingForNextWave = false;
 
-        // ХОВАЄМО КНОПКИ І ПОКАЗУЄМО ХВИЛЮ
         CloseAllPanels();
         TriggerUIFade(false);
         ToggleWaveHUD(true);
@@ -990,6 +994,7 @@ public class GameManager : MonoBehaviour
                 metaShopPanel.SetActive(true); 
             }
         }
+        UpdateUI();
     }
 
     public void AddKillProgress(int amount)
@@ -1018,12 +1023,15 @@ public class GameManager : MonoBehaviour
         if (gemsText != null) gemsText.text = gems.ToString() + " 💎";
         if (topGemsText != null) topGemsText.text = gems.ToString();
         
+        // --- ОНОВЛЕНИЙ БЛОК СЛАЙДЕРА ---
         if (gemProgressBar != null)
         {
+            gemProgressBar.minValue = 0f; // Примусово ставимо нуль
             gemProgressBar.maxValue = killsToNextGem;
             gemProgressBar.value = currentKills;
         }
         if (gemProgressText != null) gemProgressText.text = $"{currentKills} / {killsToNextGem}";
+        // -------------------------------
 
         UpdateMetaSlot(uiFortifiedWalls, metaFortifiedWalls, 10, 5, "Lv " + metaFortifiedWalls, 
             $"Max HP: +{metaFortifiedWalls * 200} → <color=#008800>+{(metaFortifiedWalls + 1) * 200}</color>", true);
@@ -1087,6 +1095,7 @@ public class GameManager : MonoBehaviour
                 UpdateBarracksStateUI();
             }
         }
+        UpdateUI();
     }
 
     public void ToggleBarracksUpgradeMenu()
@@ -1102,11 +1111,11 @@ public class GameManager : MonoBehaviour
             if (isActive)
             {
                 UpdateUpgradeMenuPrice();
-                UpdateUI();
                 CloseAllPanels();
                 panel.SetActive(true);
             }
         }
+        UpdateUI();
     }
 
     public void ToggleShop()
@@ -1125,6 +1134,7 @@ public class GameManager : MonoBehaviour
                 panel.SetActive(true);
             }
         }
+        UpdateUI();
     }
 
     public void ToggleInfoPanel()
@@ -1142,6 +1152,7 @@ public class GameManager : MonoBehaviour
                 infoPanel.SetActive(true);
             }
         }
+        UpdateUI();
     }
 
     public void UpdateCostUIGroup(UICostGroup costUI, ResourceType type1, int cost1, ResourceType type2 = ResourceType.Gold, int cost2 = 0, string overrideText = "")
@@ -1436,8 +1447,6 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    public void BuildBarracks() { BuildOrUpgradeBarracks(); }
-
     public void BuildSpikes()
     {
         if (currentSpikes != null) return;
@@ -1504,8 +1513,6 @@ public class GameManager : MonoBehaviour
             if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.error);
         }
     }
-
-    public void BuildMine() { BuildOrUpgradeMine(); }
 
     void SpawnMineObject()
     {
@@ -1958,7 +1965,7 @@ public class GameManager : MonoBehaviour
 
         foreach (var go in GameObject.FindGameObjectsWithTag("Untagged"))
         {
-            if (go.GetComponent<EnemySpearman>() || go.GetComponent<EnemyHorse>() || go.GetComponent<EnemyArcher>() || go.GetComponent<Guard>() || go.GetComponent<Boss>() || go.GetComponent<Cart>() || go.GetComponent<BatteringRam>())
+            if (go.GetComponent<EnemySpearman>() || go.GetComponent<EnemyHorse>() || go.GetComponent<EnemyArcher>() || go.GetComponent<Guard>() || go.GetComponent<Boss>() || go.GetComponent<BatteringRam>())
             {
                 Destroy(go);
             }
@@ -2587,6 +2594,55 @@ public class GameManager : MonoBehaviour
         }
 
         UpdateSpearmanLockUI();
+
+        // ==========================================
+        // ЛОГІКА ПУЛЬСАЦІЇ КНОПОК (ПОВІДОМЛЕННЯ)
+        // ==========================================
+
+        // 1. Перевіряємо Кузню (Shop)
+        if (shopPulse != null)
+        {
+            bool canUpgradeInShop = (gold >= knightUpgradeCost) || 
+                                    (gold >= archerUpgradeCost) || 
+                                    ((gold >= spearmanUpgradeCost) && isSpearmanUnlocked) || 
+                                    (gold >= wallArcherUpgradeCost);
+
+            bool isShopClosed = (shopPanel == null || !shopPanel.activeSelf) && (shopPanelNew == null || !shopPanelNew.activeSelf);
+            shopPulse.SetPulse(canUpgradeInShop && isShopClosed);
+        }
+
+        // 2. Перевіряємо Казарму (Barracks)
+        if (barracksPulse != null && barracksLevel > 0)
+        {
+            int cap = GetBarracksCapLimit();
+            bool canBuySlot = (gold >= GetSlotUpgradeCost()) && (maxUnits < cap);
+            bool canUnlockSpear = (gold >= spearmanUnlockCost) && !isSpearmanUnlocked;
+            
+            bool canUpgradeInBarracks = canBuySlot || canUnlockSpear;
+            
+            bool isBarracksClosed = (barracksUpgradePanel == null || !barracksUpgradePanel.activeSelf) && (barracksPanelNew == null || !barracksPanelNew.activeSelf);
+            barracksPulse.SetPulse(canUpgradeInBarracks && isBarracksClosed);
+        }
+
+        // 3. Перевіряємо Будівництво (Construction)
+        if (buildPulse != null)
+        {
+            int cG = GetBarracksBuildingUpgradeCost(true);
+            int cW = GetBarracksBuildingUpgradeCost(false);
+            bool canBuildBarracks = (gold >= cG && wood >= cW);
+            
+            int mW = GetMineUpgradeCost(true);
+            int mS = GetMineUpgradeCost(false);
+            bool canBuildMine = (wood >= mW && stone >= mS);
+
+            bool canBuildSpikes = (wood >= spikesWoodCost) && (currentSpikes == null);
+            bool canUpgradeCastle = castle != null && (gold >= castle.GetUpgradeCost());
+            
+            bool canBuildAnything = canBuildBarracks || canBuildMine || canBuildSpikes || canUpgradeCastle;
+
+            bool isBuildClosed = (constructionPanel == null || !constructionPanel.activeSelf) && (constructionPanelNew == null || !constructionPanelNew.activeSelf);
+            buildPulse.SetPulse(canBuildAnything && isBuildClosed);
+        }
     }
 
     void UpdateButtonState(Button btn, bool isActive)

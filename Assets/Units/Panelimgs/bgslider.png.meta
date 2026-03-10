@@ -1,16 +1,76 @@
 fileFormatVersion: 2
-guid: 7a953c510248c0c4d88674040c7ae87b
+guid: ff2cd2ed7306758489821b2a3527f8d2
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 6304826840174917774
-    second: tower_0
+      213: 2398592908941921328
+    second: bgslider_0
   - first:
-      213: 6156901781275099173
-    second: tower_1
+      213: 2849646015815440142
+    second: bgslider_1
   - first:
-      213: 4625833658082079308
-    second: tower_2
+      213: -6376394318436419196
+    second: bgslider_2
+  - first:
+      213: 4752201971608735196
+    second: bgslider_3
+  - first:
+      213: -917749651475745837
+    second: bgslider_4
+  - first:
+      213: -7328875719546806692
+    second: bgslider_5
+  - first:
+      213: 7712153369804580296
+    second: bgslider_6
+  - first:
+      213: 1086680529415672413
+    second: bgslider_7
+  - first:
+      213: 8786947078519052277
+    second: bgslider_8
+  - first:
+      213: 1008186439321178434
+    second: bgslider_9
+  - first:
+      213: 4819194320288208509
+    second: bgslider_10
+  - first:
+      213: -2696695480453647242
+    second: bgslider_11
+  - first:
+      213: -7448718779693497192
+    second: bgslider_12
+  - first:
+      213: -8453973886838779080
+    second: bgslider_13
+  - first:
+      213: -8327546264770357667
+    second: bgslider_14
+  - first:
+      213: -6773738702314859097
+    second: bgslider_15
+  - first:
+      213: -458250699621177275
+    second: bgslider_16
+  - first:
+      213: 7113695242226699051
+    second: bgslider_17
+  - first:
+      213: -2031029944892821376
+    second: bgslider_18
+  - first:
+      213: 6031041984016674376
+    second: bgslider_19
+  - first:
+      213: 1505226929256936478
+    second: bgslider_20
+  - first:
+      213: 2520771034035934075
+    second: bgslider_21
+  - first:
+      213: -1994400951325272485
+    second: bgslider_22
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -119,13 +179,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: tower_0
+      name: bgslider_0
       rect:
         serializedVersion: 2
-        x: 47
-        y: 174
-        width: 64
-        height: 174
+        x: 161
+        y: 949
+        width: 4858
+        height: 618
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -134,20 +194,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: e8879f25b9e3f7750800000000000000
-      internalID: 6304826840174917774
+      spriteID: 03c014ada83894120800000000000000
+      internalID: 2398592908941921328
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: tower_1
+      name: bgslider_8
       rect:
         serializedVersion: 2
-        x: 198
-        y: 174
-        width: 76
-        height: 184
+        x: 157
+        y: 193
+        width: 4839
+        height: 546
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -156,30 +216,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 5204fd5ac85b17550800000000000000
-      internalID: 6156901781275099173
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: tower_2
-      rect:
-        serializedVersion: 2
-        x: 347
-        y: 173
-        width: 82
-        height: 185
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: c42370c0433423040800000000000000
-      internalID: 4625833658082079308
+      spriteID: 5f7d84b00d181f970800000000000000
+      internalID: 8786947078519052277
       vertices: []
       indices: 
       edges: []
@@ -188,7 +226,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 682fe36b22e608340831315ffe03ca81
+    spriteID: 8e87db9d637a7434bb6eee386d04998e
     internalID: 0
     vertices: []
     indices: 
@@ -196,13 +234,32 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     spriteCustomMetadata:
-      entries:
-      - key: SpriteEditor.SliceSettings
-        value: '{"sliceOnImport":false,"gridCellCount":{"x":1.0,"y":1.0},"gridSpriteSize":{"x":64.0,"y":64.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.5,"y":0.5},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":0,"pivotUnitMode":0,"slicingType":0,"keepEmptyRects":false,"isAlternate":false}'
+      entries: []
     nameFileIdTable:
-      tower_0: 6304826840174917774
-      tower_1: 6156901781275099173
-      tower_2: 4625833658082079308
+      bgslider_0: 2398592908941921328
+      bgslider_1: 2849646015815440142
+      bgslider_10: 4819194320288208509
+      bgslider_11: -2696695480453647242
+      bgslider_12: -7448718779693497192
+      bgslider_13: -8453973886838779080
+      bgslider_14: -8327546264770357667
+      bgslider_15: -6773738702314859097
+      bgslider_16: -458250699621177275
+      bgslider_17: 7113695242226699051
+      bgslider_18: -2031029944892821376
+      bgslider_19: 6031041984016674376
+      bgslider_2: -6376394318436419196
+      bgslider_20: 1505226929256936478
+      bgslider_21: 2520771034035934075
+      bgslider_22: -1994400951325272485
+      bgslider_23: -1355769471
+      bgslider_3: 4752201971608735196
+      bgslider_4: -917749651475745837
+      bgslider_5: -7328875719546806692
+      bgslider_6: 7712153369804580296
+      bgslider_7: 1086680529415672413
+      bgslider_8: 8786947078519052277
+      bgslider_9: 1008186439321178434
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

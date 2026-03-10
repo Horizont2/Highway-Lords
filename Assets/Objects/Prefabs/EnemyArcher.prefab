@@ -211,7 +211,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a4055110df201464cb8e488ec0301f9d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyArcher
-  healthBarFill: {fileID: 0}
+  healthBarFill: {fileID: 1995068981725309063}
   hitParticlePrefab: {fileID: 2978876853960275596, guid: 938b59e62d459cf4085a4c92fc89aeaa, type: 3}
   speed: 1.7
   attackRange: 6

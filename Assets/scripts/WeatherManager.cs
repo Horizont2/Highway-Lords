@@ -32,31 +32,38 @@ public class WeatherManager : MonoBehaviour
 
     void Start()
     {
+        // Зі старту вимикаємо дощ
         if (rainParticles != null) rainParticles.Stop();
         
+        // Зі старту робимо екран світлим
         if (weatherDarkness != null) 
         {
             Color c = weatherDarkness.color; c.a = 0f; weatherDarkness.color = c;
         }
         
+        // Зі старту вимикаємо спалах
         if (lightningFlash != null) 
         {
             Color c = lightningFlash.color; c.a = 0f; lightningFlash.color = c;
         }
 
+        // Запускаємо цикли погоди та хмар
         StartCoroutine(WeatherRoutine());
-        StartCoroutine(CloudRoutine()); // Запускаємо фабрику хмар
+        StartCoroutine(CloudRoutine()); 
     }
 
     IEnumerator WeatherRoutine()
     {
+        // Невеличка випадкова затримка перед ПЕРШИМ дощем (від 10 до 30 сек)
         yield return new WaitForSeconds(Random.Range(10f, 30f));
 
         while (true)
         {
+            // Починається дощ
             StartRain();
             yield return new WaitForSeconds(Random.Range(minRainTime, maxRainTime));
 
+            // Дощ закінчується
             StopRain();
             yield return new WaitForSeconds(Random.Range(minClearTime, maxClearTime));
         }
@@ -67,15 +74,16 @@ public class WeatherManager : MonoBehaviour
     {
         while (true)
         {
-            // Чекаємо від 40 до 80 секунд
+            // Чекаємо випадковий час перед спробою створити хмару
             yield return new WaitForSeconds(Random.Range(minCloudInterval, maxCloudInterval));
             
-            if (cloudShadowPrefab != null && Camera.main != null)
+            // Спавнимо хмару ТІЛЬКИ якщо зараз НЕ йде дощ (!isRaining)
+            if (!isRaining && cloudShadowPrefab != null && Camera.main != null)
             {
-                // Спавнимо зліва за межами екрана
+                // Спавнимо значно лівіше за межами екрана, щоб вона плавно вповзала
                 Vector3 spawnPos = Camera.main.transform.position;
-                spawnPos.x -= 20f; // Далеко зліва
-                spawnPos.y += Random.Range(-4f, 4f); // Випадкова висота
+                spawnPos.x -= 40f; 
+                spawnPos.y += Random.Range(-5f, 5f); // Випадкова висота
                 spawnPos.z = 0;
                 
                 Instantiate(cloudShadowPrefab, spawnPos, Quaternion.identity);
@@ -101,7 +109,7 @@ public class WeatherManager : MonoBehaviour
     {
         if (lightningFlash == null) yield break;
 
-        // Звук грому
+        // Вмикаємо звук грому
         if (SoundManager.Instance != null) SoundManager.Instance.PlayThunder();
 
         // Подвійний спалах (як справжня блискавка)
@@ -116,7 +124,7 @@ public class WeatherManager : MonoBehaviour
         c.a = 0.4f; lightningFlash.color = c; // Другий слабший спалах
         yield return new WaitForSeconds(0.05f);
         
-        c.a = 0f; lightningFlash.color = c; // Вимикаємо
+        c.a = 0f; lightningFlash.color = c; // Вимикаємо повністю
     }
 
     [ContextMenu("Force Start Rain")] 
@@ -125,9 +133,11 @@ public class WeatherManager : MonoBehaviour
         if (isRaining) return;
         isRaining = true;
 
+        // Вмикаємо частинки та звук
         if (rainParticles != null) rainParticles.Play();
         if (SoundManager.Instance != null) SoundManager.Instance.PlayRain();
 
+        // Затемнюємо екран
         if (fadeCoroutine != null) StopCoroutine(fadeCoroutine);
         fadeCoroutine = StartCoroutine(FadeDarkness(darknessAlpha));
 
@@ -142,9 +152,11 @@ public class WeatherManager : MonoBehaviour
         if (!isRaining) return;
         isRaining = false;
 
+        // Вимикаємо частинки та звук
         if (rainParticles != null) rainParticles.Stop(); 
         if (SoundManager.Instance != null) SoundManager.Instance.StopRain();
 
+        // Повертаємо світло
         if (fadeCoroutine != null) StopCoroutine(fadeCoroutine);
         fadeCoroutine = StartCoroutine(FadeDarkness(0f));
 

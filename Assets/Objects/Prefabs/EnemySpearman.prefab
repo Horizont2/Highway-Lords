@@ -112,7 +112,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4dd125668d236824ea5da96f51a08c7b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemySpearman
-  healthBarFill: {fileID: 0}
+  healthBarFill: {fileID: 4141782854986824732}
   hitParticlePrefab: {fileID: 2978876853960275596, guid: 938b59e62d459cf4085a4c92fc89aeaa, type: 3}
   speed: 1.8
   attackRange: 1.5
