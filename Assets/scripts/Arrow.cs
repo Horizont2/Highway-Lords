@@ -1,103 +1,131 @@
 using UnityEngine;
+using System.Collections;
 
 public class Arrow : MonoBehaviour
 {
-    [Header("Налаштування")]
-    public float speed = 15f; // Трохи збільшив швидкість для точності
-    public int damage = 10;
-    public float lifeTime = 1.5f; // Збільшив час життя
+    [Header("Характеристики")]
+    public float speed = 15f;
+    public float stickTime = 5f; 
+    public bool stickToTarget = true; 
 
-    private Transform target; // Тепер зберігаємо посилання на ворога
-    private bool isInitialized = false;
+    private Transform target;
+    private int damage;
+    private bool hasHit = false;
+    
+    private Vector3 lastKnownPosition;
 
-    // ЗМІНА: Приймаємо Transform замість Vector3
-    public void Initialize(Transform enemyTarget, int dmg)
+    public void Initialize(Transform targetTransform, int damageAmount)
     {
-        damage = dmg;
-        target = enemyTarget;
-        isInitialized = true;
+        target = targetTransform;
+        damage = damageAmount;
 
-        // Гарантоване знищення через час життя (якщо ціль буде бігати колами)
-        Destroy(gameObject, lifeTime); 
+        if (target != null)
+        {
+            lastKnownPosition = target.position;
+            RotateTowards(lastKnownPosition);
+        }
+        else
+        {
+            // Якщо цілі немає при спавні, просто падаємо поруч
+            lastKnownPosition = transform.position + new Vector3(1f, -1f, 0); 
+        }
     }
 
     void Update()
     {
-        if (!isInitialized) return;
+        if (hasHit) return; 
 
-        // Якщо ціль зникла, померла або стала неактивною — знищуємо стрілу
-        if (target == null || !target.gameObject.activeInHierarchy || target.CompareTag("Untagged"))
+        bool isTargetAlive = target != null && target.gameObject.activeInHierarchy && !target.CompareTag("Untagged");
+        
+        if (isTargetAlive)
         {
-            Destroy(gameObject);
-            return;
+            lastKnownPosition = target.position;
         }
 
-        // 1. Постійно оновлюємо напрямок до рухомої цілі
-        Vector3 direction = (target.position - transform.position).normalized;
+        // Рухаємось до останньої точки
+        transform.position = Vector3.MoveTowards(transform.position, lastKnownPosition, speed * Time.deltaTime);
+        RotateTowards(lastKnownPosition);
 
-        // 2. Повертаємо стрілу до ворога
-        float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
-        transform.rotation = Quaternion.Euler(0, 0, angle);
-
-        // 3. Рухаємось до поточної позиції ворога (MoveTowards точніше для самонаведення)
-        transform.position = Vector2.MoveTowards(transform.position, target.position, speed * Time.deltaTime);
+        // Якщо долетіли до точки
+        if (Vector3.Distance(transform.position, lastKnownPosition) < 0.2f)
+        {
+            if (isTargetAlive)
+            {
+                HitTarget();
+            }
+            else
+            {
+                // Якщо ворога вже нема, просто падаємо там, де він був
+                FallToGround(); 
+            }
+        }
     }
 
-    private bool hasHit = false;
-
-    void OnTriggerEnter2D(Collider2D hitInfo)
+    void RotateTowards(Vector3 targetPos)
     {
-        if (hasHit) return;
-        // Ігноруємо колізії зі своїми та іншими стрілами
-        if (hitInfo.CompareTag("Projectile")) return;
-        if (hitInfo.CompareTag("Player") || hitInfo.CompareTag("PlayerUnit")) return;
-
-        // Знищення об границі екрану
-        if (hitInfo.CompareTag("Boundary"))
+        Vector2 direction = targetPos - transform.position;
+        if (direction != Vector2.zero)
         {
-            Destroy(gameObject);
-            return;
+            float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+            transform.rotation = Quaternion.Euler(0, 0, angle);
+        }
+    }
+
+    void HitTarget()
+    {
+        hasHit = true;
+
+        // Викликаємо універсальний метод отримання шкоди для БУДЬ-ЯКОГО ворога
+        if (target != null && target.CompareTag("Enemy"))
+        {
+            target.SendMessage("TakeDamage", damage, SendMessageOptions.DontRequireReceiver);
         }
 
-        // Влучання у ворога
-        if (hitInfo.CompareTag("Enemy"))
+        if (stickToTarget && target != null)
         {
-            if (hitInfo.CompareTag("Untagged")) return;
-            bool hit = false; 
-
-            if (hitInfo.TryGetComponent<Guard>(out Guard g)) 
-            { 
-                g.TakeDamage(damage); hit = true; 
-            }
-            else if (hitInfo.TryGetComponent<EnemyArcher>(out EnemyArcher ea)) 
-            { 
-                ea.TakeDamage(damage); hit = true; 
-            }
-            else if (hitInfo.TryGetComponent<EnemySpearman>(out EnemySpearman es))
-            {
-                es.TakeDamage(damage); hit = true;
-            }
-            else if (hitInfo.TryGetComponent<EnemyHorse>(out EnemyHorse eh))
-            {
-                eh.TakeDamage(damage); hit = true;
-            }
-            else if (hitInfo.TryGetComponent<Boss>(out Boss b)) 
-            { 
-                b.TakeDamage(damage); hit = true; 
-            }
-
-            // Якщо влучили - знищуємо стрілу
-            if (hit)
-            {
-                hasHit = true;
-                Destroy(gameObject);
-            }
+            transform.SetParent(target); 
         }
+
+        DisablePhysics();
+        StartCoroutine(FadeAndDestroy());
+    }
+
+    void FallToGround()
+    {
+        hasHit = true;
+        transform.position += new Vector3(0, -0.2f, 0); // Трохи в землю
+        DisablePhysics();
+        StartCoroutine(FadeAndDestroy());
+    }
+
+    void DisablePhysics()
+    {
+        Collider2D col = GetComponent<Collider2D>();
+        if (col != null) col.enabled = false; // Вимикаємо колайдер
+
+        SpriteRenderer sr = GetComponent<SpriteRenderer>();
+        if (sr != null) sr.sortingOrder = -10; // Ховаємо за юнітами
+    }
+
+    IEnumerator FadeAndDestroy()
+    {
+        yield return new WaitForSeconds(stickTime - 1f); 
         
-        // Влучання в землю (якщо промахнулись або зачепили декорації)
-        if (hitInfo.gameObject.layer == LayerMask.NameToLayer("Ground") || hitInfo.CompareTag("Ground")) 
+        SpriteRenderer sr = GetComponent<SpriteRenderer>();
+        if (sr != null)
         {
-            Destroy(gameObject);
+            float fadeDuration = 1f;
+            float t = 0;
+            Color startColor = sr.color;
+
+            while (t < fadeDuration)
+            {
+                t += Time.deltaTime;
+                float alpha = Mathf.Lerp(1f, 0f, t / fadeDuration);
+                sr.color = new Color(startColor.r, startColor.g, startColor.b, alpha);
+                yield return null;
+            }
         }
+        Destroy(gameObject);
     }
 }

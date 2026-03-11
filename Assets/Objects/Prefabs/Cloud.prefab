@@ -105,4 +105,4 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CloudShadow
   baseSpeed: 1.5
-  lifetime: 40
+  lifetime: 100
