@@ -10,6 +10,7 @@ public class CartManager : MonoBehaviour
     [Header("UI Кнопки")]
     public Button callCartButton;
     public Image cooldownOverlay;
+    public GameObject cartShineEffect; // <--- НОВА ЗМІННА ДЛЯ БЛІКУ
 
     [Header("Баланс")]
     public float cooldownTime = 45f; 
@@ -38,6 +39,14 @@ public class CartManager : MonoBehaviour
         if (currentCooldown > 0)
         {
             currentCooldown -= Time.deltaTime;
+
+            // Якщо час вийшов під час цього кадру
+            if (currentCooldown <= 0)
+            {
+                currentCooldown = 0; // Фіксуємо рівно нуль
+            }
+            
+            // Викликаємо оновлення UI (тепер воно точно спрацює при 0)
             UpdateUI();
         }
     }
@@ -47,6 +56,10 @@ public class CartManager : MonoBehaviour
         if (currentCooldown > 0)
         {
             callCartButton.interactable = false;
+            
+            // Вимикаємо ефект, поки йде перезарядка
+            if (cartShineEffect != null) cartShineEffect.SetActive(false); 
+
             if (cooldownOverlay != null) 
             {
                 cooldownOverlay.fillAmount = 1f - (currentCooldown / cooldownTime);
@@ -55,6 +68,10 @@ public class CartManager : MonoBehaviour
         else
         {
             callCartButton.interactable = true;
+            
+            // Вмикаємо ефект, коли можна клікати!
+            if (cartShineEffect != null) cartShineEffect.SetActive(true);
+
             if (cooldownOverlay != null) 
             {
                 cooldownOverlay.fillAmount = 1f;
@@ -64,19 +81,22 @@ public class CartManager : MonoBehaviour
 
     public void CallCart()
     {
-        if (currentCooldown > 0) return;
+        Debug.Log("КНОПКУ ВОЗУ НАТИСНУТО!"); // <--- Додайте це
+
+        if (currentCooldown > 0) 
+        {
+             Debug.Log("Але кулдаун ще не пройшов: " + currentCooldown);
+             return;
+        }
 
         if (cartPrefab != null && cartSpawnPoint != null)
         {
             Instantiate(cartPrefab, cartSpawnPoint.position, Quaternion.identity);
             
-            // === НОВА ЛОГІКА ЗВУКУ З ГУЧНІСТЮ ===
             if (cartCallSound != null && SoundManager.Instance != null)
             {
-                // Програємо звук із заданою гучністю
                 SoundManager.Instance.PlaySFX(cartCallSound, cartCallVolume);
             }
-            // =========================
 
             currentCooldown = cooldownTime;
             UpdateUI();

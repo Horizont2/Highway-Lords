@@ -31,11 +31,12 @@ public class Spearman : MonoBehaviour
     private float nextAttackTime = 0f;
     private Vector3 originalScale;
 
-    private Guard targetGuard;
-    private EnemyArcher targetArcher; 
-    private EnemySpearman targetEnemySpearman;
     private Boss targetBoss; 
+    private BatteringRam targetRam; 
     private EnemyHorse targetHorse; 
+    private Guard targetGuard;
+    private EnemySpearman targetEnemySpearman;
+    private EnemyArcher targetArcher; 
 
     private Vector3 startPoint;
     private Rigidbody2D rb; 
@@ -70,7 +71,6 @@ public class Spearman : MonoBehaviour
         if (formationPos == Vector3.zero) formationPos = startPoint;
         originalScale = transform.localScale;
 
-        // === НОВА ЕКОНОМІКА ===
         if (GameManager.Instance != null)
         {
             GameManager.Instance.UpdateUI();
@@ -104,10 +104,11 @@ public class Spearman : MonoBehaviour
         }
 
         if (targetBoss != null && (targetBoss.CompareTag("Untagged") || !targetBoss.gameObject.activeInHierarchy)) targetBoss = null;
-        if (targetGuard != null && (targetGuard.CompareTag("Untagged") || !targetGuard.gameObject.activeInHierarchy)) targetGuard = null;
-        if (targetArcher != null && (targetArcher.CompareTag("Untagged") || !targetArcher.gameObject.activeInHierarchy)) targetArcher = null;
-        if (targetEnemySpearman != null && (targetEnemySpearman.CompareTag("Untagged") || !targetEnemySpearman.gameObject.activeInHierarchy)) targetEnemySpearman = null;
+        if (targetRam != null && (targetRam.CompareTag("Untagged") || !targetRam.gameObject.activeInHierarchy)) targetRam = null;
         if (targetHorse != null && (targetHorse.CompareTag("Untagged") || !targetHorse.gameObject.activeInHierarchy)) targetHorse = null;
+        if (targetGuard != null && (targetGuard.CompareTag("Untagged") || !targetGuard.gameObject.activeInHierarchy)) targetGuard = null;
+        if (targetEnemySpearman != null && (targetEnemySpearman.CompareTag("Untagged") || !targetEnemySpearman.gameObject.activeInHierarchy)) targetEnemySpearman = null;
+        if (targetArcher != null && (targetArcher.CompareTag("Untagged") || !targetArcher.gameObject.activeInHierarchy)) targetArcher = null;
 
         retargetTimer -= Time.deltaTime;
         if (retargetTimer <= 0f)
@@ -118,6 +119,7 @@ public class Spearman : MonoBehaviour
 
         Transform currentTarget = null;
         if (targetBoss != null) currentTarget = targetBoss.transform; 
+        else if (targetRam != null) currentTarget = targetRam.transform;
         else if (targetHorse != null) currentTarget = targetHorse.transform;
         else if (targetGuard != null) currentTarget = targetGuard.transform;
         else if (targetEnemySpearman != null) currentTarget = targetEnemySpearman.transform;
@@ -139,8 +141,12 @@ public class Spearman : MonoBehaviour
 
     void EngageEnemy(Transform target)
     {
-        float distance = Vector2.Distance(transform.position, target.position);
         FlipSprite(target.position.x);
+        
+        Collider2D targetCol = target.GetComponent<Collider2D>();
+        float distance = targetCol != null ? 
+            Vector2.Distance(transform.position, targetCol.ClosestPoint(transform.position)) : 
+            Vector2.Distance(transform.position, target.position);
 
         if (distance <= attackRange)
         {
@@ -204,8 +210,8 @@ public class Spearman : MonoBehaviour
 
     void FindNearestTarget()
     {
-        targetBoss = null; targetHorse = null; targetGuard = null; 
-        targetEnemySpearman = null; targetArcher = null;
+        targetBoss = null; targetRam = null; targetHorse = null; 
+        targetGuard = null; targetEnemySpearman = null; targetArcher = null;
 
         float minX = -1000f; float maxX = 1000f;
         if (GameManager.Instance != null)
@@ -216,6 +222,7 @@ public class Spearman : MonoBehaviour
 
         float shortestDist = Mathf.Infinity;
         GameObject[] enemies = GameObject.FindGameObjectsWithTag("Enemy");
+        GameObject closestEnemy = null;
         
         foreach (GameObject go in enemies)
         {
@@ -226,11 +233,23 @@ public class Spearman : MonoBehaviour
 
             float dist = Vector2.Distance(transform.position, go.transform.position);
 
-            if (go.GetComponent<Boss>()) { if (dist < shortestDist) { shortestDist = dist; targetBoss = go.GetComponent<Boss>(); } continue; }
-            if (go.GetComponent<EnemyHorse>()) { if (dist < shortestDist) { shortestDist = dist; targetHorse = go.GetComponent<EnemyHorse>(); } continue; }
-            if (go.GetComponent<Guard>() && !targetBoss && !targetHorse) { if (dist < shortestDist) { shortestDist = dist; targetGuard = go.GetComponent<Guard>(); } continue; }
-            if (go.GetComponent<EnemySpearman>() && !targetBoss && !targetHorse && !targetGuard) { if (dist < shortestDist) { shortestDist = dist; targetEnemySpearman = go.GetComponent<EnemySpearman>(); } continue; }
-            if (go.GetComponent<EnemyArcher>() && !targetBoss && !targetHorse && !targetGuard && !targetEnemySpearman) { if (dist < shortestDist) { shortestDist = dist; targetArcher = go.GetComponent<EnemyArcher>(); } continue; }
+            float perceivedDist = go.GetComponent<BatteringRam>() ? dist - 1.5f : dist;
+
+            if (perceivedDist < shortestDist) 
+            {
+                shortestDist = perceivedDist;
+                closestEnemy = go;
+            }
+        }
+
+        if (closestEnemy != null)
+        {
+            targetBoss = closestEnemy.GetComponent<Boss>();
+            targetRam = closestEnemy.GetComponent<BatteringRam>();
+            targetHorse = closestEnemy.GetComponent<EnemyHorse>();
+            targetGuard = closestEnemy.GetComponent<Guard>();
+            targetEnemySpearman = closestEnemy.GetComponent<EnemySpearman>();
+            targetArcher = closestEnemy.GetComponent<EnemyArcher>();
         }
     }
 
@@ -248,6 +267,7 @@ public class Spearman : MonoBehaviour
         UnitStats targetStats = null;
 
         if (targetBoss != null) targetStats = targetBoss.GetComponent<UnitStats>();
+        else if (targetRam != null) targetStats = targetRam.GetComponent<UnitStats>();
         else if (targetHorse != null) targetStats = targetHorse.GetComponent<UnitStats>();
         else if (targetGuard != null) targetStats = targetGuard.GetComponent<UnitStats>();
         else if (targetEnemySpearman != null) targetStats = targetEnemySpearman.GetComponent<UnitStats>();
@@ -260,6 +280,7 @@ public class Spearman : MonoBehaviour
         }
         
         if (targetBoss != null) targetBoss.TakeDamage(finalDamage);
+        else if (targetRam != null) targetRam.TakeDamage(finalDamage);
         else if (targetHorse != null) targetHorse.TakeDamage(finalDamage);
         else if (targetGuard != null) targetGuard.TakeDamage(finalDamage);
         else if (targetEnemySpearman != null) targetEnemySpearman.TakeDamage(finalDamage);

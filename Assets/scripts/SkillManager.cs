@@ -49,6 +49,7 @@ public class SkillManager : MonoBehaviour
             skillButton.image.color = normalColor; 
         }
         
+        // Перевіряємо блокування на старті
         CheckUnlock();
     }
 
@@ -88,7 +89,9 @@ public class SkillManager : MonoBehaviour
 
     public void OnSkillButtonClick()
     {
+        // Якщо кнопка заблокована або в кулдауні — ігноруємо клік
         if (!isUnlocked || isCooldown) return;
+        
         if (isAiming) StopAiming();
         else StartAiming();
     }
@@ -116,6 +119,7 @@ public class SkillManager : MonoBehaviour
                 if (!isUnlocked)
                 {
                     isUnlocked = true;
+                    // Якщо розблоковано, кнопка неклікабельна тільки під час кулдауну
                     if (skillButton) skillButton.interactable = !isCooldown;
                     if (lockIcon != null) lockIcon.SetActive(false);
                 }
@@ -125,7 +129,11 @@ public class SkillManager : MonoBehaviour
                 if (isUnlocked)
                 {
                     isUnlocked = false;
-                    if (skillButton) skillButton.interactable = false;
+                    
+                    // ФІКС ТУТ: Ми залишаємо кнопку interactable = true, щоб вона не ставала сірою/порожньою.
+                    // Кліки на неї все одно не пройдуть, бо в OnSkillButtonClick() є перевірка if (!isUnlocked) return;
+                    if (skillButton && !isCooldown) skillButton.interactable = true; 
+                    
                     if (lockIcon != null) lockIcon.SetActive(true);
                 }
             }
@@ -142,7 +150,6 @@ public class SkillManager : MonoBehaviour
         
         if (GameManager.Instance != null)
         {
-            // БОНУС ДО КІЛЬКОСТІ СТРІЛ УВІМКНЕНО!
             totalArrows += GameManager.Instance.metaVolleyBarrage;
         }
 
@@ -167,7 +174,7 @@ public class SkillManager : MonoBehaviour
     IEnumerator CooldownRoutine()
     {
         isCooldown = true;
-        if (skillButton) skillButton.interactable = false;
+        if (skillButton) skillButton.interactable = false; // Тільки під час КД кнопка стає системно неактивною
         if (skillButton) skillButton.image.color = normalColor; 
 
         float timer = cooldownTime;
@@ -180,6 +187,7 @@ public class SkillManager : MonoBehaviour
         isCooldown = false;
         if (cooldownOverlay) cooldownOverlay.fillAmount = 0;
         
-        if (isUnlocked && skillButton) skillButton.interactable = true;
+        // Після закінчення КД робимо кнопку активною В БУДЬ-ЯКОМУ ВИПАДКУ (навіть якщо заблокована, щоб була яскравою)
+        if (skillButton) skillButton.interactable = true;
     }
 }

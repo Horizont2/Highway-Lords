@@ -139,10 +139,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::WallArcher
   arrowPrefab: {fileID: 1112989244787787666, guid: 6c5a1610ebf70b34483395be036d1e36, type: 3}
   firePoint: {fileID: 4738217785629760168}
-  attackRange: 12
+  attackRange: 14
   timeBetweenShots: 1.5
-  baseDamage: 10
-  damagePerLevel: 4
+  levelAnimators: []
 --- !u!95 &5702213468406470768
 Animator:
   serializedVersion: 7

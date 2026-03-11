@@ -1,0 +1,700 @@
+fileFormatVersion: 2
+guid: 1c8cf0264c798e544a72ed1789d4d852
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 1709574347212344892
+    second: lv2_0
+  - first:
+      213: 2750823906884391181
+    second: lv2_1
+  - first:
+      213: 7931161234300098087
+    second: lv2_2
+  - first:
+      213: 3999752738484835304
+    second: lv2_3
+  - first:
+      213: 9000472957469860355
+    second: lv2_4
+  - first:
+      213: 6394743114466275879
+    second: lv2_5
+  - first:
+      213: -1329830669103390285
+    second: lv2_6
+  - first:
+      213: 8357036211064590410
+    second: lv2_7
+  - first:
+      213: -7599019316299006075
+    second: lv2_8
+  - first:
+      213: 9085624962005837177
+    second: lv2_9
+  - first:
+      213: -4639019064802131381
+    second: lv2_10
+  - first:
+      213: 8424948229434899413
+    second: lv2_11
+  - first:
+      213: -1026457007481435607
+    second: lv2_12
+  - first:
+      213: -3925851208541493830
+    second: lv2_13
+  - first:
+      213: -6746420683512835259
+    second: lv2_14
+  - first:
+      213: -3673432810018797613
+    second: lv2_15
+  - first:
+      213: -7605207071887516373
+    second: lv2_16
+  - first:
+      213: -6406797492324940567
+    second: lv2_17
+  - first:
+      213: 3911072836046836101
+    second: lv2_18
+  - first:
+      213: -2792818886450903871
+    second: lv2_19
+  - first:
+      213: 6246915071584845498
+    second: lv2_20
+  - first:
+      213: 7669124613077277927
+    second: lv2_21
+  - first:
+      213: -3618963758652851134
+    second: lv2_22
+  - first:
+      213: 9145046724297107382
+    second: lv2_23
+  - first:
+      213: 4460409318958555791
+    second: lv2_24
+  - first:
+      213: -4326867226606611707
+    second: lv2_25
+  - first:
+      213: 8633377323246049442
+    second: lv2_26
+  - first:
+      213: -4779308459809100601
+    second: lv2_27
+  - first:
+      213: -6962686770614640983
+    second: lv2_28
+  - first:
+      213: 6506484796339782826
+    second: lv2_29
+  - first:
+      213: 8743984156341695361
+    second: lv2_30
+  - first:
+      213: 1996206850711489859
+    second: lv2_31
+  - first:
+      213: 2336930807342730462
+    second: lv2_32
+  - first:
+      213: -7045570781836663526
+    second: lv2_33
+  - first:
+      213: -4380315154739391539
+    second: lv2_34
+  - first:
+      213: -3615598823645102509
+    second: lv2_35
+  - first:
+      213: 544240446279507378
+    second: lv2_36
+  - first:
+      213: 2907121359266167779
+    second: lv2_37
+  - first:
+      213: 518155345167813408
+    second: lv2_38
+  - first:
+      213: -1405928447499593539
+    second: lv2_39
+  - first:
+      213: -3693513346401156687
+    second: lv2_40
+  - first:
+      213: 5426727724192212605
+    second: lv2_41
+  - first:
+      213: 4435798995092389805
+    second: lv2_42
+  - first:
+      213: -7711632790104908893
+    second: lv2_43
+  - first:
+      213: 7929779584970124683
+    second: lv2_44
+  - first:
+      213: 7934453107969535470
+    second: lv2_45
+  - first:
+      213: -6304401667008472612
+    second: lv2_46
+  - first:
+      213: -6671059045513196901
+    second: lv2_47
+  - first:
+      213: 659549763946439850
+    second: lv2_48
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: lv2_0
+      rect:
+        serializedVersion: 2
+        x: 4091
+        y: 2231
+        width: 5
+        height: 5
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c3e46b2afc0a9b710800000000000000
+      internalID: 1709574347212344892
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: lv2_5
+      rect:
+        serializedVersion: 2
+        x: 745
+        y: 1504
+        width: 406
+        height: 643
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 72233a75bf0beb850800000000000000
+      internalID: 6394743114466275879
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: lv2_6
+      rect:
+        serializedVersion: 2
+        x: 1453
+        y: 1501
+        width: 414
+        height: 642
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3b12cac5d0e7b8de0800000000000000
+      internalID: -1329830669103390285
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: lv2_7
+      rect:
+        serializedVersion: 2
+        x: 2157
+        y: 1504
+        width: 410
+        height: 647
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a40d49f08282af370800000000000000
+      internalID: 8357036211064590410
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: lv2_8
+      rect:
+        serializedVersion: 2
+        x: 2853
+        y: 1501
+        width: 418
+        height: 643
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 58f7aa2713cda8690800000000000000
+      internalID: -7599019316299006075
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: lv2_9
+      rect:
+        serializedVersion: 2
+        x: 3524
+        y: 1501
+        width: 411
+        height: 646
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 975a7c6e3cf961e70800000000000000
+      internalID: 9085624962005837177
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: lv2_19
+      rect:
+        serializedVersion: 2
+        x: 748
+        y: 797
+        width: 507
+        height: 634
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1c4871f050aed39d0800000000000000
+      internalID: -2792818886450903871
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: lv2_20
+      rect:
+        serializedVersion: 2
+        x: 1433
+        y: 800
+        width: 462
+        height: 647
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: abe39d7f82081b650800000000000000
+      internalID: 6246915071584845498
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: lv2_21
+      rect:
+        serializedVersion: 2
+        x: 2113
+        y: 797
+        width: 378
+        height: 634
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7ec1dace3343e6a60800000000000000
+      internalID: 7669124613077277927
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: lv2_22
+      rect:
+        serializedVersion: 2
+        x: 2817
+        y: 821
+        width: 366
+        height: 618
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 24cfb76b2abd6cdc0800000000000000
+      internalID: -3618963758652851134
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: lv2_23
+      rect:
+        serializedVersion: 2
+        x: 3509
+        y: 797
+        width: 519
+        height: 631
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6b724101b8bb9ee70800000000000000
+      internalID: 9145046724297107382
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: lv2_36
+      rect:
+        serializedVersion: 2
+        x: 561
+        y: 77
+        width: 514
+        height: 670
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2bdd3e86dc78d8700800000000000000
+      internalID: 544240446279507378
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: lv2_37
+      rect:
+        serializedVersion: 2
+        x: 1377
+        y: 80
+        width: 694
+        height: 595
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3ebb202497b285820800000000000000
+      internalID: 2907121359266167779
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: lv2_38
+      rect:
+        serializedVersion: 2
+        x: 2041
+        y: 77
+        width: 634
+        height: 614
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 02b82378a8bd03700800000000000000
+      internalID: 518155345167813408
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: lv2_39
+      rect:
+        serializedVersion: 2
+        x: 2765
+        y: 81
+        width: 582
+        height: 594
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: db89b23a6832d7ce0800000000000000
+      internalID: -1405928447499593539
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: lv2_40
+      rect:
+        serializedVersion: 2
+        x: 3517
+        y: 77
+        width: 410
+        height: 614
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1b148963e210ebcc0800000000000000
+      internalID: -3693513346401156687
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: lv2_48
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 5
+        height: 5
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: aa468bf0401372900800000000000000
+      internalID: 659549763946439850
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: e13f15d9774657249a574625eab3d035
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      lv2_0: 1709574347212344892
+      lv2_1: 2750823906884391181
+      lv2_10: -4639019064802131381
+      lv2_11: 8424948229434899413
+      lv2_12: -1026457007481435607
+      lv2_13: -3925851208541493830
+      lv2_14: -6746420683512835259
+      lv2_15: -3673432810018797613
+      lv2_16: -7605207071887516373
+      lv2_17: -6406797492324940567
+      lv2_18: 3911072836046836101
+      lv2_19: -2792818886450903871
+      lv2_2: 7931161234300098087
+      lv2_20: 6246915071584845498
+      lv2_21: 7669124613077277927
+      lv2_22: -3618963758652851134
+      lv2_23: 9145046724297107382
+      lv2_24: 4460409318958555791
+      lv2_25: -4326867226606611707
+      lv2_26: 8633377323246049442
+      lv2_27: -4779308459809100601
+      lv2_28: -6962686770614640983
+      lv2_29: 6506484796339782826
+      lv2_3: 3999752738484835304
+      lv2_30: 8743984156341695361
+      lv2_31: 1996206850711489859
+      lv2_32: 2336930807342730462
+      lv2_33: -7045570781836663526
+      lv2_34: -4380315154739391539
+      lv2_35: -3615598823645102509
+      lv2_36: 544240446279507378
+      lv2_37: 2907121359266167779
+      lv2_38: 518155345167813408
+      lv2_39: -1405928447499593539
+      lv2_4: 9000472957469860355
+      lv2_40: -3693513346401156687
+      lv2_41: 5426727724192212605
+      lv2_42: 4435798995092389805
+      lv2_43: -7711632790104908893
+      lv2_44: 7929779584970124683
+      lv2_45: 7934453107969535470
+      lv2_46: -6304401667008472612
+      lv2_47: -6671059045513196901
+      lv2_48: 659549763946439850
+      lv2_5: 6394743114466275879
+      lv2_6: -1329830669103390285
+      lv2_7: 8357036211064590410
+      lv2_8: -7599019316299006075
+      lv2_9: 9085624962005837177
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

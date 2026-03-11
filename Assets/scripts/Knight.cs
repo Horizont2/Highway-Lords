@@ -31,11 +31,12 @@ public class Knight : MonoBehaviour
     private float nextAttackTime = 0f;
     private Vector3 originalScale;
 
+    private Boss targetBoss; 
+    private BatteringRam targetRam; 
+    private EnemyHorse targetHorse;
     private Guard targetGuard;
     private EnemySpearman targetSpearman;
-    private EnemyHorse targetHorse;
     private EnemyArcher targetArcher; 
-    private Boss targetBoss; 
 
     private Vector3 startPoint;
     public float patrolRadius = 3f;
@@ -72,7 +73,6 @@ public class Knight : MonoBehaviour
         
         originalScale = transform.localScale;
 
-        // === НОВА ЕКОНОМІКА ===
         if (GameManager.Instance != null)
         {
             GameManager.Instance.UpdateUI();
@@ -106,6 +106,7 @@ public class Knight : MonoBehaviour
         }
 
         if (targetBoss != null && (targetBoss.CompareTag("Untagged") || !targetBoss.gameObject.activeInHierarchy)) targetBoss = null;
+        if (targetRam != null && (targetRam.CompareTag("Untagged") || !targetRam.gameObject.activeInHierarchy)) targetRam = null;
         if (targetHorse != null && (targetHorse.CompareTag("Untagged") || !targetHorse.gameObject.activeInHierarchy)) targetHorse = null;
         if (targetGuard != null && (targetGuard.CompareTag("Untagged") || !targetGuard.gameObject.activeInHierarchy)) targetGuard = null;
         if (targetSpearman != null && (targetSpearman.CompareTag("Untagged") || !targetSpearman.gameObject.activeInHierarchy)) targetSpearman = null;
@@ -120,6 +121,7 @@ public class Knight : MonoBehaviour
 
         Transform currentTarget = null;
         if (targetBoss != null) currentTarget = targetBoss.transform; 
+        else if (targetRam != null) currentTarget = targetRam.transform; 
         else if (targetHorse != null) currentTarget = targetHorse.transform;
         else if (targetGuard != null) currentTarget = targetGuard.transform;
         else if (targetSpearman != null) currentTarget = targetSpearman.transform;
@@ -143,7 +145,11 @@ public class Knight : MonoBehaviour
     {
         Vector3 moveDestination = target.position;
         FlipSprite(target.position.x);
-        float distance = Vector2.Distance(transform.position, target.position);
+        
+        Collider2D targetCol = target.GetComponent<Collider2D>();
+        float distance = targetCol != null ? 
+            Vector2.Distance(transform.position, targetCol.ClosestPoint(transform.position)) : 
+            Vector2.Distance(transform.position, target.position);
 
         if (distance <= attackRange)
         {
@@ -207,8 +213,8 @@ public class Knight : MonoBehaviour
 
     void FindNearestTarget()
     {
-        targetBoss = null; targetHorse = null; targetGuard = null; 
-        targetSpearman = null; targetArcher = null;
+        targetBoss = null; targetRam = null; targetHorse = null; 
+        targetGuard = null; targetSpearman = null; targetArcher = null;
 
         float minX = -1000f; float maxX = 1000f;
         if (GameManager.Instance != null)
@@ -219,11 +225,11 @@ public class Knight : MonoBehaviour
 
         float shortestDist = Mathf.Infinity;
         GameObject[] enemies = GameObject.FindGameObjectsWithTag("Enemy");
+        GameObject closestEnemy = null;
         
         foreach (GameObject go in enemies)
         {
-            if (go == gameObject) continue;
-            if (go.CompareTag("Untagged")) continue;
+            if (go == gameObject || go.CompareTag("Untagged")) continue;
             
             if (GameManager.Instance != null && GameManager.Instance.engagementLine != null)
                 if (go.transform.position.x > GameManager.Instance.engagementLine.position.x) continue;
@@ -232,11 +238,23 @@ public class Knight : MonoBehaviour
 
             float dist = Vector2.Distance(transform.position, go.transform.position);
 
-            if (go.GetComponent<Boss>()) { if (dist < shortestDist) { shortestDist = dist; targetBoss = go.GetComponent<Boss>(); } continue; }
-            if (go.GetComponent<EnemyHorse>() && !targetBoss) { if (dist < shortestDist) { shortestDist = dist; targetHorse = go.GetComponent<EnemyHorse>(); } continue; }
-            if (go.GetComponent<Guard>() && !targetBoss && !targetHorse) { if (dist < shortestDist) { shortestDist = dist; targetGuard = go.GetComponent<Guard>(); } continue; }
-            if (go.GetComponent<EnemySpearman>() && !targetBoss && !targetHorse && !targetGuard) { if (dist < shortestDist) { shortestDist = dist; targetSpearman = go.GetComponent<EnemySpearman>(); } continue; }
-            if (go.GetComponent<EnemyArcher>() && !targetBoss && !targetHorse && !targetGuard && !targetSpearman) { if (dist < shortestDist) { shortestDist = dist; targetArcher = go.GetComponent<EnemyArcher>(); } continue; }
+            float perceivedDist = go.GetComponent<BatteringRam>() ? dist - 1.5f : dist;
+
+            if (perceivedDist < shortestDist) 
+            {
+                shortestDist = perceivedDist;
+                closestEnemy = go;
+            }
+        }
+
+        if (closestEnemy != null)
+        {
+            targetBoss = closestEnemy.GetComponent<Boss>();
+            targetRam = closestEnemy.GetComponent<BatteringRam>();
+            targetHorse = closestEnemy.GetComponent<EnemyHorse>();
+            targetGuard = closestEnemy.GetComponent<Guard>();
+            targetSpearman = closestEnemy.GetComponent<EnemySpearman>();
+            targetArcher = closestEnemy.GetComponent<EnemyArcher>();
         }
     }
 
@@ -249,6 +267,7 @@ public class Knight : MonoBehaviour
         UnitStats targetStats = null;
 
         if (targetBoss != null) targetStats = targetBoss.GetComponent<UnitStats>();
+        else if (targetRam != null) targetStats = targetRam.GetComponent<UnitStats>();
         else if (targetHorse != null) targetStats = targetHorse.GetComponent<UnitStats>();
         else if (targetGuard != null) targetStats = targetGuard.GetComponent<UnitStats>();
         else if (targetSpearman != null) targetStats = targetSpearman.GetComponent<UnitStats>();
@@ -261,6 +280,7 @@ public class Knight : MonoBehaviour
         }
 
         if (targetBoss != null) targetBoss.TakeDamage(finalDamage);
+        else if (targetRam != null) targetRam.TakeDamage(finalDamage);
         else if (targetHorse != null) targetHorse.TakeDamage(finalDamage);
         else if (targetGuard != null) targetGuard.TakeDamage(finalDamage);
         else if (targetSpearman != null) targetSpearman.TakeDamage(finalDamage);
@@ -275,18 +295,15 @@ public class Knight : MonoBehaviour
 
         if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.knightHit);
         
-        // Розкид для попапа урону
         Vector3 popupPos = transform.position + new Vector3(Random.Range(-0.3f, 0.3f), Random.Range(0.5f, 1.2f), 0);
         GameManager.CreateDamagePopup(popupPos, damage);
 
-        // Частинки крові або іскор
         if (hitParticlePrefab != null)
         {
             GameObject particles = Instantiate(hitParticlePrefab, transform.position + Vector3.up * 0.5f, Quaternion.identity);
             Destroy(particles, 1f);
         }
 
-        // Миготіння
         if (spriteRenderer != null) StartCoroutine(FlashColor());
 
         if (currentHealth <= 0) Die();
@@ -302,9 +319,9 @@ public class Knight : MonoBehaviour
 
     private IEnumerator FlashColor()
     {
-        spriteRenderer.color = new Color(1f, 0.4f, 0.4f); // Червонуватий відтінок
+        spriteRenderer.color = new Color(1f, 0.4f, 0.4f); 
         yield return new WaitForSeconds(0.1f);
-        if (!isDead) spriteRenderer.color = defaultColor; // Повертаємо, якщо ще живий
+        if (!isDead) spriteRenderer.color = defaultColor; 
     }
 
     void Die()
@@ -327,7 +344,6 @@ public class Knight : MonoBehaviour
             GameManager.Instance.OnUnitDeath(gameObject, "Knight"); 
         }
 
-        // Ховаємо мікро-хелсбар (разом з його батьківським Canvas)
         if (healthBarFill != null && healthBarFill.transform.parent != null) 
             healthBarFill.transform.parent.gameObject.SetActive(false);
 

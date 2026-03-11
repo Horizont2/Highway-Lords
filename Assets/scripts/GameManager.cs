@@ -35,6 +35,20 @@ public class MetaSkillUI
     public GameObject lockedOverlay; 
 }
 
+[System.Serializable]
+public class UnitEvolutionUI
+{
+    public Image[] skinImages;      
+    public Sprite lockSprite;       
+    [HideInInspector] public GameObject[] generatedLocks; 
+
+    public Image[] progressPips;    
+    
+    public TMP_Text statsText;      
+    public Button upgradeBtn;       
+    public UICostGroup costUI;      
+}
+
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance;
@@ -136,6 +150,11 @@ public class GameManager : MonoBehaviour
     public GameObject shopPanel;
     public GameObject infoPanel; 
 
+    [Header("=== ПАНЕЛЬ НАЛАШТУВАНЬ ===")]
+    public GameObject settingsPanel;    
+    public Button openSettingsButton;   
+    public Button closeSettingsBtn;     
+
     [Header("UI: Defeat Overlay")]
     public TMPro.TMP_Text defeatText; 
 
@@ -160,6 +179,10 @@ public class GameManager : MonoBehaviour
     public Button closeBarracksBtn;
     public Button closeShopBtn;
     public Button closeInfoButton; 
+
+    [Header("Системні кнопки")]
+    public Button exitGameButton;
+    public Button continueButton;
 
     [Header("UI: Панель Будівництва (Construction)")]
     public Button buildBarracksBtnInMenu;
@@ -186,21 +209,19 @@ public class GameManager : MonoBehaviour
     public UICostGroup unlockSpearmanCostUI;
     public CanvasGroup unlockSpearmanRowGroup;
 
-    [Header("UI: Панель Кузні (Shop/Forge)")]
-    public Button upgradeKnightButton;
-    public Button upgradeArcherButton;
-    public Button upgradeSpearmanButton;
+    [Header("Скіни Юнітів (Еволюція)")]
+    public Sprite[] knightSkins;
+    public Sprite[] archerSkins;
+    public Sprite[] spearmanSkins;
+
+    [Header("UI: Нова Панель Еволюції")]
+    public UnitEvolutionUI knightEvoUI;
+    public UnitEvolutionUI archerEvoUI;
+    public UnitEvolutionUI spearmanEvoUI;
+
     public Button upgradeWallArcherButton;
     public TMP_Text wallArcherLevelText;
     public UICostGroup wallArcherUpgradeCostUI;
-
-    public TMP_Text knightLevelText;
-    public TMP_Text archerLevelText;
-    public TMP_Text spearmanLevelText;
-
-    public UICostGroup knightUpgradeCostUI;
-    public UICostGroup archerUpgradeCostUI;
-    public UICostGroup spearmanUpgradeCostUI;
 
     [Header("UI: Spearman lock (Списоносець)")]
     public CanvasGroup spearmanRowGroup;
@@ -215,8 +236,14 @@ public class GameManager : MonoBehaviour
     public UICostGroup crossbowDamageCostUI;
     public UICostGroup crossbowReloadCostUI;
 
-    [Header("UI: Статистика")]
+    [Header("UI: Статистика і Предікт")]
     public TMP_Text estimatedIncomeText;
+    public GameObject goldPredictPanel; 
+    public GameObject enemyPredictPanel; 
+
+    private Coroutine topHudCoroutine;
+    private Dictionary<RectTransform, Vector2> originalTopPos = new Dictionary<RectTransform, Vector2>();
+    private float topSlideDist = 300f; 
 
     [Header("Налаштування Казарми")]
     public GameObject barracksPrefab;
@@ -370,17 +397,13 @@ public class GameManager : MonoBehaviour
         if (goldText != null)
         {
             goldText.gameObject.SetActive(true);
-            if (goldText.transform.parent != null)
-            {
-                goldText.transform.parent.gameObject.SetActive(true);
-            }
+            if (goldText.transform.parent != null) goldText.transform.parent.gameObject.SetActive(true);
         }
 
         ResolveUIRefs();
         ResolveSpearmanLockUI();
         WireExplicitButtons();
         SetupMetaButtons();
-
         RecalculateUnits();
 
         enemiesAlive = 0;
@@ -388,7 +411,7 @@ public class GameManager : MonoBehaviour
         CloseAllPanels();
         if (defeatPanel) defeatPanel.SetActive(false);
 
-        ToggleWaveHUD(false);
+        ToggleWaveHUD(false, true);
 
         UpdateUI();
         UpdateBarracksStateUI();
@@ -416,25 +439,120 @@ public class GameManager : MonoBehaviour
         if (targetIndicator != null) targetIndicator.Show(target);
     }
 
-    private void ToggleWaveHUD(bool show)
+    private void CacheTopUI()
     {
-        if (waveTimerBar != null) 
-            waveTimerBar.gameObject.SetActive(show);
+        if (waveTimerBar != null) originalTopPos[waveTimerBar.GetComponent<RectTransform>()] = waveTimerBar.GetComponent<RectTransform>().anchoredPosition;
+        if (waveText != null) originalTopPos[waveText.GetComponent<RectTransform>()] = waveText.GetComponent<RectTransform>().anchoredPosition;
+        if (enemyPredictPanel != null) originalTopPos[enemyPredictPanel.GetComponent<RectTransform>()] = enemyPredictPanel.GetComponent<RectTransform>().anchoredPosition;
+    }
 
-        if (waveText != null) 
-            waveText.gameObject.SetActive(show);
+    private void ToggleWaveHUD(bool showWave, bool instant = false)
+    {
+        if (originalTopPos.Count == 0) CacheTopUI(); 
 
-        if (estimatedIncomeText != null)
+        if (topHudCoroutine != null) StopCoroutine(topHudCoroutine);
+
+        if (instant)
         {
-            Transform predictParent = estimatedIncomeText.transform.parent;
-            if (predictParent != null && predictParent != estimatedIncomeText.transform)
+            SetWaveElementsActive(showWave);
+            SetPredictElementsActive(showWave); 
+            SnapTopElements(showWave);
+        }
+        else
+        {
+            topHudCoroutine = StartCoroutine(AnimateTopHUD(showWave));
+        }
+    }
+
+    private IEnumerator AnimateTopHUD(bool waveStarting)
+    {
+        float duration = 0.35f;
+
+        List<RectTransform> waveEls = new List<RectTransform>();
+        if (waveTimerBar != null) waveEls.Add(waveTimerBar.GetComponent<RectTransform>());
+        if (waveText != null && (waveTimerBar == null || !waveText.transform.IsChildOf(waveTimerBar.transform))) waveEls.Add(waveText.GetComponent<RectTransform>());
+
+        List<RectTransform> predEls = new List<RectTransform>();
+        if (enemyPredictPanel != null) predEls.Add(enemyPredictPanel.GetComponent<RectTransform>());
+
+        if (waveStarting) 
+        {
+            SetWaveElementsActive(true);
+            SetPredictElementsActive(true);
+
+            SetGroupStartOffset(waveEls, true); 
+            SetGroupStartOffset(predEls, true); 
+
+            yield return StartCoroutine(SlideGroup(waveEls, true, duration));
+            yield return StartCoroutine(SlideGroup(predEls, true, duration));
+        }
+        else 
+        {
+            yield return StartCoroutine(SlideGroup(predEls, false, duration));
+            SetPredictElementsActive(false);
+
+            yield return StartCoroutine(SlideGroup(waveEls, false, duration));
+            SetWaveElementsActive(false);
+        }
+    }
+
+    private void SetWaveElementsActive(bool active)
+    {
+        if (waveTimerBar != null) waveTimerBar.gameObject.SetActive(active);
+        if (waveText != null) waveText.gameObject.SetActive(active);
+    }
+
+    private void SetPredictElementsActive(bool active)
+    {
+        if (enemyPredictPanel != null) enemyPredictPanel.SetActive(active);
+    }
+
+    private void SetGroupStartOffset(List<RectTransform> group, bool hidden)
+    {
+        foreach(var rt in group)
+        {
+            if (rt == null || !originalTopPos.ContainsKey(rt)) continue;
+            rt.anchoredPosition = hidden ? originalTopPos[rt] + new Vector2(0, topSlideDist) : originalTopPos[rt];
+        }
+    }
+
+    private void SnapTopElements(bool waveActive)
+    {
+        List<RectTransform> waveEls = new List<RectTransform>();
+        if (waveTimerBar != null) waveEls.Add(waveTimerBar.GetComponent<RectTransform>());
+        if (waveText != null && (waveTimerBar == null || !waveText.transform.IsChildOf(waveTimerBar.transform))) waveEls.Add(waveText.GetComponent<RectTransform>());
+
+        List<RectTransform> predEls = new List<RectTransform>();
+        if (enemyPredictPanel != null) predEls.Add(enemyPredictPanel.GetComponent<RectTransform>());
+
+        SetGroupStartOffset(waveEls, !waveActive);
+        SetGroupStartOffset(predEls, !waveActive);
+    }
+
+    private IEnumerator SlideGroup(List<RectTransform> elements, bool slideIn, float duration)
+    {
+        float t = 0;
+        while(t < duration)
+        {
+            t += Time.unscaledDeltaTime;
+            float progress = t / duration;
+            float smooth = progress * progress * (3f - 2f * progress);
+
+            foreach(var rt in elements)
             {
-                predictParent.gameObject.SetActive(show);
+                if (rt == null || !originalTopPos.ContainsKey(rt)) continue;
+                Vector2 orig = originalTopPos[rt];
+                Vector2 hidden = orig + new Vector2(0, topSlideDist);
+                
+                rt.anchoredPosition = Vector2.Lerp(slideIn ? hidden : orig, slideIn ? orig : hidden, smooth);
             }
-            else
-            {
-                estimatedIncomeText.gameObject.SetActive(show);
-            }
+            yield return null;
+        }
+
+        foreach(var rt in elements)
+        {
+            if (rt == null || !originalTopPos.ContainsKey(rt)) continue;
+            rt.anchoredPosition = slideIn ? originalTopPos[rt] : originalTopPos[rt] + new Vector2(0, topSlideDist);
         }
     }
 
@@ -447,10 +565,12 @@ public class GameManager : MonoBehaviour
     private IEnumerator SlideUIButtons(bool show)
     {
         float duration = 0.5f; 
-        float slideDistance = 400f;
+        float slideDistance = 400f; 
         float t = 0f;
 
-        Button[] buttonsToAnimate = new Button[] { hammerButton, openShopButton, openMetaShopButton, openInfoButton, nextWaveButton };
+        // ВАЖЛИВО: Залишили тільки ці кнопки. Тепер молоток і магазин під час хвилі не ховаються!
+        Button[] buttonsToAnimate = new Button[] { openMetaShopButton, nextWaveButton };
+        
         List<RectTransform> rects = new List<RectTransform>();
         List<CanvasGroup> cgs = new List<CanvasGroup>();
 
@@ -458,13 +578,14 @@ public class GameManager : MonoBehaviour
         {
             foreach (var btn in buttonsToAnimate)
             {
-                if (btn != null) btn.gameObject.SetActive(true);
+                if (btn == null) continue;
+                btn.gameObject.SetActive(true);
             }
         }
 
         foreach (var btn in buttonsToAnimate)
         {
-            if (btn == null) continue;
+            if (btn == null || !btn.gameObject.activeSelf) continue;
 
             RectTransform rect = btn.GetComponent<RectTransform>();
             if (rect != null)
@@ -534,7 +655,11 @@ public class GameManager : MonoBehaviour
         if (infoPanel != null) infoPanel.SetActive(false);
         if (metaShopPanel != null) metaShopPanel.SetActive(false);
         
-        UpdateUI(); // Оновлюємо пульсацію при закритті
+        // Закриваємо налаштування тільки якщо час НЕ на паузі
+        if (settingsPanel != null && Time.timeScale != 0) settingsPanel.SetActive(false);
+        
+        Time.timeScale = 1f;
+        UpdateUI(); 
     }
 
     private void OnWaveFullyCleared()
@@ -613,6 +738,7 @@ public class GameManager : MonoBehaviour
             {
                 isWaveInProgress = false;
                 if (waveTimerBar != null) waveTimerBar.value = 0f;
+                CheckWaveState();
             }
         }
     }
@@ -647,10 +773,6 @@ public class GameManager : MonoBehaviour
         if (upgradeLimitButton == null) upgradeLimitButton = FindButtonInRow(barracks, "Barracks_Row", "Upgrade Units Limit_Row");
         if (unlockSpearmanButton == null) unlockSpearmanButton = FindButtonInRow(barracks, "Spikes_Row", "Unlock Spearman_Row");
 
-        if (upgradeKnightButton == null) upgradeKnightButton = FindButtonInRow(shop, "Barracks_Row", "Knights_Row");
-        if (upgradeArcherButton == null) upgradeArcherButton = FindButtonInRow(shop, "Spikes_Row", "Archers_Row");
-        if (upgradeSpearmanButton == null) upgradeSpearmanButton = FindButtonInRow(shop, "Mine_Row", "Spearmen_Row");
-        
         if (upgradeWallArcherButton == null) upgradeWallArcherButton = FindButtonInRow(shop, "WallArcher_Row", "WallArchers_Row");
 
         if (closeConstructionBtn == null) closeConstructionBtn = FindUIButtonInPanel(construction, "CloseButton");
@@ -817,6 +939,8 @@ public class GameManager : MonoBehaviour
 
         if (openInfoButton != null) { openInfoButton.onClick.RemoveAllListeners(); openInfoButton.onClick.AddListener(ToggleInfoPanel); }
         if (closeInfoButton != null) { closeInfoButton.onClick.RemoveAllListeners(); closeInfoButton.onClick.AddListener(ToggleInfoPanel); }
+        
+        if (exitGameButton != null) { exitGameButton.onClick.RemoveAllListeners(); exitGameButton.onClick.AddListener(ExitGame); }
 
         if (openMetaShopButton != null) { openMetaShopButton.onClick.RemoveAllListeners(); openMetaShopButton.onClick.AddListener(ToggleMetaShop); }
         if (closeMetaShopButton != null) { closeMetaShopButton.onClick.RemoveAllListeners(); closeMetaShopButton.onClick.AddListener(ToggleMetaShop); }
@@ -826,10 +950,11 @@ public class GameManager : MonoBehaviour
         if (buildSpikesButton != null) { buildSpikesButton.onClick.RemoveAllListeners(); buildSpikesButton.onClick.AddListener(BuildSpikes); }
         if (towerButton != null) { towerButton.onClick.RemoveAllListeners(); towerButton.onClick.AddListener(UpgradeDamage); }
         if (castleUpgradeButton != null) { castleUpgradeButton.onClick.RemoveAllListeners(); castleUpgradeButton.onClick.AddListener(UpgradeCastleHP); }
-        if (upgradeKnightButton != null) { upgradeKnightButton.onClick.RemoveAllListeners(); upgradeKnightButton.onClick.AddListener(UpgradeKnights); }
-        if (upgradeArcherButton != null) { upgradeArcherButton.onClick.RemoveAllListeners(); upgradeArcherButton.onClick.AddListener(UpgradeArchers); }
-        if (upgradeSpearmanButton != null) { upgradeSpearmanButton.onClick.RemoveAllListeners(); upgradeSpearmanButton.onClick.AddListener(UpgradeSpearman); }
         
+        if (knightEvoUI != null && knightEvoUI.upgradeBtn != null) { knightEvoUI.upgradeBtn.onClick.RemoveAllListeners(); knightEvoUI.upgradeBtn.onClick.AddListener(UpgradeKnights); }
+        if (archerEvoUI != null && archerEvoUI.upgradeBtn != null) { archerEvoUI.upgradeBtn.onClick.RemoveAllListeners(); archerEvoUI.upgradeBtn.onClick.AddListener(UpgradeArchers); }
+        if (spearmanEvoUI != null && spearmanEvoUI.upgradeBtn != null) { spearmanEvoUI.upgradeBtn.onClick.RemoveAllListeners(); spearmanEvoUI.upgradeBtn.onClick.AddListener(UpgradeSpearman); }
+
         if (upgradeWallArcherButton != null) { upgradeWallArcherButton.onClick.RemoveAllListeners(); upgradeWallArcherButton.onClick.AddListener(UpgradeWallArchers); }
 
         if (upgradeLimitButton != null) { upgradeLimitButton.onClick.RemoveAllListeners(); upgradeLimitButton.onClick.AddListener(BuyUnitLimitUpgrade); }
@@ -843,6 +968,10 @@ public class GameManager : MonoBehaviour
         if (hireSpearmanButton != null) { hireSpearmanButton.onClick.RemoveAllListeners(); hireSpearmanButton.onClick.AddListener(HireSpearman); }
         
         if (nextWaveButton != null) { nextWaveButton.onClick.RemoveAllListeners(); nextWaveButton.onClick.AddListener(NextWave); }
+        if (continueButton != null) { continueButton.onClick.RemoveAllListeners(); continueButton.onClick.AddListener(ResumeGame); }
+        
+        if (openSettingsButton != null) { openSettingsButton.onClick.RemoveAllListeners(); openSettingsButton.onClick.AddListener(ToggleSettingsPanel); }
+        if (closeSettingsBtn != null) { closeSettingsBtn.onClick.RemoveAllListeners(); closeSettingsBtn.onClick.AddListener(ToggleSettingsPanel); }
     }
 
     public void UpdateFormationPositions()
@@ -868,6 +997,20 @@ public class GameManager : MonoBehaviour
 
             units[i].SendMessage("SetFormationPosition", targetPos, SendMessageOptions.DontRequireReceiver);
         }
+    }
+
+    public void RecalculateUnits()
+    {
+        var knights = FindObjectsByType<Knight>(FindObjectsSortMode.None);
+        var archers = FindObjectsByType<Archer>(FindObjectsSortMode.None);
+        var spearmen = FindObjectsByType<Spearman>(FindObjectsSortMode.None);
+
+        activeKnights = knights.Where(k => !k.CompareTag("Untagged")).ToList();
+        activeArchers = archers.Where(a => !a.CompareTag("Untagged")).ToList();
+        activeSpearmen = spearmen.Where(s => !s.CompareTag("Untagged")).ToList();
+
+        currentUnits = activeKnights.Count + activeArchers.Count + activeSpearmen.Count;
+        UpdateFormationPositions();
     }
 
     public void OnUnitDeath(GameObject unitObj, string type)
@@ -1020,18 +1163,16 @@ public class GameManager : MonoBehaviour
 
     public void UpdateMetaUI()
     {
-        if (gemsText != null) gemsText.text = gems.ToString() + " 💎";
+        if (gemsText != null) gemsText.text = gems.ToString();
         if (topGemsText != null) topGemsText.text = gems.ToString();
         
-        // --- ОНОВЛЕНИЙ БЛОК СЛАЙДЕРА ---
         if (gemProgressBar != null)
         {
-            gemProgressBar.minValue = 0f; // Примусово ставимо нуль
+            gemProgressBar.minValue = 0f; 
             gemProgressBar.maxValue = killsToNextGem;
             gemProgressBar.value = currentKills;
         }
         if (gemProgressText != null) gemProgressText.text = $"{currentKills} / {killsToNextGem}";
-        // -------------------------------
 
         UpdateMetaSlot(uiFortifiedWalls, metaFortifiedWalls, 10, 5, "Lv " + metaFortifiedWalls, 
             $"Max HP: +{metaFortifiedWalls * 200} → <color=#008800>+{(metaFortifiedWalls + 1) * 200}</color>", true);
@@ -1076,6 +1217,128 @@ public class GameManager : MonoBehaviour
             UpdateButtonState(ui.upgradeBtn, canAfford); 
             if (ui.lockedOverlay != null) ui.lockedOverlay.SetActive(false); 
         }
+    }
+
+    void UpdateUnitEvoUI(UnitEvolutionUI ui, int level, Sprite[] skins, string unitName, int curDmg, int nextDmg, string tactics, int cost, bool canAfford, bool isUnlocked)
+    {
+        if (ui == null) return;
+
+        if ((ui.generatedLocks == null || ui.generatedLocks.Length != ui.skinImages.Length) && ui.skinImages != null)
+        {
+            ui.generatedLocks = new GameObject[ui.skinImages.Length];
+            for (int i = 0; i < ui.skinImages.Length; i++)
+            {
+                if (ui.skinImages[i] != null && ui.lockSprite != null)
+                {
+                    GameObject lockObj = new GameObject("AutoLock_" + i);
+                    lockObj.transform.SetParent(ui.skinImages[i].transform, false);
+                    
+                    Image lockImg = lockObj.AddComponent<Image>();
+                    lockImg.sprite = ui.lockSprite;
+                    lockImg.preserveAspect = true; 
+                    
+                    RectTransform rt = lockObj.GetComponent<RectTransform>();
+                    rt.anchorMin = new Vector2(0.5f, 0.5f);
+                    rt.anchorMax = new Vector2(0.5f, 0.5f);
+                    rt.pivot = new Vector2(0.5f, 0.5f);
+                    rt.sizeDelta = new Vector2(35f, 35f); 
+                    
+                    ui.generatedLocks[i] = lockObj;
+                    lockObj.SetActive(false); 
+                }
+            }
+        }
+
+        int levelsPerSkin = 5;
+        int maxSkins = skins != null ? skins.Length : 0;
+        
+        int curSkinIdx = (level - 1) / levelsPerSkin;
+        int activePips = ((level - 1) % levelsPerSkin) + 1;
+
+        if (ui.skinImages != null)
+        {
+            for (int i = 0; i < ui.skinImages.Length; i++)
+            {
+                if (ui.skinImages[i] != null)
+                {
+                    if (skins != null && i < skins.Length && skins[i] != null)
+                    {
+                        ui.skinImages[i].sprite = skins[i];
+                    }
+
+                    if (i <= curSkinIdx) 
+                    {
+                        ui.skinImages[i].color = Color.white; 
+                        
+                        if (ui.generatedLocks != null && i < ui.generatedLocks.Length && ui.generatedLocks[i] != null) 
+                            ui.generatedLocks[i].SetActive(false); 
+                    }
+                    else 
+                    {
+                        ui.skinImages[i].color = new Color(0.15f, 0.15f, 0.15f, 1f); 
+                        
+                        if (ui.generatedLocks != null && i < ui.generatedLocks.Length && ui.generatedLocks[i] != null) 
+                            ui.generatedLocks[i].SetActive(true); 
+                    }
+                }
+            }
+        }
+
+        if (ui.progressPips != null)
+        {
+            for (int i = 0; i < ui.progressPips.Length; i++)
+            {
+                if (ui.progressPips[i] != null)
+                {
+                    if (curSkinIdx >= maxSkins - 1 && maxSkins > 0 && activePips == levelsPerSkin) 
+                    {
+                        ui.progressPips[i].color = new Color(0.45f, 0.75f, 0.15f, 1f);
+                    }
+                    else if (i < activePips)
+                    {
+                        ui.progressPips[i].color = new Color(0.45f, 0.75f, 0.15f, 1f); 
+                    }
+                    else
+                    {
+                        ui.progressPips[i].color = new Color(0.3f, 0.25f, 0.2f, 1f); 
+                    }
+                }
+            }
+        }
+
+        if (ui.statsText != null)
+        {
+            ui.statsText.text = $"<color=#3E2723><size=140%><b>{unitName} LV {level}</b></size></color>\n" +
+                                $"<color=#4A2E1B><size=95%>DMG: {curDmg} → </color><color=#4CAF50>{nextDmg}</color></size>\n" +
+                                $"<size=80%>{tactics}</size>";
+        }
+
+        if (!isUnlocked)
+        {
+            UpdateButtonState(ui.upgradeBtn, false);
+            UpdateCostUIGroup(ui.costUI, ResourceType.Gold, 0, ResourceType.Wood, 0, "LOCKED");
+        }
+        else
+        {
+            UpdateButtonState(ui.upgradeBtn, canAfford);
+            UpdateCostUIGroup(ui.costUI, ResourceType.Gold, cost);
+        }
+    }
+
+    public Sprite GetUnitSkin(UnitCategory category, int level)
+    {
+        int skinIdx = (level - 1) / 5;
+        Sprite[] skins = null;
+
+        switch(category)
+        {
+            case UnitCategory.Standard: skins = knightSkins; break;
+            case UnitCategory.Ranged: skins = archerSkins; break;
+            case UnitCategory.Spearman: skins = spearmanSkins; break;
+        }
+
+        if (skins == null || skins.Length == 0) return null;
+        return skins[Mathf.Clamp(skinIdx, 0, skins.Length - 1)];
     }
 
     public void ToggleConstructionMenu()
@@ -1144,14 +1407,43 @@ public class GameManager : MonoBehaviour
             bool isActive = !infoPanel.activeSelf;
             infoPanel.SetActive(isActive);
 
-            if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.clickSound, 2.0f);
-
             if (isActive)
             {
+                Time.timeScale = 0f; 
                 CloseAllPanels();
                 infoPanel.SetActive(true);
             }
+            else
+            {
+                Time.timeScale = 1f;
+            }
+
+            if (SoundManager.Instance != null) 
+                SoundManager.Instance.PlaySFX(SoundManager.Instance.clickSound, 2.0f);
         }
+        UpdateUI();
+    }
+
+    public void ToggleSettingsPanel()
+    {
+        if (settingsPanel == null) return;
+
+        bool isOpening = !settingsPanel.activeSelf;
+
+        if (isOpening)
+        {
+            CloseAllPanels(); 
+            settingsPanel.SetActive(true); 
+            Time.timeScale = 0f; 
+        }
+        else
+        {
+            ResumeGame(); 
+        }
+
+        if (SoundManager.Instance != null) 
+            SoundManager.Instance.PlaySFX(SoundManager.Instance.clickSound, 2.0f);
+            
         UpdateUI();
     }
 
@@ -1225,55 +1517,40 @@ public class GameManager : MonoBehaviour
         while (true)
         {
             yield return new WaitForSeconds(2.0f);
-
-            if (enemiesAlive > 0)
-            {
-                GameObject[] realEnemies = GameObject.FindGameObjectsWithTag("Enemy");
-
-                if (realEnemies.Length == 0)
-                {
-                    enemiesAlive = 0;
-                    UpdateUI();
-
-                    if (!isWaveInProgress && autoStartWaves && !isWaitingForNextWave)
-                    {
-                        OnWaveFullyCleared();
-                        isWaitingForNextWave = true;
-                        StartCoroutine(AutoStartNextWave(timeBetweenWaves));
-                    }
-                }
-                else if (enemiesAlive != realEnemies.Length)
-                {
-                    enemiesAlive = realEnemies.Length;
-                    UpdateUI();
-                }
-            }
-            else if (!isWaveInProgress && autoStartWaves && isFirstWaveStarted && !isWaitingForNextWave)
-            {
-                GameObject[] realEnemies = GameObject.FindGameObjectsWithTag("Enemy");
-
-                if (realEnemies.Length == 0)
-                {
-                    OnWaveFullyCleared();
-                    isWaitingForNextWave = true;
-                    StartCoroutine(AutoStartNextWave(timeBetweenWaves));
-                }
-            }
+            CheckWaveState();
         }
     }
 
-    void RecalculateUnits()
+    private void CheckWaveState()
     {
-        var knights = FindObjectsByType<Knight>(FindObjectsSortMode.None);
-        var archers = FindObjectsByType<Archer>(FindObjectsSortMode.None);
-        var spearmen = FindObjectsByType<Spearman>(FindObjectsSortMode.None);
+        if (isDefeated) return;
 
-        activeKnights = knights.Where(k => !k.CompareTag("Untagged")).ToList();
-        activeArchers = archers.Where(a => !a.CompareTag("Untagged")).ToList();
-        activeSpearmen = spearmen.Where(s => !s.CompareTag("Untagged")).ToList();
+        if (!isFirstWaveStarted) return; 
 
-        currentUnits = activeKnights.Count + activeArchers.Count + activeSpearmen.Count;
-        UpdateFormationPositions();
+        GameObject[] realEnemies = GameObject.FindGameObjectsWithTag("Enemy");
+        enemiesAlive = realEnemies.Length;
+
+        if (enemiesAlive > 0) return;
+
+        if (isWaveInProgress)
+        {
+            if (currentWaveMilestones.Count > 0) return; 
+
+            isWaveInProgress = false;
+            if (waveTimerBar != null) waveTimerBar.value = 0f;
+        }
+
+        if (!isWaitingForNextWave)
+        {
+            isWaitingForNextWave = true; 
+            
+            OnWaveFullyCleared(); 
+
+            if (autoStartWaves)
+            {
+                StartCoroutine(AutoStartNextWave(timeBetweenWaves));
+            }
+        }
     }
 
     public int GetDifficultyHealth() { return EconomyConfig.GetEnemyHealth(baseEnemyHealth, currentWave); }
@@ -1396,18 +1673,7 @@ public class GameManager : MonoBehaviour
             manualTarget = null;
         }
 
-        if (enemiesAlive == 0 && !isWaveInProgress && !isWaitingForNextWave)
-        {
-            if (waveTimerBar != null) waveTimerBar.value = 0f;
-
-            OnWaveFullyCleared();
-
-            if (autoStartWaves)
-            {
-                isWaitingForNextWave = true;
-                StartCoroutine(AutoStartNextWave(timeBetweenWaves));
-            }
-        }
+        CheckWaveState();
     }
 
     public void BuildOrUpgradeBarracks()
@@ -1526,25 +1792,6 @@ public class GameManager : MonoBehaviour
     void UpdateBarracksStateUI()
     {
         if (barracksIconButton == null) barracksIconButton = FindUIButton("BarracksButton");
-        if (barracksIconButton) barracksIconButton.gameObject.SetActive(barracksLevel > 0);
-
-        if (buildBarracksBtnInMenu)
-        {
-            int costG = GetBarracksBuildingUpgradeCost(true);
-            int costW = GetBarracksBuildingUpgradeCost(false);
-
-            bool canAfford = gold >= costG && wood >= costW;
-            UpdateButtonState(buildBarracksBtnInMenu, canAfford);
-
-            Image btnImg = buildBarracksBtnInMenu.GetComponent<Image>();
-            if (btnImg != null)
-            {
-                if (barracksLevel == 0) btnImg.sprite = buildButtonSprite;
-                else btnImg.sprite = upgradeButtonSprite;
-            }
-
-            UpdateCostUIGroup(barracksCostUI, ResourceType.Gold, costG, ResourceType.Wood, costW);
-        }
     }
 
     public void BuyUnitLimitUpgrade()
@@ -1679,6 +1926,7 @@ public class GameManager : MonoBehaviour
 
             SaveGame();
             UpdateUI();
+            RefreshAllUnitSkins("Knight");
         }
         else
         {
@@ -1699,6 +1947,7 @@ public class GameManager : MonoBehaviour
 
             SaveGame();
             UpdateUI();
+            RefreshAllUnitSkins("Archer");
         }
         else
         {
@@ -1719,10 +1968,27 @@ public class GameManager : MonoBehaviour
 
             SaveGame();
             UpdateUI();
+            RefreshAllUnitSkins("Spearman");
         }
         else
         {
             if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.error);
+        }
+    }
+
+    private void RefreshAllUnitSkins(string unitType)
+    {
+        if (unitType == "Knight")
+        {
+            foreach (var u in activeKnights) u.SendMessage("UpdateSkin", SendMessageOptions.DontRequireReceiver);
+        }
+        else if (unitType == "Archer")
+        {
+            foreach (var u in activeArchers) u.SendMessage("UpdateSkin", SendMessageOptions.DontRequireReceiver);
+        }
+        else if (unitType == "Spearman")
+        {
+            foreach (var u in activeSpearmen) u.SendMessage("UpdateSkin", SendMessageOptions.DontRequireReceiver);
         }
     }
     
@@ -1981,10 +2247,16 @@ public class GameManager : MonoBehaviour
 
     public void Defeat()
     {
+        isDefeated = true; 
+        isWaveInProgress = false; 
         Time.timeScale = 1f;
 
         if(defeatPanel) defeatPanel.SetActive(true);
         if (defeatText != null) defeatText.text = "Avanpost control was lost";
+
+        if (enemyPredictPanel != null) enemyPredictPanel.SetActive(false);
+        if (waveTimerBar != null) waveTimerBar.gameObject.SetActive(false);
+        if (waveText != null) waveText.gameObject.SetActive(false);
 
         ClearProjectiles();
         SaveGame();
@@ -2073,6 +2345,8 @@ public class GameManager : MonoBehaviour
         isWaitingForNextWave = false; 
         isWaveInProgress = false;
 
+        isFirstWaveStarted = false; 
+
         waveTimer = 0f;
         if (waveTimerBar != null)
         {
@@ -2081,12 +2355,34 @@ public class GameManager : MonoBehaviour
 
         if (spawner != null) spawner.PrepareForWave(currentWave);
 
-        ToggleWaveHUD(false); 
+        ToggleWaveHUD(false, true); 
         TriggerUIFade(true);  
 
         UpdateUI();
         UpdateBarracksStateUI();
         StartCoroutine(RecalculateUnitsNextFrame());
+    }
+
+    public void ExitGame()
+    {
+        SaveGame();
+        Application.Quit();
+        #if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+        #endif
+    }
+
+    public void ResumeGame()
+    {
+        if (settingsPanel != null) settingsPanel.SetActive(false);
+        if (infoPanel != null) infoPanel.SetActive(false);
+        
+        Time.timeScale = 1f; 
+        
+        UpdateUI();
+
+        if (SoundManager.Instance != null)
+            SoundManager.Instance.PlaySFX(SoundManager.Instance.clickSound, 2.0f);
     }
 
     public void SaveGame()
@@ -2173,7 +2469,7 @@ public class GameManager : MonoBehaviour
 
     public void LoadGame()
     {
-        gold = PlayerPrefs.GetInt("SavedGold", 0);
+        gold = PlayerPrefs.GetInt("SavedGold", 100); 
         wood = PlayerPrefs.GetInt("SavedWood", 0);
         stone = PlayerPrefs.GetInt("SavedStone", 0);
         currentWave = PlayerPrefs.GetInt("SavedWave", 1);
@@ -2278,7 +2574,7 @@ public class GameManager : MonoBehaviour
     public void DeleteSave()
     {
         PlayerPrefs.DeleteAll();
-        gold = 0;
+        gold = 100; 
         wood = 0;
         stone = 0;
         currentWave = 1;
@@ -2297,6 +2593,8 @@ public class GameManager : MonoBehaviour
         enemiesAlive = 0;
         currentUnits = 0;
         isWaitingForNextWave = false;
+
+        isFirstWaveStarted = false; 
         
         towerLevel = 1;
         towerWoodCost = GetTowerWoodCost(towerLevel);
@@ -2419,36 +2717,15 @@ public class GameManager : MonoBehaviour
 
         UpdateConstructionInfoUI();
 
-        if (knightLevelText)
-        {
-            int currentDmg = GetKnightDamageAtLevel(knightLevel);
-            int nextDmg    = GetKnightDamageAtLevel(knightLevel + 1);
-            knightLevelText.text =
-                $"Knights Lvl {knightLevel}\nDMG: {currentDmg} → <color=#008800>{nextDmg}</color>\n" +
-                "<size=70%><color=#008800>Counters Archers</color>\n" +
-                "<color=#FF6666>Vulnerable to Spearmen</color></size>";
-        }
+        UpdateUnitEvoUI(knightEvoUI, knightLevel, knightSkins, "Knights", GetKnightDamageAtLevel(knightLevel), GetKnightDamageAtLevel(knightLevel + 1), 
+            "<color=#008800>Counters Archers</color>\n<color=#FF6666>Vulnerable to Spearmen</color>", knightUpgradeCost, gold >= knightUpgradeCost, true);
 
-        if (archerLevelText)
-        {
-            int currentDmg = GetArcherDamageAtLevel(archerLevel);
-            int nextDmg    = GetArcherDamageAtLevel(archerLevel + 1);
-            archerLevelText.text =
-                $"Archers Lvl {archerLevel}\nDMG: {currentDmg} → <color=#008800>{nextDmg}</color>\n" +
-                "<size=70%><color=#008800>Counters Spearmen</color>\n" +
-                "<color=#FF6666>Vulnerable to Knights & Cavalry</color></size>";
-        }
+        UpdateUnitEvoUI(archerEvoUI, archerLevel, archerSkins, "Archers", GetArcherDamageAtLevel(archerLevel), GetArcherDamageAtLevel(archerLevel + 1), 
+            "<color=#008800>Counters Spearmen</color>\n<color=#FF6666>Vulnerable to Knights & Cavalry</color>", archerUpgradeCost, gold >= archerUpgradeCost, true);
 
-        if (spearmanLevelText)
-        {
-            int currentDmg = GetSpearmanDamageAtLevel(spearmanLevel);
-            int nextDmg    = GetSpearmanDamageAtLevel(spearmanLevel + 1);
-            spearmanLevelText.text =
-                $"Spearmen Lvl {spearmanLevel}\nDMG: {currentDmg} → <color=#008800>{nextDmg}</color>\n" +
-                "<size=70%><color=#008800>Counters Cavalry (x2 DMG)</color>\n" +
-                "<color=#FF6666>Vulnerable to Archers</color></size>";
-        }
-        
+        UpdateUnitEvoUI(spearmanEvoUI, spearmanLevel, spearmanSkins, "Spearmen", GetSpearmanDamageAtLevel(spearmanLevel), GetSpearmanDamageAtLevel(spearmanLevel + 1), 
+            "<color=#008800>Counters Cavalry (x2 DMG)</color>\n<color=#FF6666>Vulnerable to Archers</color>", spearmanUpgradeCost, gold >= spearmanUpgradeCost, isSpearmanUnlocked);
+
         if (wallArcherLevelText != null)
         {
             int currentDmg = GetWallArcherDamageAtLevel(wallArcherLevel);
@@ -2461,9 +2738,6 @@ public class GameManager : MonoBehaviour
                 $"<size=70%><color=#FFCC00>New Skin in {levelsUntilSkin} level(s)!</color></size>";
         }
 
-        UpdateCostUIGroup(knightUpgradeCostUI, ResourceType.Gold, knightUpgradeCost);
-        UpdateCostUIGroup(archerUpgradeCostUI, ResourceType.Gold, archerUpgradeCost);
-        UpdateCostUIGroup(spearmanUpgradeCostUI, ResourceType.Gold, spearmanUpgradeCost);
         UpdateCostUIGroup(wallArcherUpgradeCostUI, ResourceType.Gold, wallArcherUpgradeCost);
 
         bool canHireKnight = (gold >= knightFixedCost) && (currentUnits < maxUnits);
@@ -2476,7 +2750,10 @@ public class GameManager : MonoBehaviour
         if (hireSpearmanButton != null)
         {
             bool canSeeSpearman = isSpearmanUnlocked && barracksLevel > 0;
-            hireSpearmanButton.gameObject.SetActive(canSeeSpearman);
+            if (!isWaitingForNextWave) 
+            {
+                hireSpearmanButton.gameObject.SetActive(canSeeSpearman);
+            }
             UpdateButtonState(hireSpearmanButton, canHireSpearman && canSeeSpearman);
         }
 
@@ -2488,14 +2765,7 @@ public class GameManager : MonoBehaviour
         }
 
         UpdateButtonState(hammerButton, true);
-        UpdateButtonState(upgradeKnightButton, gold >= knightUpgradeCost);
-        UpdateButtonState(upgradeArcherButton, gold >= archerUpgradeCost);
         UpdateButtonState(upgradeWallArcherButton, gold >= wallArcherUpgradeCost);
-
-        if (upgradeSpearmanButton != null)
-        {
-            UpdateButtonState(upgradeSpearmanButton, (gold >= spearmanUpgradeCost) && isSpearmanUnlocked);
-        }
 
         if (unlockSpearmanButton != null)
         {
@@ -2539,12 +2809,14 @@ public class GameManager : MonoBehaviour
             int costG = GetBarracksBuildingUpgradeCost(true);
             int costW = GetBarracksBuildingUpgradeCost(false);
             UpdateButtonState(buildBarracksBtnInMenu, gold >= costG && wood >= costW);
-            UpdateBarracksStateUI();
         }
 
         if (barracksIconButton != null)
         {
-            barracksIconButton.gameObject.SetActive(barracksLevel > 0);
+            if (barracksLevel == 0)
+            {
+                barracksIconButton.gameObject.SetActive(false);
+            }
         }
 
         if (upgradeLimitButton != null)
@@ -2574,7 +2846,7 @@ public class GameManager : MonoBehaviour
 
         if (openShopButton != null) UpdateButtonState(openShopButton, true);
 
-        if (nextWaveButton != null) UpdateButtonState(nextWaveButton, enemiesAlive <= 0 && !isWaveInProgress && !isWaitingForNextWave);
+        if (nextWaveButton != null) UpdateButtonState(nextWaveButton, enemiesAlive <= 0 && !isWaveInProgress);
 
         if (buildSpikesButton != null)
         {
@@ -2595,11 +2867,6 @@ public class GameManager : MonoBehaviour
 
         UpdateSpearmanLockUI();
 
-        // ==========================================
-        // ЛОГІКА ПУЛЬСАЦІЇ КНОПОК (ПОВІДОМЛЕННЯ)
-        // ==========================================
-
-        // 1. Перевіряємо Кузню (Shop)
         if (shopPulse != null)
         {
             bool canUpgradeInShop = (gold >= knightUpgradeCost) || 
@@ -2611,7 +2878,6 @@ public class GameManager : MonoBehaviour
             shopPulse.SetPulse(canUpgradeInShop && isShopClosed);
         }
 
-        // 2. Перевіряємо Казарму (Barracks)
         if (barracksPulse != null && barracksLevel > 0)
         {
             int cap = GetBarracksCapLimit();
@@ -2624,7 +2890,6 @@ public class GameManager : MonoBehaviour
             barracksPulse.SetPulse(canUpgradeInBarracks && isBarracksClosed);
         }
 
-        // 3. Перевіряємо Будівництво (Construction)
         if (buildPulse != null)
         {
             int cG = GetBarracksBuildingUpgradeCost(true);

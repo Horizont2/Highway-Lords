@@ -1,0 +1,828 @@
+fileFormatVersion: 2
+guid: 6fc825869cd6fd24faf208dc2100da4c
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -1208341687425043530
+    second: forgepanel_0
+  - first:
+      213: 5327798902544431353
+    second: forgepanel_1
+  - first:
+      213: 7655096958491499809
+    second: forgepanel_2
+  - first:
+      213: 2134568835184463006
+    second: forgepanel_3
+  - first:
+      213: -5153976054477076314
+    second: forgepanel_4
+  - first:
+      213: -745674844636823186
+    second: forgepanel_5
+  - first:
+      213: -844120136764429
+    second: forgepanel_6
+  - first:
+      213: -7468755356186288597
+    second: forgepanel_7
+  - first:
+      213: -1270757163086780084
+    second: forgepanel_8
+  - first:
+      213: 228302715405605360
+    second: forgepanel_9
+  - first:
+      213: -3336711580995009745
+    second: forgepanel_10
+  - first:
+      213: -336187706973453856
+    second: forgepanel_11
+  - first:
+      213: -9011690252377129343
+    second: forgepanel_12
+  - first:
+      213: -1014560746890198287
+    second: forgepanel_13
+  - first:
+      213: -1789945327074063172
+    second: forgepanel_14
+  - first:
+      213: -7098111938460177614
+    second: forgepanel_15
+  - first:
+      213: -3731350794577693979
+    second: forgepanel_16
+  - first:
+      213: 899621477298865390
+    second: forgepanel_17
+  - first:
+      213: 1221443314116856493
+    second: forgepanel_18
+  - first:
+      213: 1161761897766424561
+    second: forgepanel_19
+  - first:
+      213: 5246921985494027767
+    second: forgepanel_20
+  - first:
+      213: -8259722222310819156
+    second: forgepanel_21
+  - first:
+      213: -3771290282881503253
+    second: forgepanel_22
+  - first:
+      213: 4139721524510803159
+    second: forgepanel_23
+  - first:
+      213: 1866348046908994778
+    second: forgepanel_24
+  - first:
+      213: -7082301474925297400
+    second: forgepanel_25
+  - first:
+      213: 1854273533388788114
+    second: forgepanel_26
+  - first:
+      213: -676084521709751170
+    second: forgepanel_27
+  - first:
+      213: 911757972714874659
+    second: forgepanel_28
+  - first:
+      213: 2841237996168780921
+    second: forgepanel_29
+  - first:
+      213: -2461699203567352742
+    second: forgepanel_30
+  - first:
+      213: 7426512244711280039
+    second: forgepanel_31
+  - first:
+      213: 1907938967518065185
+    second: forgepanel_32
+  - first:
+      213: 7320109891716651095
+    second: forgepanel_33
+  - first:
+      213: 2990921385064579398
+    second: forgepanel_34
+  - first:
+      213: 8741067781421065065
+    second: forgepanel_35
+  - first:
+      213: 3483148819368760889
+    second: forgepanel_36
+  - first:
+      213: 8354581473719919921
+    second: forgepanel_37
+  - first:
+      213: 5835544154840021040
+    second: forgepanel_38
+  - first:
+      213: -7855572120971103542
+    second: forgepanel_39
+  - first:
+      213: -6465351576965793543
+    second: forgepanel_40
+  - first:
+      213: -4374330427084843720
+    second: forgepanel_41
+  - first:
+      213: 3949573723261066979
+    second: forgepanel_42
+  - first:
+      213: -4530935310111813882
+    second: forgepanel_43
+  - first:
+      213: 7948912222190394038
+    second: forgepanel_44
+  - first:
+      213: -339074126840737680
+    second: forgepanel_45
+  - first:
+      213: 7569406051690105298
+    second: forgepanel_46
+  - first:
+      213: 8325153553783192976
+    second: forgepanel_47
+  - first:
+      213: 5593492050983441664
+    second: forgepanel_48
+  - first:
+      213: -6335877768779834999
+    second: forgepanel_49
+  - first:
+      213: 1791420719431227569
+    second: forgepanel_50
+  - first:
+      213: -77402987578014901
+    second: forgepanel_51
+  - first:
+      213: 1339051724698438570
+    second: forgepanel_52
+  - first:
+      213: -3417727630799064223
+    second: forgepanel_53
+  - first:
+      213: -3994350437038985317
+    second: forgepanel_54
+  - first:
+      213: -1409163095115506356
+    second: forgepanel_55
+  - first:
+      213: 5934906623178678096
+    second: forgepanel_56
+  - first:
+      213: -3845529883807785356
+    second: forgepanel_57
+  - first:
+      213: 978477118375319900
+    second: forgepanel_58
+  - first:
+      213: 8222622225547875440
+    second: forgepanel_59
+  - first:
+      213: 4663779821116599983
+    second: forgepanel_60
+  - first:
+      213: -3187566192194236070
+    second: forgepanel_61
+  - first:
+      213: -8354095452342915941
+    second: forgepanel_62
+  - first:
+      213: 5845191791589891187
+    second: forgepanel_63
+  - first:
+      213: 7874417220699957714
+    second: forgepanel_64
+  - first:
+      213: -153320446094311411
+    second: forgepanel_65
+  - first:
+      213: -8833263570516857962
+    second: forgepanel_66
+  - first:
+      213: 6014794357531394385
+    second: forgepanel_67
+  - first:
+      213: -7388652543007291071
+    second: forgepanel_68
+  - first:
+      213: -8112208050123534120
+    second: forgepanel_69
+  - first:
+      213: -2337779192204613853
+    second: forgepanel_70
+  - first:
+      213: -3019599248199909134
+    second: forgepanel_71
+  - first:
+      213: 397783659734404182
+    second: forgepanel_72
+  - first:
+      213: -3544261166820503944
+    second: forgepanel_73
+  - first:
+      213: 3898321189367701319
+    second: forgepanel_74
+  - first:
+      213: -4779786131084696431
+    second: forgepanel_75
+  - first:
+      213: -2540129730548114039
+    second: forgepanel_76
+  - first:
+      213: -2404243687318157813
+    second: forgepanel_77
+  - first:
+      213: -2921985665778363188
+    second: forgepanel_78
+  - first:
+      213: 5056872068149656244
+    second: forgepanel_79
+  - first:
+      213: -6003051167438982781
+    second: forgepanel_80
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: forgepanel_0
+      rect:
+        serializedVersion: 2
+        x: 5115
+        y: 2851
+        width: 5
+        height: 5
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6b3fbb923ab1b3fe0800000000000000
+      internalID: -1208341687425043530
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forgepanel_1
+      rect:
+        serializedVersion: 2
+        x: 205
+        y: 2127
+        width: 574
+        height: 588
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9f870ecbfd420f940800000000000000
+      internalID: 5327798902544431353
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forgepanel_2
+      rect:
+        serializedVersion: 2
+        x: 857
+        y: 2137
+        width: 1078
+        height: 562
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 12d1f04102e5c3a60800000000000000
+      internalID: 7655096958491499809
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forgepanel_4
+      rect:
+        serializedVersion: 2
+        x: 2713
+        y: 2477
+        width: 506
+        height: 190
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6a8460cd5166978b0800000000000000
+      internalID: -5153976054477076314
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forgepanel_7
+      rect:
+        serializedVersion: 2
+        x: 4333
+        y: 2549
+        width: 118
+        height: 118
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b2e58302396a95890800000000000000
+      internalID: -7468755356186288597
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forgepanel_10
+      rect:
+        serializedVersion: 2
+        x: 2713
+        y: 2241
+        width: 190
+        height: 190
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f234cd8ee7e91b1d0800000000000000
+      internalID: -3336711580995009745
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forgepanel_23
+      rect:
+        serializedVersion: 2
+        x: 877
+        y: 1749
+        width: 326
+        height: 338
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7d441891bce337930800000000000000
+      internalID: 4139721524510803159
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forgepanel_27
+      rect:
+        serializedVersion: 2
+        x: 2257
+        y: 1757
+        width: 318
+        height: 318
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e74b955a5b01e96f0800000000000000
+      internalID: -676084521709751170
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forgepanel_33
+      rect:
+        serializedVersion: 2
+        x: 3709
+        y: 2013
+        width: 151
+        height: 184
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7581894b921469560800000000000000
+      internalID: 7320109891716651095
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forgepanel_42
+      rect:
+        serializedVersion: 2
+        x: 212
+        y: 1385
+        width: 315
+        height: 315
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3ee51352064bfc630800000000000000
+      internalID: 3949573723261066979
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forgepanel_45
+      rect:
+        serializedVersion: 2
+        x: 1241
+        y: 1385
+        width: 318
+        height: 318
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 070d12dc0ed5b4bf0800000000000000
+      internalID: -339074126840737680
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forgepanel_49
+      rect:
+        serializedVersion: 2
+        x: 2713
+        y: 1649
+        width: 450
+        height: 127
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 989559bfcb07218a0800000000000000
+      internalID: -6335877768779834999
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forgepanel_53
+      rect:
+        serializedVersion: 2
+        x: 2716
+        y: 1484
+        width: 907
+        height: 79
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1633f23e3dac190d0800000000000000
+      internalID: -3417727630799064223
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forgepanel_64
+      rect:
+        serializedVersion: 2
+        x: 4621
+        y: 1309
+        width: 91
+        height: 94
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2d92a05edbc874d60800000000000000
+      internalID: 7874417220699957714
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forgepanel_65
+      rect:
+        serializedVersion: 2
+        x: 4721
+        y: 1309
+        width: 91
+        height: 94
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d008eb9dddb4fddf0800000000000000
+      internalID: -153320446094311411
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forgepanel_71
+      rect:
+        serializedVersion: 2
+        x: 197
+        y: 121
+        width: 1502
+        height: 970
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2f002077b7a3816d0800000000000000
+      internalID: -3019599248199909134
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forgepanel_72
+      rect:
+        serializedVersion: 2
+        x: 1805
+        y: 129
+        width: 790
+        height: 938
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 65c8ce78126358500800000000000000
+      internalID: 397783659734404182
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 0f24f3d67a8b5024a9d1ea01e76d91b7
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      forgepanel_0: -1208341687425043530
+      forgepanel_1: 5327798902544431353
+      forgepanel_10: -3336711580995009745
+      forgepanel_11: -336187706973453856
+      forgepanel_12: -9011690252377129343
+      forgepanel_13: -1014560746890198287
+      forgepanel_14: -1789945327074063172
+      forgepanel_15: -7098111938460177614
+      forgepanel_16: -3731350794577693979
+      forgepanel_17: 899621477298865390
+      forgepanel_18: 1221443314116856493
+      forgepanel_19: 1161761897766424561
+      forgepanel_2: 7655096958491499809
+      forgepanel_20: 5246921985494027767
+      forgepanel_21: -8259722222310819156
+      forgepanel_22: -3771290282881503253
+      forgepanel_23: 4139721524510803159
+      forgepanel_24: 1866348046908994778
+      forgepanel_25: -7082301474925297400
+      forgepanel_26: 1854273533388788114
+      forgepanel_27: -676084521709751170
+      forgepanel_28: 911757972714874659
+      forgepanel_29: 2841237996168780921
+      forgepanel_3: 2134568835184463006
+      forgepanel_30: -2461699203567352742
+      forgepanel_31: 7426512244711280039
+      forgepanel_32: 1907938967518065185
+      forgepanel_33: 7320109891716651095
+      forgepanel_34: 2990921385064579398
+      forgepanel_35: 8741067781421065065
+      forgepanel_36: 3483148819368760889
+      forgepanel_37: 8354581473719919921
+      forgepanel_38: 5835544154840021040
+      forgepanel_39: -7855572120971103542
+      forgepanel_4: -5153976054477076314
+      forgepanel_40: -6465351576965793543
+      forgepanel_41: -4374330427084843720
+      forgepanel_42: 3949573723261066979
+      forgepanel_43: -4530935310111813882
+      forgepanel_44: 7948912222190394038
+      forgepanel_45: -339074126840737680
+      forgepanel_46: 7569406051690105298
+      forgepanel_47: 8325153553783192976
+      forgepanel_48: 5593492050983441664
+      forgepanel_49: -6335877768779834999
+      forgepanel_5: -745674844636823186
+      forgepanel_50: 1791420719431227569
+      forgepanel_51: -77402987578014901
+      forgepanel_52: 1339051724698438570
+      forgepanel_53: -3417727630799064223
+      forgepanel_54: -3994350437038985317
+      forgepanel_55: -1409163095115506356
+      forgepanel_56: 5934906623178678096
+      forgepanel_57: -3845529883807785356
+      forgepanel_58: 978477118375319900
+      forgepanel_59: 8222622225547875440
+      forgepanel_6: -844120136764429
+      forgepanel_60: 4663779821116599983
+      forgepanel_61: -3187566192194236070
+      forgepanel_62: -8354095452342915941
+      forgepanel_63: 5845191791589891187
+      forgepanel_64: 7874417220699957714
+      forgepanel_65: -153320446094311411
+      forgepanel_66: -8833263570516857962
+      forgepanel_67: 6014794357531394385
+      forgepanel_68: -7388652543007291071
+      forgepanel_69: -8112208050123534120
+      forgepanel_7: -7468755356186288597
+      forgepanel_70: -2337779192204613853
+      forgepanel_71: -3019599248199909134
+      forgepanel_72: 397783659734404182
+      forgepanel_73: -3544261166820503944
+      forgepanel_74: 3898321189367701319
+      forgepanel_75: -4779786131084696431
+      forgepanel_76: -2540129730548114039
+      forgepanel_77: -2404243687318157813
+      forgepanel_78: -2921985665778363188
+      forgepanel_79: 5056872068149656244
+      forgepanel_8: -1270757163086780084
+      forgepanel_80: -6003051167438982781
+      forgepanel_9: 228302715405605360
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

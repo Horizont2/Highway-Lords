@@ -13,7 +13,7 @@ public class EnemyConfig
     public bool isBoss = false;   
     public bool isCart = false;   
     public bool isElephant = false; 
-    public bool isBatteringRam = false; // === НОВЕ: Галочка для Тарана ===
+    public bool isBatteringRam = false; 
     [Range(1, 100)] public int spawnWeight = 50; 
     public int baseGoldReward = 15; 
 }
@@ -29,7 +29,7 @@ public class EnemySpawner : MonoBehaviour
 
     [Header("Налаштування Хвилі")]
     public Transform[] spawnPoints;      
-    public float fastSpawnDelay = 0.3f; // Затримка між юнітами всередині одного загону
+    public float fastSpawnDelay = 0.3f; 
 
     [Header("UI")]
     public WaveInfoPanel waveInfoPanel;  
@@ -39,40 +39,37 @@ public class EnemySpawner : MonoBehaviour
     private EnemyConfig bossConfig;
     private EnemyConfig cartConfig; 
     private EnemyConfig elephantConfig; 
-    private EnemyConfig ramConfig;      // === НОВЕ: Конфіг Тарана ===
+    private EnemyConfig ramConfig;      
     
     private int currentWaveNumber;
     private bool isBossWave = false;
     private bool isCartWave = false;
     private bool isElephantWave = false; 
-    private bool isRamWave = false;     // === НОВЕ: Чи є таран на цій хвилі ===
+    private bool isRamWave = false;     
+    
     private bool hasSpawnedCartThisWave = false; 
+    private bool hasSpawnedRamThisWave = false; 
 
     public void PrepareForWave(int waveNumber)
     {
         currentWaveNumber = waveNumber;
         
-        // Логіка спеціальних хвиль
         isBossWave = (waveNumber % 10 == 0);
-        isRamWave = (waveNumber % 10 == 0);       // Таран виїжджає кожні 10 хвиль
-        isElephantWave = (waveNumber % 25 == 0);  // Слон кожні 25 хвиль
+        isRamWave = (waveNumber % 10 == 0);      
+        isElephantWave = (waveNumber % 25 == 0); 
         
         isCartWave = (!isBossWave && !isElephantWave && waveNumber % 3 == 0);
         hasSpawnedCartThisWave = false; 
+        hasSpawnedRamThisWave = false; 
         
         PrepareEnemyPool(waveNumber);
         UpdateWaveUI();
     }
 
-    // Зверніть увагу: ми тепер можемо перевірити isBossMoment прямо тут, 
-    // щоб Слон точно спавнився на 25 хвилі, навіть якщо GameManager не передав true
     public void SpawnSquad(bool isBossMoment = false)
     {
-        // Примусово вмикаємо бос-момент, якщо це хвиля Слона або Тарана, а це остання група
         if (!isBossMoment && (isElephantWave || isRamWave || isBossWave))
         {
-            // Якщо GameManager забув сказати, що це бос-момент (наприклад на 25 хвилі)
-            // Ми перевіримо це самі (спрощена страховка)
             if (GameObject.FindGameObjectsWithTag("Enemy").Length <= 2) isBossMoment = true;
         }
 
@@ -83,14 +80,22 @@ public class EnemySpawner : MonoBehaviour
     {
         List<EnemyConfig> squadToSpawn = new List<EnemyConfig>();
 
-        // 1. ПЕРЕВІРКА НА СПЕЦІАЛЬНИХ ЮНІТІВ (Бос, Слон, Таран, Віз)
         if (isBossMoment)
         {
             if (isBossWave && bossConfig != null) squadToSpawn.Add(bossConfig);
-            if (isElephantWave && elephantConfig != null) squadToSpawn.Add(elephantConfig);
             
-            // === НОВЕ: Спавнимо Таран ===
-            if (isRamWave && ramConfig != null) squadToSpawn.Add(ramConfig);
+            if (isElephantWave && elephantConfig != null && !squadToSpawn.Contains(elephantConfig)) 
+                squadToSpawn.Add(elephantConfig);
+            
+            // Спавнимо таран ТІЛЬКИ якщо ще не спавнили його на цій хвилі
+            if (isRamWave && ramConfig != null && !hasSpawnedRamThisWave) 
+            {
+                if (!squadToSpawn.Contains(ramConfig)) 
+                {
+                    squadToSpawn.Add(ramConfig);
+                }
+                hasSpawnedRamThisWave = true;
+            }
         }
         else if (isCartWave && !hasSpawnedCartThisWave && cartConfig != null)
         {
@@ -98,22 +103,19 @@ public class EnemySpawner : MonoBehaviour
             hasSpawnedCartThisWave = true;
         }
 
-        // 2. ДОДАЄМО ЗВИЧАЙНУ ПІХОТУ (Змішаний загін)
         int escortCount = 0;
         
         if (isBossMoment && (isBossWave || isElephantWave || isRamWave)) 
             escortCount = Random.Range(bossEscortMin, bossEscortMax + 1);
-        else if (squadToSpawn.Count == 0) // Якщо це звичайний тік без воза і босів
+        else if (squadToSpawn.Count == 0) 
             escortCount = Random.Range(3, 6);
 
-        // Вибираємо випадкового ворога для КОЖНОГО місця в загоні окремо
         for (int i = 0; i < escortCount; i++)
         {
             EnemyConfig randomUnit = GetWeightedRandomEnemy(false);
             if (randomUnit != null) squadToSpawn.Add(randomUnit);
         }
 
-        // 3. СПАВНИМО ЗАГІН З ЗАТРИМКОЮ
         Transform sp = (spawnPoints != null && spawnPoints.Length > 0) 
             ? spawnPoints[Random.Range(0, spawnPoints.Length)] 
             : transform;
@@ -131,11 +133,7 @@ public class EnemySpawner : MonoBehaviour
 
         Vector3 pos = basePos ?? transform.position;
         pos += new Vector3(Random.Range(-0.4f, 0.4f), Random.Range(-0.8f, 0.8f), 0);
-        
         Instantiate(config.prefab, pos, Quaternion.identity);
-
-        // Ми тепер не викликаємо GameManager.RegisterEnemy тут, бо кожен юніт 
-        // у своєму Start() вже робить це. Але якщо залишите - не зламається (просто врахуйте).
     }
 
     void PrepareEnemyPool(int wave)
@@ -145,12 +143,10 @@ public class EnemySpawner : MonoBehaviour
         bossConfig = isBossWave ? allEnemies.Find(e => e.isBoss) : null;
         cartConfig = isCartWave ? allEnemies.Find(e => e.isCart && e.unlockWave <= wave) : null;
         elephantConfig = isElephantWave ? allEnemies.Find(e => e.isElephant) : null; 
-        
-        // === НОВЕ: Знаходимо Таран ===
         ramConfig = isRamWave ? allEnemies.Find(e => e.isBatteringRam) : null; 
 
         var available = allEnemies
-            .Where(e => e.unlockWave <= wave && !e.isBoss && !e.isCart && !e.isElephant && !e.isBatteringRam) // Відсікаємо всіх спеціальних
+            .Where(e => e.unlockWave <= wave && !e.isBoss && !e.isCart && !e.isElephant && !e.isBatteringRam) 
             .OrderByDescending(e => e.unlockWave)
             .ToList();
 
@@ -171,14 +167,13 @@ public class EnemySpawner : MonoBehaviour
 
         if (cartConfig != null) currentWavePool.Add(cartConfig);
         if (elephantConfig != null) currentWavePool.Add(elephantConfig);
-        if (ramConfig != null) currentWavePool.Add(ramConfig); // Додаємо Таран в пул UI
+        if (ramConfig != null) currentWavePool.Add(ramConfig); 
     }
 
     EnemyConfig GetWeightedRandomEnemy(bool allowCarts)
     {
         if (currentWavePool.Count == 0) return null;
 
-        // === НОВЕ: Забороняємо спавнити Таран та Слона як звичайну піхоту ===
         var pool = allowCarts 
             ? currentWavePool 
             : currentWavePool.Where(e => !e.isCart && !e.isElephant && !e.isBoss && !e.isBatteringRam).ToList();
@@ -213,7 +208,6 @@ public class EnemySpawner : MonoBehaviour
     public int GetEstimatedGoldFromEnemies()
     {
         if (currentWavePool.Count == 0) return 0;
-        
         float waveMultiplier = 1.0f + (currentWaveNumber * 0.1f);
         float avgGold = (float)currentWavePool.Average(e => e.baseGoldReward) * waveMultiplier;
         return Mathf.RoundToInt(avgGold * 15);
