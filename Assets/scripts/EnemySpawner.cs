@@ -34,7 +34,6 @@ public class EnemySpawner : MonoBehaviour
     [Header("UI")]
     public WaveInfoPanel waveInfoPanel;  
 
-    // Внутрішні змінні
     private List<EnemyConfig> currentWavePool = new List<EnemyConfig>(); 
     private EnemyConfig bossConfig;
     private EnemyConfig cartConfig; 
@@ -49,6 +48,7 @@ public class EnemySpawner : MonoBehaviour
     
     private bool hasSpawnedCartThisWave = false; 
     private bool hasSpawnedRamThisWave = false; 
+    private bool hasSpawnedElephantThisWave = false; 
 
     public void PrepareForWave(int waveNumber)
     {
@@ -59,8 +59,10 @@ public class EnemySpawner : MonoBehaviour
         isElephantWave = (waveNumber % 25 == 0); 
         
         isCartWave = (!isBossWave && !isElephantWave && waveNumber % 3 == 0);
+        
         hasSpawnedCartThisWave = false; 
         hasSpawnedRamThisWave = false; 
+        hasSpawnedElephantThisWave = false; 
         
         PrepareEnemyPool(waveNumber);
         UpdateWaveUI();
@@ -68,7 +70,11 @@ public class EnemySpawner : MonoBehaviour
 
     public void SpawnSquad(bool isBossMoment = false)
     {
-        if (!isBossMoment && (isElephantWave || isRamWave || isBossWave))
+        if (isElephantWave && !hasSpawnedElephantThisWave)
+        {
+            isBossMoment = true;
+        }
+        else if (!isBossMoment && (isElephantWave || isRamWave || isBossWave))
         {
             if (GameObject.FindGameObjectsWithTag("Enemy").Length <= 2) isBossMoment = true;
         }
@@ -84,16 +90,15 @@ public class EnemySpawner : MonoBehaviour
         {
             if (isBossWave && bossConfig != null) squadToSpawn.Add(bossConfig);
             
-            if (isElephantWave && elephantConfig != null && !squadToSpawn.Contains(elephantConfig)) 
-                squadToSpawn.Add(elephantConfig);
+            if (isElephantWave && elephantConfig != null && !hasSpawnedElephantThisWave) 
+            {
+                if (!squadToSpawn.Contains(elephantConfig)) squadToSpawn.Add(elephantConfig);
+                hasSpawnedElephantThisWave = true;
+            }
             
-            // Спавнимо таран ТІЛЬКИ якщо ще не спавнили його на цій хвилі
             if (isRamWave && ramConfig != null && !hasSpawnedRamThisWave) 
             {
-                if (!squadToSpawn.Contains(ramConfig)) 
-                {
-                    squadToSpawn.Add(ramConfig);
-                }
+                if (!squadToSpawn.Contains(ramConfig)) squadToSpawn.Add(ramConfig);
                 hasSpawnedRamThisWave = true;
             }
         }
@@ -120,8 +125,16 @@ public class EnemySpawner : MonoBehaviour
             ? spawnPoints[Random.Range(0, spawnPoints.Length)] 
             : transform;
 
+        CameraController cam = Camera.main != null ? Camera.main.GetComponent<CameraController>() : null;
+
         foreach (var unitConfig in squadToSpawn)
         {
+            // Стій! Чекаємо, доки закінчиться катсцена
+            while (cam != null && cam.isCinematicPlaying)
+            {
+                yield return null;
+            }
+
             SpawnEnemy(unitConfig, sp.position);
             yield return new WaitForSeconds(fastSpawnDelay);
         }

@@ -182,8 +182,8 @@ MonoBehaviour:
   speed: 0.8
   attackRange: 2.5
   attackCooldown: 3
-  baseDamage: 100
-  baseHealth: 500
+  baseDamage: 50
+  baseHealth: 300
   tierAnimators:
   - {fileID: 9100000, guid: 4e5a7dd24777f9441bf59fc3658ec60f, type: 2}
   - {fileID: 9100000, guid: 175127ec995f579409632e825c1940db, type: 2}

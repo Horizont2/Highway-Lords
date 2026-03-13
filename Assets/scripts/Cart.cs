@@ -47,10 +47,17 @@ public class Cart : MonoBehaviour
             woodReward += wave;
             stoneReward += Mathf.RoundToInt(wave * 0.5f);
 
-            // БОНУС ВІД КРИСТАЛІВ УВІМКНЕНО!
             float bonusMultiplier = 1f + (GameManager.Instance.metaEfficientCarts * 0.10f);
             woodReward = Mathf.RoundToInt(woodReward * bonusMultiplier);
             stoneReward = Mathf.RoundToInt(stoneReward * bonusMultiplier);
+
+            // === НОВЕ: Сюжетний віз на 1-й хвилі ===
+            // Гарантуємо 100 дерева для казарми!
+            if (wave <= 1 && GameManager.Instance.barracksLevel == 0)
+            {
+                woodReward = 100;
+                stoneReward = 0; // Камінь поки не потрібен
+            }
         }
     }
 
@@ -96,11 +103,25 @@ public class Cart : MonoBehaviour
             GameManager.Instance.AddResource(ResourceType.Wood, woodReward);
             GameManager.Instance.AddResource(ResourceType.Stone, stoneReward);
 
+            // === НОВЕ: Докидаємо золото, якщо гравцю не вистачає на казарму (200G) ===
+            if (GameManager.Instance.currentWave <= 1 && GameManager.Instance.barracksLevel == 0)
+            {
+                if (GameManager.Instance.gold < 200)
+                {
+                    int goldNeeded = 200 - GameManager.Instance.gold;
+                    GameManager.Instance.AddResource(ResourceType.Gold, goldNeeded);
+                    
+                    // Показуємо поп-ап золота
+                    Vector3 goldPos = transform.position + new Vector3(-0.5f, 2.5f, 0f);
+                    GameManager.Instance.ShowResourcePopup(ResourceType.Gold, goldNeeded, goldPos);
+                }
+            }
+
             Vector3 popupPos = transform.position + Vector3.up * 1.5f;
-            GameManager.Instance.ShowResourcePopup(ResourceType.Wood, woodReward, popupPos);
+            if (woodReward > 0) GameManager.Instance.ShowResourcePopup(ResourceType.Wood, woodReward, popupPos);
             
             Vector3 popupPos2 = transform.position + new Vector3(0.5f, 2f, 0f);
-            GameManager.Instance.ShowResourcePopup(ResourceType.Stone, stoneReward, popupPos2);
+            if (stoneReward > 0) GameManager.Instance.ShowResourcePopup(ResourceType.Stone, stoneReward, popupPos2);
         }
 
         if (SoundManager.Instance != null && SoundManager.Instance.coinPickup != null) 

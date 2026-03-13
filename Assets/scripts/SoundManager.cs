@@ -1,5 +1,5 @@
 using UnityEngine;
-using System.Collections; // Важливо для роботи корутин (Fade)
+using System.Collections;
 
 public class SoundManager : MonoBehaviour
 {
@@ -11,12 +11,19 @@ public class SoundManager : MonoBehaviour
     [Tooltip("Джерело для зациклених фонових звуків (дощ, вітер)")]
     public AudioSource ambientSource; 
 
-    [Header("Музика")]
-    public AudioClip backgroundMusic;
+    [Header("Музика (Плейлисти)")]
+    [Tooltip("Список музики під час забудови та між хвилями")]
+    public AudioClip[] idleMusicTracks;
+    
+    [Tooltip("Список епічної музики під час хвилі ворогів")]
+    public AudioClip[] battleMusicTracks;
+
+    private AudioClip lastIdleTrack;
+    private AudioClip lastBattleTrack;
 
     [Header("Амбієнт (Погода)")]
     public AudioClip rainSound; 
-    public AudioClip thunderSound; // <--- ЗВУК ГРОМУ
+    public AudioClip thunderSound; 
 
     [Header("Атака та Бій")]
     public AudioClip arrowShoot;    
@@ -51,6 +58,7 @@ public class SoundManager : MonoBehaviour
     [HideInInspector] public float sfxVolume = 1f;
 
     private Coroutine ambientFadeCoroutine; 
+    private Coroutine musicTransitionCoroutine; 
 
     void Awake()
     {
@@ -73,20 +81,95 @@ public class SoundManager : MonoBehaviour
     {
         if (musicSource != null) musicSource.volume = musicVolume;
         if (sfxSource != null) sfxSource.volume = sfxVolume;
-        if (ambientSource != null) ambientSource.volume = 0f; // Зі старту дощу немає
+        if (ambientSource != null) ambientSource.volume = 0f; 
         
-        PlayMusic();
+        // Зі старту грає спокійна музика
+        PlayIdleMusic();
     }
 
-    public void PlayMusic()
+    // === КЕРУВАННЯ МУЗИКОЮ (РАНДОМ + КРОСФЕЙД) ===
+
+    public void PlayIdleMusic()
     {
-        if (musicSource != null && backgroundMusic != null)
+        if (idleMusicTracks == null || idleMusicTracks.Length == 0) return;
+        
+        AudioClip clipToPlay = GetRandomTrack(idleMusicTracks, ref lastIdleTrack);
+        SwitchMusic(clipToPlay);
+    }
+
+    public void PlayBattleMusic()
+    {
+        if (battleMusicTracks == null || battleMusicTracks.Length == 0) return;
+
+        AudioClip clipToPlay = GetRandomTrack(battleMusicTracks, ref lastBattleTrack);
+        SwitchMusic(clipToPlay);
+    }
+
+    // Розумний вибір випадкового треку (уникає повторень)
+    private AudioClip GetRandomTrack(AudioClip[] tracks, ref AudioClip lastPlayed)
+    {
+        if (tracks.Length == 1) return tracks[0];
+
+        AudioClip randomTrack = tracks[Random.Range(0, tracks.Length)];
+        
+        // Якщо випав той самий трек, що грав минулого разу - пробуємо обрати інший (до 10 спроб)
+        int attempts = 0;
+        while (randomTrack == lastPlayed && attempts < 10)
         {
-            musicSource.clip = backgroundMusic;
-            musicSource.loop = true;
-            musicSource.volume = musicVolume;
-            musicSource.Play();
+            randomTrack = tracks[Random.Range(0, tracks.Length)];
+            attempts++;
         }
+
+        lastPlayed = randomTrack;
+        return randomTrack;
+    }
+
+    private void SwitchMusic(AudioClip newClip)
+    {
+        if (musicSource == null || newClip == null) return;
+        
+        // Якщо цей трек вже грає, нічого не робимо
+        if (musicSource.clip == newClip && musicSource.isPlaying) return;
+
+        if (musicTransitionCoroutine != null) StopCoroutine(musicTransitionCoroutine);
+        
+        // Запускаємо плавний перехід тривалістю 1.5 секунди
+        musicTransitionCoroutine = StartCoroutine(CrossfadeMusic(newClip, 1.5f));
+    }
+
+    private IEnumerator CrossfadeMusic(AudioClip newClip, float duration)
+    {
+        float halfDuration = duration / 2f;
+        float startVolume = musicSource.volume;
+        float t = 0f;
+
+        // 1. Плавно затихаємо поточну музику
+        if (musicSource.isPlaying)
+        {
+            while (t < halfDuration)
+            {
+                t += Time.unscaledDeltaTime;
+                musicSource.volume = Mathf.Lerp(startVolume, 0f, t / halfDuration);
+                yield return null;
+            }
+        }
+
+        // 2. Змінюємо трек
+        musicSource.clip = newClip;
+        musicSource.loop = true;
+        musicSource.Play();
+
+        t = 0f;
+        
+        // 3. Плавно нарощуємо гучність нової музики
+        while (t < halfDuration)
+        {
+            t += Time.unscaledDeltaTime;
+            musicSource.volume = Mathf.Lerp(0f, musicVolume, t / halfDuration);
+            yield return null;
+        }
+
+        musicSource.volume = musicVolume;
     }
 
     // === МЕТОДИ ДЛЯ ПОГОДИ (З ПЛАВНИМ ПЕРЕХОДОМ) ===
@@ -97,12 +180,11 @@ public class SoundManager : MonoBehaviour
         {
             ambientSource.clip = rainSound;
             ambientSource.loop = true;
-            ambientSource.volume = 0f; // Починаємо з абсолютної тиші
+            ambientSource.volume = 0f; 
             ambientSource.Play();
 
-            // Запускаємо плавне наростання до цільової гучності за 3 секунди
             if (ambientFadeCoroutine != null) StopCoroutine(ambientFadeCoroutine);
-            ambientFadeCoroutine = StartCoroutine(FadeAmbientVolume(sfxVolume * 0.4f, 3f)); // Дощ грає на 40% від SFX
+            ambientFadeCoroutine = StartCoroutine(FadeAmbientVolume(sfxVolume * 0.4f, 3f)); 
         }
     }
 
@@ -110,7 +192,6 @@ public class SoundManager : MonoBehaviour
     {
         if (ambientSource != null && ambientSource.isPlaying)
         {
-            // Запускаємо плавне затихання до нуля за 2 секунди, після чого звук вимкнеться
             if (ambientFadeCoroutine != null) StopCoroutine(ambientFadeCoroutine);
             ambientFadeCoroutine = StartCoroutine(FadeAmbientVolume(0f, 2f, true));
         }
@@ -120,12 +201,10 @@ public class SoundManager : MonoBehaviour
     {
         if (sfxSource != null && thunderSound != null)
         {
-            // Гучність грому робимо вищою за звичайні звуки (коефіцієнт 1.5f), щоб він був епічним
             sfxSource.PlayOneShot(thunderSound, sfxVolume * 1.5f); 
         }
     }
 
-    // Корутина, яка робить кінематографічний Fade In / Fade Out для амбієнту
     private IEnumerator FadeAmbientVolume(float targetVolume, float duration, bool stopAudioAtEnd = false)
     {
         float startVolume = ambientSource.volume;
@@ -145,7 +224,8 @@ public class SoundManager : MonoBehaviour
             ambientSource.Stop();
         }
     }
-    // ===============================================
+    
+    // === ЗВУКИ SFX ===
 
     public void PlaySFX(AudioClip clip, float volumeScale = 1.0f)
     {
@@ -177,7 +257,6 @@ public class SoundManager : MonoBehaviour
         sfxVolume = volume;
         if (sfxSource != null) sfxSource.volume = sfxVolume;
         
-        // Якщо дощ зараз грає, оновлюємо і його гучність (з коефіцієнтом 0.4)
         if (ambientSource != null && ambientSource.isPlaying) 
         {
             ambientSource.volume = sfxVolume * 0.4f; 
