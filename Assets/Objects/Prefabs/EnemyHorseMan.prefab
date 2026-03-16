@@ -145,6 +145,7 @@ MonoBehaviour:
     m_Bits: 256
   avoidanceForce: 2
   aggroRadius: 6
+  aggroRange: 6
 --- !u!50 &674153827350579809
 Rigidbody2D:
   serializedVersion: 5
@@ -245,7 +246,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemyStats
   baseGoldReward: 25
   currentGoldReward: 0
-  maxHealth: 50
+  maxHealth: 120
   currentHealth: 0
 --- !u!114 &4341986672442566882
 MonoBehaviour:

@@ -3,15 +3,12 @@ using TMPro;
 
 public class DamagePopup : MonoBehaviour
 {
-    private TextMeshPro textMesh;
+    // Замінюємо TextMeshPro на універсальний TMP_Text
+    private TMP_Text textMesh; 
     
     [Header("Налаштування")]
-    // === Посилання на іконку ===
     public SpriteRenderer iconSprite;
-    
-    // === Зміщення іконки ===
     public Vector3 resourceIconOffset = new Vector3(-0.8f, 0, 0); 
-    // ============================
 
     private float disappearTimer = 1f;
     private Color textColor;
@@ -20,52 +17,48 @@ public class DamagePopup : MonoBehaviour
 
     void Awake()
     {
-        textMesh = GetComponent<TextMeshPro>();
+        // Шукаємо будь-який текстовий компонент TMP
+        textMesh = GetComponent<TMP_Text>(); 
         if (iconSprite == null) iconSprite = GetComponentInChildren<SpriteRenderer>();
     }
 
-    // === ВИПРАВЛЕНО: Додано аргумент isCriticalHit ===
     public void Setup(int damageAmount, bool isCriticalHit = false)
     {
-        if (iconSprite != null) iconSprite.enabled = false; // Ховаємо іконку для урону
+        if (textMesh == null) return; // Захист: якщо тексту немає, нічого не робимо
         
+        if (iconSprite != null) iconSprite.enabled = false;
         textMesh.text = damageAmount.ToString();
 
         if (isCriticalHit)
         {
-            // Критичний удар: Великий, червоний
             textMesh.fontSize = 7;
             textMesh.color = Color.red;
         }
         else
         {
-            // Звичайний удар: Менший, білий (або жовтий)
             textMesh.fontSize = 5;
             textMesh.color = Color.white; 
         }
 
-        textColor = textMesh.color; // Запам'ятовуємо колір для зникання
+        textColor = textMesh.color;
         moveVector = new Vector3(Random.Range(-0.5f, 0.5f), 2f) * 3f;
     }
-    // ================================================
 
     public void SetupResource(Sprite resourceIcon, int amount, Color specificColor)
     {
-        // 1. Налаштовуємо текст
+        if (textMesh == null) return;
+
         textMesh.text = "+" + amount.ToString();
         textMesh.color = specificColor;
         textColor = textMesh.color;
         textMesh.fontSize = 4;
 
-        // 2. Налаштовуємо іконку
         if (iconSprite != null)
         {
             iconSprite.enabled = true;
             iconSprite.sprite = resourceIcon;
-            iconSprite.color = Color.white; // Скидаємо колір іконки
+            iconSprite.color = Color.white;
             iconColor = iconSprite.color;
-
-            // === ВАЖЛИВО: Застосовуємо зміщення ===
             iconSprite.transform.localPosition = resourceIconOffset; 
         }
 
@@ -74,6 +67,8 @@ public class DamagePopup : MonoBehaviour
 
     void Update()
     {
+        if (textMesh == null) return; // Головний захист від NullReference
+
         transform.position += moveVector * Time.deltaTime;
         moveVector -= moveVector * 8f * Time.deltaTime;
 
@@ -81,12 +76,9 @@ public class DamagePopup : MonoBehaviour
         if (disappearTimer < 0)
         {
             float disappearSpeed = 3f;
-            
-            // Зникання тексту
             textColor.a -= disappearSpeed * Time.deltaTime;
             textMesh.color = textColor;
 
-            // Зникання іконки
             if (iconSprite != null && iconSprite.enabled)
             {
                 iconColor.a -= disappearSpeed * Time.deltaTime;

@@ -223,6 +223,7 @@ MonoBehaviour:
     m_Bits: 256
   avoidanceForce: 2
   aggroRadius: 8
+  aggroRange: 6.5
   arrowPrefab: {fileID: 1033900623364985726, guid: 9c172f6cb9b4e1f4fa91dd18d763bf19, type: 3}
   firePoint: {fileID: 7403795274767799181}
 --- !u!50 &-3927244361706051883
@@ -328,7 +329,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemyStats
   baseGoldReward: 15
   currentGoldReward: 0
-  maxHealth: 50
+  maxHealth: 40
   currentHealth: 0
 --- !u!114 &4537718769101409549
 MonoBehaviour:

@@ -178,14 +178,22 @@ public class BattleManager : MonoBehaviour
             }
 
             // Вимикаємо скрипти логіки, поки не натиснули Attack
+            // Вимикаємо скрипти логіки, щоб вони не почали битися під час маршу
             MonoBehaviour[] scripts = unitGO.GetComponents<MonoBehaviour>();
             foreach (var script in scripts)
             {
-                // Не вимикаємо візуальні скрипти чи базові
-                if (script != this && !(script is Animator) && !(script is SpriteRenderer))
+                if (script == null) continue;
+
+                // Отримуємо ім'я типу скрипта
+                string sName = script.GetType().Name;
+                
+                // Якщо це скрипт анімації, рендерер або сам BattleManager - НЕ вимикаємо їх
+                if (sName == "Animator" || sName == "SpriteRenderer" || sName == "Canvas" || sName == "Image") 
                 {
-                    script.enabled = false;
+                    continue; 
                 }
+
+                script.enabled = false;
             }
 
             if (isEnemy) spawnedEnemies.Add(unitGO);
