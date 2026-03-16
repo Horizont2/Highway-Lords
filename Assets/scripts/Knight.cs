@@ -20,6 +20,10 @@ public class Knight : MonoBehaviour
     public LayerMask obstacleLayer; 
     public float avoidanceForce = 2.0f; 
     public float checkDistance = 1.5f;
+    
+    // --- НОВЕ: ДИСЦИПЛІНА МАРШУ ---
+    public float aggroRange = 4.5f; // Дистанція, на якій вони ламають стрій і кидаються в бій
+    private float startY; // Лінія маршу, якої юніт буде строго триматися
 
     [Header("Компоненти")]
     public Animator animator;
@@ -62,6 +66,9 @@ public class Knight : MonoBehaviour
         startPoint = transform.position;
         if (formationPos == Vector3.zero) formationPos = startPoint;
         
+        // Запам'ятовуємо висоту (Y), на якій заспавнився юніт
+        startY = transform.position.y;
+        
         originalScale = transform.localScale;
 
         if (GameManager.Instance != null)
@@ -69,9 +76,6 @@ public class Knight : MonoBehaviour
             myDamage = GameManager.Instance.GetKnightDamage();
             maxHealth = EconomyConfig.GetUnitMaxHealth(120, GameManager.Instance.knightLevel);
             attackRate = EconomyConfig.GetUnitAttackRate(1.0f, GameManager.Instance.knightLevel);
-
-            if (GameManager.Instance.knightLevel > 1 && spriteRenderer != null) 
-                spriteRenderer.color = new Color(1f, 0.9f, 0.9f);
         }
         else { myDamage = 12; maxHealth = 120; attackRate = 1.0f; }
 
@@ -177,6 +181,7 @@ public class Knight : MonoBehaviour
         return separation;
     }
 
+    // --- ОНОВЛЕНИЙ МЕТОД МАРШУ ---
     void MoveTo(Vector3 targetPosition, bool useSeparation)
     {
         if (Vector2.Distance(transform.position, targetPosition) < 0.15f)
@@ -197,6 +202,24 @@ public class Knight : MonoBehaviour
         if (animator) animator.SetBool("IsMoving", true);
         FlipSprite(targetPosition.x);
         
+        float distToTarget = Vector2.Distance(transform.position, targetPosition);
+
+        // --- 1. ФАЗА МАРШУ (Ворог далеко) ---
+        if (distToTarget > aggroRange)
+        {
+            // Рухаємося строго по горизонталі (до цілі)
+            float dirX = Mathf.Sign(targetPosition.x - transform.position.x);
+            
+            // Якщо колізія трохи змістила юніта, він плавно повертається на свою ідеальну лінію Y
+            float newY = Mathf.MoveTowards(transform.position.y, startY, speed * Time.deltaTime);
+            transform.position = new Vector3(transform.position.x, newY, transform.position.z);
+
+            // Штовхаємо строго вперед, БЕЗ РОЗДІЛЕННЯ (не обходимо союзників)
+            rb.linearVelocity = new Vector2(dirX * speed, 0);
+            return; 
+        }
+
+        // --- 2. ФАЗА БОЮ (Хаос і маневри) ---
         Vector2 direction = (targetPosition - transform.position).normalized;
 
         RaycastHit2D hit = Physics2D.Raycast(transform.position, direction, checkDistance, obstacleLayer);
@@ -260,7 +283,7 @@ public class Knight : MonoBehaviour
     void Attack()
     {
         if (animator) animator.SetTrigger("Attack");
-        if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.swordHit);
+        if (SoundManager.Instance != null) SoundManager.Instance.PlaySFXRandomPitch(SoundManager.Instance.swordHit);
         
         int finalDamage = myDamage;
         UnitStats targetStats = null;
@@ -292,7 +315,7 @@ public class Knight : MonoBehaviour
         currentHealth -= damage;
         UpdateHealthBar();
 
-        if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.knightHit);
+        if (SoundManager.Instance != null) SoundManager.Instance.PlaySFXRandomPitch(SoundManager.Instance.knightHit);
         
         Vector3 popupPos = transform.position + new Vector3(Random.Range(-0.3f, 0.3f), Random.Range(0.5f, 1.2f), 0);
         GameManager.CreateDamagePopup(popupPos, damage);

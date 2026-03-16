@@ -20,6 +20,10 @@ public class Archer : MonoBehaviour
     public LayerMask obstacleLayer; 
     public float checkDistance = 1.5f; 
     public float avoidanceForce = 2.0f; 
+    
+    // --- ДИСЦИПЛІНА МАРШУ ---
+    public float aggroRange = 6.0f; // Лучники ламають стрій раніше, щоб зайняти позиції
+    private float startY;
 
     [Header("Стрільба")]
     public GameObject arrowPrefab;
@@ -42,16 +46,8 @@ public class Archer : MonoBehaviour
     private float retargetTimer = 0f;
     private Vector3 formationPos;
 
-    public void SetFormationPosition(Vector3 pos)
-    {
-        formationPos = pos;
-    }
-
-    public void LoadState(int savedHealth)
-    {
-        currentHealth = savedHealth;
-        UpdateHealthBar();
-    }
+    public void SetFormationPosition(Vector3 pos) { formationPos = pos; }
+    public void LoadState(int savedHealth) { currentHealth = savedHealth; UpdateHealthBar(); }
 
     void Start()
     {
@@ -67,8 +63,9 @@ public class Archer : MonoBehaviour
         startPoint = transform.position;
         if (formationPos == Vector3.zero) formationPos = startPoint;
         originalScale = transform.localScale;
+        
+        startY = transform.position.y; // Запам'ятовуємо лінію маршу
 
-        // === НОВА ЕКОНОМІКА ===
         if (GameManager.Instance != null)
         {
             myDamage = GameManager.Instance.GetArcherDamage();
@@ -95,10 +92,7 @@ public class Archer : MonoBehaviour
     {
         if (isDead) return;
         
-        if (GameManager.Instance != null)
-        {
-            myDamage = GameManager.Instance.GetArcherDamage();
-        }
+        if (GameManager.Instance != null) myDamage = GameManager.Instance.GetArcherDamage();
         
         if (target != null && (target.CompareTag("Untagged") || !target.gameObject.activeInHierarchy)) 
             target = null;
@@ -110,17 +104,11 @@ public class Archer : MonoBehaviour
             retargetTimer = 0.25f;
         }
 
-        if (target != null)
-        {
-            EngageEnemy(target);
-        }
+        if (target != null) EngageEnemy(target);
         else
         {
             MoveTo(formationPos); 
-            if (Vector2.Distance(transform.position, formationPos) < 0.1f)
-            {
-                FlipSprite(transform.position.x + 1f);
-            }
+            if (Vector2.Distance(transform.position, formationPos) < 0.1f) FlipSprite(transform.position.x + 1f);
         }
     }
 
@@ -140,16 +128,10 @@ public class Archer : MonoBehaviour
                 nextAttackTime = Time.time + attackRate;
             }
         }
-        else
-        {
-            MoveTo(targetTransform.position);
-        }
+        else MoveTo(targetTransform.position);
     }
 
-    void StartAttack()
-    {
-        if (animator != null) animator.SetTrigger("Attack");
-    }
+    void StartAttack() { if (animator != null) animator.SetTrigger("Attack"); }
 
     public void ShootArrow() 
     {
@@ -162,7 +144,7 @@ public class Archer : MonoBehaviour
         if (arrowPrefab != null && firePoint != null)
         {
             if (SoundManager.Instance != null) 
-                SoundManager.Instance.PlaySFX(SoundManager.Instance.arrowShoot);
+                SoundManager.Instance.PlaySFXRandomPitch(SoundManager.Instance.arrowShoot);
 
             GameObject arrowGO = Instantiate(arrowPrefab, firePoint.position, Quaternion.identity);
             Arrow arrowScript = arrowGO.GetComponent<Arrow>();
@@ -179,7 +161,6 @@ public class Archer : MonoBehaviour
                         finalDamage = Mathf.RoundToInt(myDamage * multiplier);
                     }
                 }
-                
                 arrowScript.Initialize(target, finalDamage);
             }
         }
@@ -197,6 +178,18 @@ public class Archer : MonoBehaviour
         if (animator) animator.SetBool("IsMoving", true);
         FlipSprite(targetPosition.x);
 
+        // --- 1. ФАЗА МАРШУ ---
+        float distToTarget = Vector2.Distance(transform.position, targetPosition);
+        if (distToTarget > aggroRange)
+        {
+            float dirX = Mathf.Sign(targetPosition.x - transform.position.x);
+            float newY = Mathf.MoveTowards(transform.position.y, startY, speed * Time.deltaTime);
+            transform.position = new Vector3(transform.position.x, newY, transform.position.z);
+            rb.linearVelocity = new Vector2(dirX * speed, 0);
+            return; 
+        }
+
+        // --- 2. ФАЗА БОЮ (Ухилення) ---
         Vector2 direction = (targetPosition - transform.position).normalized;
 
         RaycastHit2D hit = Physics2D.Raycast(transform.position, direction, checkDistance, obstacleLayer);
@@ -214,10 +207,8 @@ public class Archer : MonoBehaviour
     void FlipSprite(float targetX)
     {
         float absX = Mathf.Abs(originalScale.x);
-        if (targetX > transform.position.x) 
-            transform.localScale = new Vector3(absX, originalScale.y, originalScale.z); 
-        else if (targetX < transform.position.x) 
-            transform.localScale = new Vector3(-absX, originalScale.y, originalScale.z); 
+        if (targetX > transform.position.x) transform.localScale = new Vector3(absX, originalScale.y, originalScale.z); 
+        else if (targetX < transform.position.x) transform.localScale = new Vector3(-absX, originalScale.y, originalScale.z); 
     }
 
     void FindNearestTarget()
@@ -231,10 +222,7 @@ public class Archer : MonoBehaviour
             if (go.CompareTag("Untagged")) continue;
             
             if (GameManager.Instance != null && GameManager.Instance.engagementLine != null)
-            {
-                if (go.transform.position.x > GameManager.Instance.engagementLine.position.x) 
-                    continue; 
-            }
+                if (go.transform.position.x > GameManager.Instance.engagementLine.position.x) continue; 
 
             float dist = Vector2.Distance(transform.position, go.transform.position);
             
@@ -267,11 +255,7 @@ public class Archer : MonoBehaviour
         if (currentHealth <= 0) Die();
     }
 
-    void UpdateHealthBar()
-    {
-        if (healthBarFill != null)
-            healthBarFill.fillAmount = Mathf.Clamp01((float)currentHealth / maxHealth);
-    }
+    void UpdateHealthBar() { if (healthBarFill != null) healthBarFill.fillAmount = Mathf.Clamp01((float)currentHealth / maxHealth); }
 
     private IEnumerator FlashColor()
     {
@@ -291,19 +275,12 @@ public class Archer : MonoBehaviour
         if (col != null) col.enabled = false;
 
         if (GameManager.Instance != null && !GameManager.Instance.isResettingUnits) 
-        { 
             GameManager.Instance.OnUnitDeath(gameObject, "Archer"); 
-        }
         
         if (healthBarFill != null && healthBarFill.transform.parent != null) 
             healthBarFill.transform.parent.gameObject.SetActive(false);
 
-        if (animator)
-        {
-            animator.Rebind();
-            animator.Update(0f);
-            animator.enabled = false;
-        }
+        if (animator) { animator.Rebind(); animator.Update(0f); animator.enabled = false; }
 
         transform.Rotate(0, 0, -90);
         if (spriteRenderer != null) { spriteRenderer.color = Color.gray; spriteRenderer.sortingOrder = 0; }

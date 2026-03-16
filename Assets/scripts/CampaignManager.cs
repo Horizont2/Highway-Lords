@@ -21,6 +21,11 @@ public class CampaignManager : MonoBehaviour
     public Button[] addButtons;
     public Button[] removeButtons;
     public TMP_Text[] unitCostTexts;
+    
+    // МАСИВИ ДЛЯ СТАТІВ ТА АВАТАРІВ
+    public TMP_Text[] unitDamageTexts; 
+    public TMP_Text[] unitHealthTexts; 
+    public Image[] unitAvatars;        
 
     [Header("Bottom UI")]
     public Slider winChanceSlider; 
@@ -42,7 +47,7 @@ public class CampaignManager : MonoBehaviour
 
     private int[] selectedUnits = new int[4];
     private MapNode currentNode;
-    private int globalMaxLimit = 80; // Загальний ліміт
+    private int globalMaxLimit = 80; 
     private int limitUpgradeCost = 1500;
 
     void Awake()
@@ -72,6 +77,22 @@ public class CampaignManager : MonoBehaviour
         if (upgradeLimitBtn) upgradeLimitBtn.onClick.AddListener(UpgradeUnitLimit);
         if (openScoutBtn) openScoutBtn.onClick.AddListener(OpenScoutPanel);
         if (closeScoutBtn) closeScoutBtn.onClick.AddListener(CloseScoutPanel);
+
+        // ПЕРЕВІРКА ПОВЕРНЕННЯ З БОЮ
+        if (CrossSceneData.isReturningFromBattle)
+        {
+            CrossSceneData.isReturningFromBattle = false;
+
+            if (AnimatedBattleResult.Instance != null)
+            {
+                AnimatedBattleResult.Instance.ShowResult(
+                    CrossSceneData.lastBattleWon, 
+                    CrossSceneData.rewardGold, 
+                    CrossSceneData.rewardWood, 
+                    CrossSceneData.rewardStone
+                );
+            }
+        }
     }
 
     public void OpenPanel(MapNode node)
@@ -86,15 +107,9 @@ public class CampaignManager : MonoBehaviour
 
         for (int i = 0; i < 4; i++) selectedUnits[i] = 0;
 
-        if (GameManager.Instance != null && unitCostTexts.Length == 4)
-        {
-            unitCostTexts[0].text = GameManager.Instance.knightFixedCost + " G";
-            unitCostTexts[1].text = GameManager.Instance.archerFixedCost + " G";
-            unitCostTexts[2].text = GameManager.Instance.spearmanFixedCost + " G";
-            unitCostTexts[3].text = GameManager.Instance.cavalryFixedCost + " G";
-        }
-
+        SyncUnitStats(); 
         UpdateUI();
+        
         if (mainCampaignPanel) mainCampaignPanel.SetActive(true);
     }
 
@@ -104,11 +119,62 @@ public class CampaignManager : MonoBehaviour
         if (mainCampaignPanel) mainCampaignPanel.SetActive(false);
     }
 
-    // Допоміжний метод для підрахунку ВСІХ вибраних юнітів
-    int GetTotalSelectedUnits()
+    // --- СИНХРОНІЗАЦІЯ СТАТІВ ---
+    void SyncUnitStats()
     {
-        return selectedUnits[0] + selectedUnits[1] + selectedUnits[2] + selectedUnits[3];
+        if (GameManager.Instance == null) return;
+
+        // 1. Knight
+        int k_lvl = GameManager.Instance.knightLevel;
+        if (unitDamageTexts.Length > 0 && unitDamageTexts[0]) unitDamageTexts[0].text = (35 + (k_lvl * 7)).ToString(); 
+        if (unitHealthTexts.Length > 0 && unitHealthTexts[0]) unitHealthTexts[0].text = (120 + (k_lvl * 20)).ToString();  
+        if (unitCostTexts.Length > 0 && unitCostTexts[0]) unitCostTexts[0].text = GameManager.Instance.knightFixedCost.ToString();
+        if (unitAvatars.Length > 0 && unitAvatars[0]) unitAvatars[0].color = Color.white;
+
+        // 2. Archer
+        int a_lvl = GameManager.Instance.archerLevel;
+        if (unitDamageTexts.Length > 1 && unitDamageTexts[1]) unitDamageTexts[1].text = (25 + (a_lvl * 5)).ToString();
+        if (unitHealthTexts.Length > 1 && unitHealthTexts[1]) unitHealthTexts[1].text = (60 + (a_lvl * 10)).ToString();
+        if (unitCostTexts.Length > 1 && unitCostTexts[1]) unitCostTexts[1].text = GameManager.Instance.archerFixedCost.ToString();
+        if (unitAvatars.Length > 1 && unitAvatars[1]) unitAvatars[1].color = Color.white;
+
+        // 3. Spearman
+        if (GameManager.Instance.isSpearmanUnlocked)
+        {
+            int s_lvl = GameManager.Instance.spearmanLevel;
+            if (unitDamageTexts.Length > 2 && unitDamageTexts[2]) unitDamageTexts[2].text = (30 + (s_lvl * 6)).ToString();
+            if (unitHealthTexts.Length > 2 && unitHealthTexts[2]) unitHealthTexts[2].text = (90 + (s_lvl * 15)).ToString();
+            if (unitCostTexts.Length > 2 && unitCostTexts[2]) unitCostTexts[2].text = GameManager.Instance.spearmanFixedCost.ToString();
+            if (unitAvatars.Length > 2 && unitAvatars[2]) unitAvatars[2].color = Color.white;
+        }
+        else
+        {
+            if (unitDamageTexts.Length > 2 && unitDamageTexts[2]) unitDamageTexts[2].text = "-";
+            if (unitHealthTexts.Length > 2 && unitHealthTexts[2]) unitHealthTexts[2].text = "-";
+            if (unitCostTexts.Length > 2 && unitCostTexts[2]) unitCostTexts[2].text = "-";
+            if (unitAvatars.Length > 2 && unitAvatars[2]) unitAvatars[2].color = Color.black; 
+        }
+
+        // 4. Cavalry
+        bool cavUnlocked = GameManager.Instance.isCavalryUnlocked && GameManager.Instance.barracksLevel >= 3;
+        if (cavUnlocked)
+        {
+            int c_lvl = GameManager.Instance.cavalryLevel;
+            if (unitDamageTexts.Length > 3 && unitDamageTexts[3]) unitDamageTexts[3].text = (40 + (c_lvl * 8)).ToString();
+            if (unitHealthTexts.Length > 3 && unitHealthTexts[3]) unitHealthTexts[3].text = (150 + (c_lvl * 25)).ToString();
+            if (unitCostTexts.Length > 3 && unitCostTexts[3]) unitCostTexts[3].text = GameManager.Instance.cavalryFixedCost.ToString();
+            if (unitAvatars.Length > 3 && unitAvatars[3]) unitAvatars[3].color = Color.white;
+        }
+        else
+        {
+            if (unitDamageTexts.Length > 3 && unitDamageTexts[3]) unitDamageTexts[3].text = "-";
+            if (unitHealthTexts.Length > 3 && unitHealthTexts[3]) unitHealthTexts[3].text = "-";
+            if (unitCostTexts.Length > 3 && unitCostTexts[3]) unitCostTexts[3].text = "-";
+            if (unitAvatars.Length > 3 && unitAvatars[3]) unitAvatars[3].color = Color.black;
+        }
     }
+
+    int GetTotalSelectedUnits() { return selectedUnits[0] + selectedUnits[1] + selectedUnits[2] + selectedUnits[3]; }
 
     void AddUnit(int index)
     {
@@ -118,7 +184,6 @@ public class CampaignManager : MonoBehaviour
             if (index == 3 && (!GameManager.Instance.isCavalryUnlocked || GameManager.Instance.barracksLevel < 3)) { PlayError(); return; }
         }
 
-        // ПЕРЕВІРКА ГЛОБАЛЬНОГО ЛІМІТУ
         if (GetTotalSelectedUnits() < globalMaxLimit)
         {
             selectedUnits[index]++;
@@ -145,7 +210,7 @@ public class CampaignManager : MonoBehaviour
         if (currentLimitDisplay) currentLimitDisplay.text = $"GLOBAL LIMIT: {totalUnits} / <color=#44FF44>{globalMaxLimit}</color>";
 
         if (playerGoldText != null && GameManager.Instance != null)
-            playerGoldText.text = "YOUR GOLD: " + GameManager.Instance.gold + " G";
+            playerGoldText.text = "YOUR GOLD: " + GameManager.Instance.gold.ToString();
 
         int totalCost = 0;
         if (GameManager.Instance != null)
@@ -160,12 +225,15 @@ public class CampaignManager : MonoBehaviour
         {
             if (unitCountersTexts.Length > i && unitCountersTexts[i] != null)
             {
-                // Тепер пишемо просто кількість, без "/ 80" під кожним юнітом
-                unitCountersTexts[i].text = selectedUnits[i].ToString();
+                bool isLocked = false;
+                if (i == 2 && (GameManager.Instance == null || !GameManager.Instance.isSpearmanUnlocked)) isLocked = true;
+                if (i == 3 && (GameManager.Instance == null || !GameManager.Instance.isCavalryUnlocked || GameManager.Instance.barracksLevel < 3)) isLocked = true;
+
+                unitCountersTexts[i].text = isLocked ? "-" : selectedUnits[i].ToString();
             }
         }
 
-        if (totalCostText) totalCostText.text = "TOTAL COST: " + totalCost + " G";
+        if (totalCostText) totalCostText.text = "TOTAL COST: " + totalCost.ToString();
 
         bool canAfford = GameManager.Instance != null && GameManager.Instance.gold >= totalCost;
         bool hasArmy = totalUnits > 0;
@@ -183,23 +251,26 @@ public class CampaignManager : MonoBehaviour
         int totalUnits = GetTotalSelectedUnits();
         bool limitNotReached = totalUnits < globalMaxLimit;
 
-        if (addButtons[0] != null) addButtons[0].interactable = (currentGold >= totalCost + GameManager.Instance.knightFixedCost) && limitNotReached;
-        if (addButtons[1] != null) addButtons[1].interactable = (currentGold >= totalCost + GameManager.Instance.archerFixedCost) && limitNotReached;
-        if (addButtons[2] != null) addButtons[2].interactable = (currentGold >= totalCost + GameManager.Instance.spearmanFixedCost) && limitNotReached && GameManager.Instance.isSpearmanUnlocked;
-        if (addButtons[3] != null) addButtons[3].interactable = (currentGold >= totalCost + GameManager.Instance.cavalryFixedCost) && limitNotReached && GameManager.Instance.isCavalryUnlocked && GameManager.Instance.barracksLevel >= 3;
+        if (addButtons.Length > 0 && addButtons[0] != null) addButtons[0].interactable = (currentGold >= totalCost + GameManager.Instance.knightFixedCost) && limitNotReached;
+        if (addButtons.Length > 1 && addButtons[1] != null) addButtons[1].interactable = (currentGold >= totalCost + GameManager.Instance.archerFixedCost) && limitNotReached;
+        if (addButtons.Length > 2 && addButtons[2] != null) addButtons[2].interactable = (currentGold >= totalCost + GameManager.Instance.spearmanFixedCost) && limitNotReached && GameManager.Instance.isSpearmanUnlocked;
+        if (addButtons.Length > 3 && addButtons[3] != null) addButtons[3].interactable = (currentGold >= totalCost + GameManager.Instance.cavalryFixedCost) && limitNotReached && GameManager.Instance.isCavalryUnlocked && GameManager.Instance.barracksLevel >= 3;
     }
 
+    // --- ОНОВЛЕНИЙ КАЛЬКУЛЯТОР ПЕРЕМОГИ ---
     void UpdateWinChanceSlider()
     {
         if (currentNode == null || GameManager.Instance == null) return;
 
         float playerPower = 0;
-        playerPower += selectedUnits[0] * (120 + GameManager.Instance.knightLevel * 25);
-        playerPower += selectedUnits[1] * (100 + GameManager.Instance.archerLevel * 20);
-        playerPower += selectedUnits[2] * (140 + GameManager.Instance.spearmanLevel * 30);
-        playerPower += selectedUnits[3] * (220 + GameManager.Instance.cavalryLevel * 45);
+        
+        // Формула: 1 юніт = 1 база + (0.4 за кожен рівень вище 1-го)
+        playerPower += selectedUnits[0] * (1f + Mathf.Max(0, GameManager.Instance.knightLevel - 1) * 0.4f);
+        playerPower += selectedUnits[1] * (1f + Mathf.Max(0, GameManager.Instance.archerLevel - 1) * 0.4f);
+        playerPower += selectedUnits[2] * (1f + Mathf.Max(0, GameManager.Instance.spearmanLevel - 1) * 0.4f);
+        playerPower += selectedUnits[3] * (1f + Mathf.Max(0, GameManager.Instance.cavalryLevel - 1) * 0.4f);
 
-        float ratio = playerPower / (float)currentNode.enemyPowerScore;
+        float ratio = playerPower / Mathf.Max(1f, currentNode.enemyPowerScore);
 
         if (winChanceSlider)
         {
@@ -241,7 +312,7 @@ public class CampaignManager : MonoBehaviour
     void UpdateLimitUpgradeCost()
     {
         limitUpgradeCost = 1500 + ((globalMaxLimit - 80) / 5 * 500);
-        if (upgradeLimitCostText) upgradeLimitCostText.text = limitUpgradeCost + " G";
+        if (upgradeLimitCostText) upgradeLimitCostText.text = limitUpgradeCost.ToString();
     }
 
     void UpgradeUnitLimit()
@@ -279,13 +350,25 @@ public class CampaignManager : MonoBehaviour
         CrossSceneData.spearmenCount = selectedUnits[2];
         CrossSceneData.cavalryCount = selectedUnits[3];
 
+        if (GameManager.Instance.knightSkins != null && GameManager.Instance.knightSkins.Length > 0)
+            CrossSceneData.knightSkin = GameManager.Instance.knightSkins[Mathf.Clamp(GameManager.Instance.knightLevel, 0, GameManager.Instance.knightSkins.Length - 1)];
+
+        if (GameManager.Instance.archerSkins != null && GameManager.Instance.archerSkins.Length > 0)
+            CrossSceneData.archerSkin = GameManager.Instance.archerSkins[Mathf.Clamp(GameManager.Instance.archerLevel, 0, GameManager.Instance.archerSkins.Length - 1)];
+
+        if (GameManager.Instance.spearmanSkins != null && GameManager.Instance.spearmanSkins.Length > 0)
+            CrossSceneData.spearmanSkin = GameManager.Instance.spearmanSkins[Mathf.Clamp(GameManager.Instance.spearmanLevel, 0, GameManager.Instance.spearmanSkins.Length - 1)];
+
+        if (GameManager.Instance.cavalrySkins != null && GameManager.Instance.cavalrySkins.Length > 0)
+            CrossSceneData.cavalrySkin = GameManager.Instance.cavalrySkins[Mathf.Clamp(GameManager.Instance.cavalryLevel, 0, GameManager.Instance.cavalrySkins.Length - 1)];
+
         CrossSceneData.enemyGuards = currentNode.e_guards;
         CrossSceneData.enemyArchers = currentNode.e_archers;
         CrossSceneData.enemySpearmen = currentNode.e_spearmen;
         CrossSceneData.enemyCavalry = currentNode.e_cavalry;
 
         CrossSceneData.spentGold = totalCost;
-        CrossSceneData.campId = currentNode.campId;
+        CrossSceneData.campId = currentNode.campId.ToString();
         CrossSceneData.campLevel = currentNode.campLevel;
         CrossSceneData.campName = currentNode.campName;
 
@@ -294,8 +377,8 @@ public class CampaignManager : MonoBehaviour
         CrossSceneData.rewardStone = currentNode.rewardStone;
 
         if (SoundManager.Instance) SoundManager.Instance.PlaySFX(SoundManager.Instance.waveStart);
-
-        SceneManager.LoadScene("SiegeBattleScene"); 
+        
+        SceneManager.LoadScene("SiegeBattleScene");
     }
 
     void PlayError() { if (SoundManager.Instance) SoundManager.Instance.PlaySFX(SoundManager.Instance.error); }

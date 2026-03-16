@@ -15,6 +15,7 @@ GameObject:
   - component: {fileID: 5061420135617784984}
   - component: {fileID: 7359581780059921194}
   - component: {fileID: 8632016758923576015}
+  - component: {fileID: 8892544686393915888}
   m_Layer: 6
   m_Name: Cavalry
   m_TagString: Player
@@ -232,6 +233,20 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &8892544686393915888
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1610073691329693500}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8463ee9254fdefa408fc6c5d4056b18b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MovementVFX
+  dustEffect: {fileID: 9116828386731008478, guid: 22689fd2b2dce1b41a968494fa9eb847, type: 3}
+  velocityThreshold: 0.1
 --- !u!1 &8326742334733895086
 GameObject:
   m_ObjectHideFlags: 0

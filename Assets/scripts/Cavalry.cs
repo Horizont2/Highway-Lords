@@ -122,7 +122,7 @@ public class Cavalry : MonoBehaviour
         if (distanceToHit <= attackRange)
         {
             Vector2 sep = GetSeparationVector();
-            if (sep.magnitude > 0.2f) rb.linearVelocity = sep * (speed * 0.3f);
+            if (sep.magnitude > 0.2f) rb.linearVelocity = sep * (speed * 0.4f); // Даємо змогу трохи ковзати в бою
             else rb.linearVelocity = Vector2.zero;
 
             if (animator) animator.SetBool("IsMoving", false);
@@ -156,16 +156,31 @@ public class Cavalry : MonoBehaviour
         return basePos + new Vector3(dirX * (attackRange + crowdCount * 0.6f), 0, 0); 
     }
 
+    // --- ОНОВЛЕНИЙ МЕТОД ОБГОНУ (Flocking) ---
     Vector2 GetSeparationVector()
     {
         Vector2 separation = Vector2.zero;
-        Collider2D[] nearby = Physics2D.OverlapCircleAll(transform.position, 0.6f);
+        // Збільшуємо радіус огляду кінноти, щоб вона бачила перешкоди раніше (1.2 замість 0.6)
+        Collider2D[] nearby = Physics2D.OverlapCircleAll(transform.position, 1.2f); 
         foreach (var col in nearby)
         {
             if (col.gameObject != gameObject && col.CompareTag(gameObject.tag) && !col.isTrigger)
             {
                 Vector2 diff = transform.position - col.transform.position;
-                if (diff.magnitude > 0.01f) separation += diff.normalized * (1f - diff.magnitude / 0.6f);
+                if (diff.magnitude > 0.01f)
+                {
+                    float pushForce = 1f - (diff.magnitude / 1.2f);
+                    
+                    // МАГІЯ: Якщо союзник попереду (перешкоджає руху по горизонталі)
+                    if (Mathf.Abs(diff.x) > Mathf.Abs(diff.y)) 
+                    {
+                        // Різко відштовхуємося по осі Y (вгору або вниз), щоб об'їхати!
+                        float dodgeY = (diff.y >= 0) ? 1.5f : -1.5f; 
+                        diff = new Vector2(diff.x * 0.3f, dodgeY); 
+                    }
+                    
+                    separation += diff.normalized * pushForce;
+                }
             }
         }
         return separation;
@@ -200,7 +215,13 @@ public class Cavalry : MonoBehaviour
             direction += new Vector2(0, dodgeDirY) * avoidanceForce;
         }
 
-        if (useSeparation) direction += GetSeparationVector() * 1.5f;
+        // --- ПОСИЛЕНО ВПЛИВ РОЗДІЛЕННЯ (щоб кіннота легше "прорізала" натовп) ---
+        if (useSeparation) 
+        {
+            Vector2 sep = GetSeparationVector();
+            direction += sep * 2.5f; // Було 1.5f, тепер кіннота агресивніше оминає союзників
+        }
+        
         rb.linearVelocity = direction.normalized * speed;
     }
 

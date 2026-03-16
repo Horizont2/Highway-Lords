@@ -22,6 +22,11 @@ public class EnemySpearman : MonoBehaviour
     public LayerMask obstacleLayer; 
     public float avoidanceForce = 2.0f;
     public float aggroRadius = 4.5f;
+    
+    // --- ДИСЦИПЛІНА МАРШУ ---
+    public float aggroRange = 4.5f; 
+    private float startY;
+
     private float retargetTimer = 0f;
 
     private Animator animator;
@@ -58,6 +63,8 @@ public class EnemySpearman : MonoBehaviour
         rb.gravityScale = 0; 
         rb.freezeRotation = true; 
 
+        startY = transform.position.y; // Запам'ятовуємо позицію
+
         if (GameManager.Instance != null)
         {
             _maxHealth = GameManager.Instance.GetScaledEnemyHealth(_baseMaxHealth);
@@ -77,7 +84,7 @@ public class EnemySpearman : MonoBehaviour
         if (GameManager.Instance != null && GameManager.Instance.isDefeated)
         {
             target = null;
-            if (animator) animator.SetBool("IsRunning", true);
+            if (animator) animator.SetBool("IsMoving", true);
             rb.linearVelocity = new Vector2(-speed, 0f);
             return;
         }
@@ -107,7 +114,7 @@ public class EnemySpearman : MonoBehaviour
                 if (sep.magnitude > 0.2f) rb.linearVelocity = sep * (speed * 0.3f);
                 else rb.linearVelocity = Vector2.zero;
 
-                if (animator) animator.SetBool("IsRunning", false);
+                if (animator) animator.SetBool("IsMoving", false);
 
                 if (Time.time >= nextAttackTime) { hasHitThisAttack = false; if (animator) animator.SetTrigger("Attack"); nextAttackTime = Time.time + attackCooldown; }
             }
@@ -162,7 +169,20 @@ public class EnemySpearman : MonoBehaviour
 
     void MoveTo(Vector3 destination, bool isStructureTarget, bool useSeparation)
     {
-        if (animator) animator.SetBool("IsRunning", true);
+        if (animator) animator.SetBool("IsMoving", true);
+
+        // --- ФАЗА МАРШУ ---
+        float distToTarget = Vector2.Distance(transform.position, destination);
+        if (distToTarget > aggroRange)
+        {
+            float dirX = Mathf.Sign(destination.x - transform.position.x);
+            float newY = Mathf.MoveTowards(transform.position.y, startY, speed * Time.deltaTime);
+            transform.position = new Vector3(transform.position.x, newY, transform.position.z);
+            rb.linearVelocity = new Vector2(dirX * speed, 0);
+            return; 
+        }
+
+        // --- ФАЗА БОЮ ---
         Vector3 targetPosFixed = new Vector3(destination.x, destination.y, transform.position.z);
         if (isStructureTarget) targetPosFixed = new Vector3(destination.x, transform.position.y, transform.position.z);
 
@@ -173,7 +193,7 @@ public class EnemySpearman : MonoBehaviour
         {
             bool hitMyTarget = false;
             if (target != null && (hit.collider.transform == target || hit.collider.transform.IsChildOf(target))) hitMyTarget = true;
-            if (!hitMyTarget) direction += hit.normal * avoidanceForce;
+            if (!hitMyTarget) { float dodgeDirY = (transform.position.y >= hit.collider.bounds.center.y) ? 1f : -1f; direction += new Vector2(0, dodgeDirY) * avoidanceForce; direction.Normalize(); }
         }
 
         if (useSeparation) direction += GetSeparationVector() * 1.5f;
@@ -213,7 +233,9 @@ public class EnemySpearman : MonoBehaviour
 
     void FaceDirection(Vector3 targetPos) { float absX = Mathf.Abs(originalScale.x); transform.localScale = new Vector3(targetPos.x > transform.position.x ? absX : -absX, originalScale.y, originalScale.z); }
 
-    public void Hit() 
+    void Attack() { hasHitThisAttack = false; if (animator) animator.SetTrigger("Attack"); }
+
+    public void Hit()
     {
         if (isDead || target == null || hasHitThisAttack) return;
         
@@ -238,7 +260,7 @@ public class EnemySpearman : MonoBehaviour
             UnitStats targetStats = target.GetComponent<UnitStats>();
             if (targetStats != null) finalDamage = Mathf.RoundToInt(damage * GameManager.GetDamageMultiplier(myStats.category, targetStats.category));
         }
-        
+
         if (target.TryGetComponent<Knight>(out Knight k)) k.TakeDamage(finalDamage);
         else if (target.TryGetComponent<Archer>(out Archer a)) a.TakeDamage(finalDamage);
         else if (target.TryGetComponent<Spearman>(out Spearman s)) s.TakeDamage(finalDamage);

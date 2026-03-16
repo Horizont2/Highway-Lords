@@ -22,6 +22,11 @@ public class EnemyArcher : MonoBehaviour
     public LayerMask obstacleLayer; 
     public float avoidanceForce = 2.0f;
     public float aggroRadius = 8.0f; 
+    
+    // --- ДИСЦИПЛІНА МАРШУ ---
+    public float aggroRange = 6.5f; 
+    private float startY;
+
     private float retargetTimer = 0f;
 
     [Header("Поведінка")]
@@ -63,6 +68,8 @@ public class EnemyArcher : MonoBehaviour
         myStats = GetComponent<UnitStats>();
         originalScale = transform.localScale;
 
+        startY = transform.position.y;
+
         if (GameManager.Instance != null)
         {
             _maxHealth = GameManager.Instance.GetScaledEnemyHealth(_baseMaxHealth);
@@ -85,7 +92,7 @@ public class EnemyArcher : MonoBehaviour
         if (GameManager.Instance != null && GameManager.Instance.isDefeated)
         {
             target = null;
-            if (animator) animator.SetBool("IsRunning", true);
+            if (animator) animator.SetBool("IsMoving", true);
             if (rb != null) rb.linearVelocity = new Vector2(-speed, 0f);
             return;
         }
@@ -98,32 +105,48 @@ public class EnemyArcher : MonoBehaviour
         Vector2 finalVelocity = Vector2.zero;
         bool shouldMove = false;
 
+        float distanceToTarget = target != null ? Vector2.Distance(transform.position, target.position) : Mathf.Infinity;
+
         if (target != null)
         {
             bool isStructure = target.TryGetComponent<Spikes>(out _) || target.TryGetComponent<Wall>(out _);
-            float distanceToTarget;
-
+            
             if (isStructure)
             {
                 Collider2D targetCol = target.GetComponent<Collider2D>();
                 if (targetCol != null) distanceToTarget = Vector2.Distance(transform.position, targetCol.ClosestPoint(transform.position));
                 else distanceToTarget = Mathf.Abs(transform.position.x - target.position.x);
             }
-            else distanceToTarget = Vector2.Distance(transform.position, target.position);
-
             FaceTarget(target.position);
-
-            if (distanceToTarget > attackRange)
+        }
+        
+        // --- ФАЗА МАРШУ ---
+        if (distanceToTarget > attackRange)
+        {
+            if (ShouldWaitForTank())
             {
-                if (ShouldWaitForTank())
+                finalVelocity = Vector2.zero;
+                shouldMove = false;
+                if (IsBlockingCart()) { finalVelocity = GetDodgeVector(); shouldMove = true; }
+            }
+            else
+            {
+                if (distanceToTarget > aggroRange)
                 {
-                    finalVelocity = Vector2.zero;
-                    shouldMove = false;
-                    if (IsBlockingCart()) { finalVelocity = GetDodgeVector(); shouldMove = true; }
+                    // Рівний крок
+                    float dirX = target != null ? Mathf.Sign(target.position.x - transform.position.x) : -1f;
+                    float newY = Mathf.MoveTowards(transform.position.y, startY, speed * Time.deltaTime);
+                    transform.position = new Vector3(transform.position.x, newY, transform.position.z);
+                    
+                    finalVelocity = new Vector2(dirX * speed, 0);
+                    shouldMove = true;
+                    if (firePoint) firePoint.localRotation = Quaternion.identity;
                 }
                 else
                 {
+                    // --- ФАЗА БОЮ (Ухиляння і вибір позиції) ---
                     Vector3 targetPosFixed = target.position;
+                    bool isStructure = target.TryGetComponent<Spikes>(out _) || target.TryGetComponent<Wall>(out _);
                     if (isStructure) targetPosFixed.y = transform.position.y;
 
                     Vector2 direction = (targetPosFixed - transform.position).normalized;
@@ -135,37 +158,33 @@ public class EnemyArcher : MonoBehaviour
                     if (firePoint) firePoint.localRotation = Quaternion.identity;
                 }
             }
-            else
-            {
-                if (IsBlockingCart())
-                {
-                    finalVelocity = GetDodgeVector();
-                    shouldMove = true;
-                }
-                else
-                {
-                    AimAtTarget();
-                    if (Time.time > nextShotTime) { if (animator != null) animator.SetTrigger("Attack"); nextShotTime = Time.time + timeBetweenShots; }
-                }
-            }
         }
-        else
+        else if (target != null)
         {
-            if (!ShouldWaitForTank())
+            if (IsBlockingCart())
             {
-                Vector3 destination = transform.position + Vector3.left;
-                FaceTarget(destination);
-                Vector2 direction = (destination - transform.position).normalized;
-                if (IsBlockingCart()) direction = ApplyCartAvoidance(direction);
-                direction = ApplyWallAvoidance(direction);
-
-                finalVelocity = direction * speed;
+                finalVelocity = GetDodgeVector();
                 shouldMove = true;
             }
+            else
+            {
+                AimAtTarget();
+                if (Time.time > nextShotTime) { if (animator != null) animator.SetTrigger("Attack"); nextShotTime = Time.time + timeBetweenShots; }
+            }
+        }
+        
+        // Коли немає цілі - суворо маршируємо вліво
+        if (target == null && !ShouldWaitForTank())
+        {
+            FaceTarget(transform.position + Vector3.left * 5f);
+            float newY = Mathf.MoveTowards(transform.position.y, startY, speed * Time.deltaTime);
+            transform.position = new Vector3(transform.position.x, newY, transform.position.z);
+            finalVelocity = new Vector2(-speed, 0);
+            shouldMove = true;
         }
 
         rb.linearVelocity = finalVelocity; 
-        if (animator) animator.SetBool("IsRunning", shouldMove);
+        if (animator) animator.SetBool("IsMoving", shouldMove);
     }
 
     void FindTarget()
@@ -229,7 +248,7 @@ public class EnemyArcher : MonoBehaviour
                 }
                 p.Initialize(target.position, finalDamage);
             }
-            if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.arrowShoot);
+            if (SoundManager.Instance != null) SoundManager.Instance.PlaySFXRandomPitch(SoundManager.Instance.arrowShoot);
         }
     }
 

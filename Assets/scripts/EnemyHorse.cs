@@ -18,6 +18,11 @@ public class EnemyHorse : MonoBehaviour
     public LayerMask obstacleLayer; 
     public float avoidanceForce = 2.0f;
     public float aggroRadius = 6.0f; 
+    
+    // --- ДИСЦИПЛІНА МАРШУ ---
+    public float aggroRange = 6.0f; 
+    private float startY;
+
     private float retargetTimer = 0f;
 
     private Animator animator;
@@ -55,6 +60,8 @@ public class EnemyHorse : MonoBehaviour
         rb.gravityScale = 0;
         rb.freezeRotation = true;
 
+        startY = transform.position.y;
+
         if (GameManager.Instance != null)
         {
             _maxHealth = GameManager.Instance.GetScaledEnemyHealth(_baseMaxHealth);
@@ -78,7 +85,7 @@ public class EnemyHorse : MonoBehaviour
         if (GameManager.Instance != null && GameManager.Instance.isDefeated)
         {
             target = null;
-            if (animator) animator.SetBool("IsRunning", true);
+            if (animator) animator.SetBool("IsMoving", true);
             rb.linearVelocity = new Vector2(-speed, 0f);
             return;
         }
@@ -105,10 +112,10 @@ public class EnemyHorse : MonoBehaviour
             if (distanceToTarget <= attackRange)
             {
                 Vector2 sep = GetSeparationVector();
-                if (sep.magnitude > 0.2f) rb.linearVelocity = sep * (speed * 0.3f);
+                if (sep.magnitude > 0.2f) rb.linearVelocity = sep * (speed * 0.4f);
                 else rb.linearVelocity = Vector2.zero;
 
-                if (animator) animator.SetBool("IsRunning", false);
+                if (animator) animator.SetBool("IsMoving", false);
 
                 if (Time.time >= nextAttackTime) { Attack(); nextAttackTime = Time.time + attackCooldown; }
             }
@@ -146,16 +153,28 @@ public class EnemyHorse : MonoBehaviour
         return basePos + new Vector3(dirX * (attackRange + crowdCount * 0.6f), 0, 0); 
     }
 
+    // --- ПРОСУНУТИЙ АЛГОРИТМ ОБГОНУ ДЛЯ ВОРОЖИХ КОНЕЙ ---
     Vector2 GetSeparationVector()
     {
         Vector2 separation = Vector2.zero;
-        Collider2D[] nearby = Physics2D.OverlapCircleAll(transform.position, 0.6f);
+        Collider2D[] nearby = Physics2D.OverlapCircleAll(transform.position, 1.2f);
         foreach (var col in nearby)
         {
             if (col.gameObject != gameObject && col.CompareTag(gameObject.tag) && !col.isTrigger)
             {
                 Vector2 diff = transform.position - col.transform.position;
-                if (diff.magnitude > 0.01f) separation += diff.normalized * (1f - diff.magnitude / 0.6f);
+                if (diff.magnitude > 0.01f)
+                {
+                    float pushForce = 1f - (diff.magnitude / 1.2f);
+                    
+                    if (Mathf.Abs(diff.x) > Mathf.Abs(diff.y)) 
+                    {
+                        float dodgeY = (diff.y >= 0) ? 1.5f : -1.5f; 
+                        diff = new Vector2(diff.x * 0.3f, dodgeY); 
+                    }
+                    
+                    separation += diff.normalized * pushForce;
+                }
             }
         }
         return separation;
@@ -163,7 +182,20 @@ public class EnemyHorse : MonoBehaviour
 
     void MoveTowards(Vector3 destination, bool isStructureTarget, bool useSeparation)
     {
-        if (animator) animator.SetBool("IsRunning", true);
+        if (animator) animator.SetBool("IsMoving", true);
+
+        // --- ФАЗА МАРШУ ---
+        float distToTarget = Vector2.Distance(transform.position, destination);
+        if (distToTarget > aggroRange)
+        {
+            float dirX = Mathf.Sign(destination.x - transform.position.x);
+            float newY = Mathf.MoveTowards(transform.position.y, startY, speed * Time.deltaTime);
+            transform.position = new Vector3(transform.position.x, newY, transform.position.z);
+            rb.linearVelocity = new Vector2(dirX * speed, 0);
+            return; 
+        }
+
+        // --- ФАЗА БОЮ ТА ОБГОНУ ---
         Vector3 targetPosFixed = new Vector3(destination.x, destination.y, transform.position.z);
         if (isStructureTarget) targetPosFixed = new Vector3(destination.x, transform.position.y, transform.position.z);
 
@@ -177,7 +209,8 @@ public class EnemyHorse : MonoBehaviour
             if (!hitMyTarget) { float dodgeDirY = (transform.position.y >= hit.collider.bounds.center.y) ? 1f : -1f; direction += new Vector2(0, dodgeDirY) * avoidanceForce; direction.Normalize(); }
         }
 
-        if (useSeparation) direction += GetSeparationVector() * 1.5f;
+        // Кіннота використовує сильну сепарацію (2.5) щоб протиснутись крізь піхоту
+        if (useSeparation) direction += GetSeparationVector() * 2.5f;
         rb.linearVelocity = direction.normalized * speed;
     }
 

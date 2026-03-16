@@ -21,6 +21,11 @@ public class Guard : MonoBehaviour
     public LayerMask obstacleLayer; 
     public float avoidanceForce = 2.0f;
     public float aggroRadius = 3.5f; 
+    
+    // --- ДИСЦИПЛІНА МАРШУ ---
+    public float aggroRange = 4.5f; 
+    private float startY;
+
     private float retargetTimer = 0f;
 
     [Header("Атака")]
@@ -63,6 +68,8 @@ public class Guard : MonoBehaviour
         rb.gravityScale = 0;
         rb.freezeRotation = true;
 
+        startY = transform.position.y; // Запам'ятовуємо початкову лінію
+
         float randomDir = Random.value > 0.5f ? 1f : -1f;
         laneOffset = Random.Range(0.8f, 1.5f) * randomDir;
 
@@ -89,7 +96,7 @@ public class Guard : MonoBehaviour
         if (GameManager.Instance != null && GameManager.Instance.isDefeated)
         {
             target = null;
-            if (animator) animator.SetBool("IsRunning", true);
+            if (animator) animator.SetBool("IsMoving", true);
             if (rb != null) rb.linearVelocity = new Vector2(-speed, 0f);
             return;
         }
@@ -122,7 +129,7 @@ public class Guard : MonoBehaviour
                 if (sep.magnitude > 0.2f) rb.linearVelocity = sep * (speed * 0.3f);
                 else rb.linearVelocity = Vector2.zero;
 
-                if (animator) animator.SetBool("IsRunning", false);
+                if (animator) animator.SetBool("IsMoving", false);
 
                 if (Time.time >= nextAttackTime)
                 {
@@ -139,7 +146,7 @@ public class Guard : MonoBehaviour
         else
         {
             float baseY = (myCart != null) ? myCart.position.y : 0;
-            Vector3 destination = transform.position + Vector3.left;
+            Vector3 destination = transform.position + Vector3.left * 5f; // Далеко вперед
             destination.y = baseY + laneOffset;
             FaceTarget(destination); 
             MoveTowards(destination, false, false);
@@ -183,7 +190,20 @@ public class Guard : MonoBehaviour
 
     void MoveTowards(Vector3 destination, bool isStructureTarget, bool useSeparation)
     {
-        if (animator) animator.SetBool("IsRunning", true);
+        if (animator) animator.SetBool("IsMoving", true);
+
+        // --- ФАЗА МАРШУ ---
+        float distToTarget = Vector2.Distance(transform.position, destination);
+        if (distToTarget > aggroRange)
+        {
+            float dirX = Mathf.Sign(destination.x - transform.position.x);
+            float newY = Mathf.MoveTowards(transform.position.y, startY, speed * Time.deltaTime);
+            transform.position = new Vector3(transform.position.x, newY, transform.position.z);
+            rb.linearVelocity = new Vector2(dirX * speed, 0);
+            return; 
+        }
+
+        // --- ФАЗА БОЮ ---
         Vector3 targetPosFixed = new Vector3(destination.x, destination.y, transform.position.z);
         if (isStructureTarget) targetPosFixed = new Vector3(destination.x, transform.position.y, transform.position.z);
 
@@ -232,8 +252,6 @@ public class Guard : MonoBehaviour
         else if (GameManager.Instance != null && GameManager.Instance.castle != null) target = GameManager.Instance.castle.transform;
     }
 
-    void StopMoving() { rb.linearVelocity = Vector2.zero; if (animator) animator.SetBool("IsRunning", false); }
-
     bool IsCartTooClose()
     {
         if (myCart == null) return false;
@@ -248,7 +266,7 @@ public class Guard : MonoBehaviour
         float dirY = (transform.position.y > myCart.position.y) ? 1f : -1f;
         Vector2 dodgeVector = new Vector2(-0.5f, dirY).normalized; 
         rb.linearVelocity = dodgeVector * (speed * 1.5f);
-        if (animator) animator.SetBool("IsRunning", true);
+        if (animator) animator.SetBool("IsMoving", true);
     }
 
     void FaceTarget(Vector3 targetPos)

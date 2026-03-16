@@ -20,6 +20,10 @@ public class Spearman : MonoBehaviour
     public LayerMask obstacleLayer; 
     public float avoidanceForce = 2.0f; 
     public float checkDistance = 1.5f;
+    
+    // --- ДИСЦИПЛІНА МАРШУ ---
+    public float aggroRange = 4.5f; 
+    private float startY;
 
     [Header("Компоненти")]
     public Animator animator;
@@ -60,6 +64,8 @@ public class Spearman : MonoBehaviour
         startPoint = transform.position;
         if (formationPos == Vector3.zero) formationPos = startPoint;
         originalScale = transform.localScale;
+        
+        startY = transform.position.y; // Запам'ятовуємо лінію
 
         if (GameManager.Instance != null)
         {
@@ -191,6 +197,18 @@ public class Spearman : MonoBehaviour
         if (animator) animator.SetBool("IsMoving", true);
         FlipSprite(targetPosition.x);
         
+        // --- 1. ФАЗА МАРШУ ---
+        float distToTarget = Vector2.Distance(transform.position, targetPosition);
+        if (distToTarget > aggroRange)
+        {
+            float dirX = Mathf.Sign(targetPosition.x - transform.position.x);
+            float newY = Mathf.MoveTowards(transform.position.y, startY, speed * Time.deltaTime);
+            transform.position = new Vector3(transform.position.x, newY, transform.position.z);
+            rb.linearVelocity = new Vector2(dirX * speed, 0);
+            return; 
+        }
+
+        // --- 2. ФАЗА БОЮ ---
         Vector2 direction = (targetPosition - transform.position).normalized;
 
         RaycastHit2D hit = Physics2D.Raycast(transform.position, direction, checkDistance, obstacleLayer);
@@ -256,7 +274,7 @@ public class Spearman : MonoBehaviour
     public void Hit() 
     {
         if (isDead) return;
-        if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.swordHit); 
+        if (SoundManager.Instance != null) SoundManager.Instance.PlaySFXRandomPitch(SoundManager.Instance.swordHit); 
 
         int finalDamage = myDamage;
         UnitStats targetStats = null;
