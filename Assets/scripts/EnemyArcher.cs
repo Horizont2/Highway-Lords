@@ -61,20 +61,16 @@ public class EnemyArcher : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         spriteRenderer = GetComponent<SpriteRenderer>();
         myStats = GetComponent<UnitStats>();
-
         originalScale = transform.localScale;
 
         if (GameManager.Instance != null)
         {
-            int wave = GameManager.Instance.currentWave;
-            maxHealth = EconomyConfig.GetEnemyHealth(_baseMaxHealth, wave);
-            damage = EconomyConfig.GetEnemyDamage(_baseDamage, wave);
-            GameManager.Instance.RegisterEnemy();
+            _maxHealth = GameManager.Instance.GetScaledEnemyHealth(_baseMaxHealth);
+            damage = Mathf.RoundToInt(_baseDamage * GameManager.Instance.GetEnemyDamageMultiplier());
         }
-        
-        currentHealth = maxHealth;
-        _maxHealth = maxHealth;
+        else { _maxHealth = _baseMaxHealth; }
 
+        currentHealth = _maxHealth;
         if (spriteRenderer != null) defaultColor = spriteRenderer.color;
         UpdateHealthBar();
 
@@ -190,6 +186,8 @@ public class EnemyArcher : MonoBehaviour
         foreach (Archer a in archers) CheckDistance(a.transform);
         Spearman[] spearmen = FindObjectsByType<Spearman>(FindObjectsSortMode.None); 
         foreach (Spearman s in spearmen) CheckDistance(s.transform);
+        Cavalry[] cavs = FindObjectsByType<Cavalry>(FindObjectsSortMode.None); 
+        foreach (Cavalry c in cavs) CheckDistance(c.transform);
 
         if (GameManager.Instance != null && GameManager.Instance.currentSpikes != null) CheckDistance(GameManager.Instance.currentSpikes.transform);
 
@@ -306,11 +304,7 @@ public class EnemyArcher : MonoBehaviour
         if (currentHealth <= 0) Die();
     }
 
-    void UpdateHealthBar()
-    {
-        if (healthBarFill != null)
-            healthBarFill.fillAmount = Mathf.Clamp01((float)currentHealth / _maxHealth);
-    }
+    void UpdateHealthBar() { if (healthBarFill != null) healthBarFill.fillAmount = Mathf.Clamp01((float)currentHealth / _maxHealth); }
 
     private IEnumerator FlashColor()
     {
@@ -325,9 +319,7 @@ public class EnemyArcher : MonoBehaviour
         isDead = true;
         gameObject.tag = "Untagged";
         
-        if (healthBarFill != null && healthBarFill.transform.parent != null) 
-            healthBarFill.transform.parent.gameObject.SetActive(false);
-
+        if (healthBarFill != null && healthBarFill.transform.parent != null) healthBarFill.transform.parent.gameObject.SetActive(false);
         Transform shadow = transform.Find("Shadow");
         if (shadow != null) shadow.gameObject.SetActive(false);
         

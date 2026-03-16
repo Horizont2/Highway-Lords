@@ -26,7 +26,6 @@ public class Spearman : MonoBehaviour
     public SpriteRenderer spriteRenderer;
 
     public int currentHealth; 
-    
     private int myDamage;
     private float nextAttackTime = 0f;
     private Vector3 originalScale;
@@ -43,19 +42,10 @@ public class Spearman : MonoBehaviour
     private bool isDead = false;
     private UnitStats myStats;
     private float retargetTimer = 0f;
-
     private Vector3 formationPos;
 
-    public void SetFormationPosition(Vector3 pos)
-    {
-        formationPos = pos;
-    }
-
-    public void LoadState(int savedHealth)
-    {
-        currentHealth = savedHealth;
-        UpdateHealthBar();
-    }
+    public void SetFormationPosition(Vector3 pos) { formationPos = pos; }
+    public void LoadState(int savedHealth) { currentHealth = savedHealth; UpdateHealthBar(); }
 
     void Start()
     {
@@ -73,7 +63,6 @@ public class Spearman : MonoBehaviour
 
         if (GameManager.Instance != null)
         {
-            GameManager.Instance.UpdateUI();
             myDamage = GameManager.Instance.GetSpearmanDamage();
             maxHealth = EconomyConfig.GetUnitMaxHealth(100, GameManager.Instance.spearmanLevel);
             attackRate = EconomyConfig.GetUnitAttackRate(0.8f, GameManager.Instance.spearmanLevel);
@@ -81,15 +70,9 @@ public class Spearman : MonoBehaviour
             if (GameManager.Instance.spearmanLevel > 1 && spriteRenderer != null) 
                 spriteRenderer.color = new Color(0.8f, 0.9f, 1f);
         }
-        else
-        {
-            myDamage = 15;
-            maxHealth = 100;
-            attackRate = 0.8f;
-        }
+        else { myDamage = 15; maxHealth = 100; attackRate = 0.8f; }
 
         if (currentHealth <= 0) currentHealth = maxHealth;
-
         if (spriteRenderer != null) defaultColor = spriteRenderer.color;
         UpdateHealthBar();
     }
@@ -98,10 +81,7 @@ public class Spearman : MonoBehaviour
     {
         if (isDead) return;
 
-        if (GameManager.Instance != null)
-        {
-            myDamage = GameManager.Instance.GetSpearmanDamage();
-        }
+        if (GameManager.Instance != null) myDamage = GameManager.Instance.GetSpearmanDamage();
 
         if (targetBoss != null && (targetBoss.CompareTag("Untagged") || !targetBoss.gameObject.activeInHierarchy)) targetBoss = null;
         if (targetRam != null && (targetRam.CompareTag("Untagged") || !targetRam.gameObject.activeInHierarchy)) targetRam = null;
@@ -111,11 +91,7 @@ public class Spearman : MonoBehaviour
         if (targetArcher != null && (targetArcher.CompareTag("Untagged") || !targetArcher.gameObject.activeInHierarchy)) targetArcher = null;
 
         retargetTimer -= Time.deltaTime;
-        if (retargetTimer <= 0f)
-        {
-            FindNearestTarget();
-            retargetTimer = 0.25f;
-        }
+        if (retargetTimer <= 0f) { FindNearestTarget(); retargetTimer = 0.25f; }
 
         Transform currentTarget = null;
         if (targetBoss != null) currentTarget = targetBoss.transform; 
@@ -125,32 +101,30 @@ public class Spearman : MonoBehaviour
         else if (targetEnemySpearman != null) currentTarget = targetEnemySpearman.transform;
         else if (targetArcher != null) currentTarget = targetArcher.transform;
 
-        if (currentTarget != null)
-        {
-            EngageEnemy(currentTarget);
-        }
+        if (currentTarget != null) EngageEnemy(currentTarget);
         else
         {
-            MoveTo(formationPos); 
-            if (Vector2.Distance(transform.position, formationPos) < 0.1f)
-            {
-                FlipSprite(transform.position.x + 1f);
-            }
+            MoveTo(formationPos, false); 
+            if (Vector2.Distance(transform.position, formationPos) < 0.2f) FlipSprite(transform.position.x + 1f);
         }
     }
 
-    void EngageEnemy(Transform target)
+    void EngageEnemy(Transform targetTransform)
     {
-        FlipSprite(target.position.x);
+        Vector3 targetPos = GetDynamicEngagementPosition(targetTransform);
+        FlipSprite(targetTransform.position.x);
         
-        Collider2D targetCol = target.GetComponent<Collider2D>();
-        float distance = targetCol != null ? 
+        Collider2D targetCol = targetTransform.GetComponent<Collider2D>();
+        float distanceToHit = targetCol != null ? 
             Vector2.Distance(transform.position, targetCol.ClosestPoint(transform.position)) : 
-            Vector2.Distance(transform.position, target.position);
+            Vector2.Distance(transform.position, targetTransform.position);
 
-        if (distance <= attackRange)
+        if (distanceToHit <= attackRange)
         {
-            rb.linearVelocity = Vector2.zero; 
+            Vector2 sep = GetSeparationVector();
+            if (sep.magnitude > 0.2f) rb.linearVelocity = sep * (speed * 0.3f);
+            else rb.linearVelocity = Vector2.zero;
+
             if (animator) animator.SetBool("IsMoving", false);
             
             if (Time.time >= nextAttackTime)
@@ -159,15 +133,47 @@ public class Spearman : MonoBehaviour
                 nextAttackTime = Time.time + attackRate;
             }
         }
-        else
-        {
-            MoveTo(target.position);
-        }
+        else MoveTo(targetPos, true);
     }
 
-    void MoveTo(Vector3 targetPosition)
+    Vector3 GetDynamicEngagementPosition(Transform targetTransform)
     {
-        if (Vector2.Distance(transform.position, targetPosition) < 0.1f)
+        Vector3 basePos = targetTransform.position;
+        float dirX = (transform.position.x > basePos.x) ? 1f : -1f;
+        Vector3 frontSlot = basePos + new Vector3(dirX * (attackRange * 0.8f), 0, 0);
+
+        Collider2D[] allies = Physics2D.OverlapCircleAll(frontSlot, 0.4f);
+        int crowdCount = 0;
+        foreach(var col in allies) {
+            if (col.gameObject != gameObject && col.CompareTag(gameObject.tag)) crowdCount++;
+        }
+
+        if (crowdCount == 0) return frontSlot;
+        if (crowdCount == 1) return basePos + new Vector3(dirX * attackRange * 0.5f, attackRange, 0); 
+        if (crowdCount == 2) return basePos + new Vector3(dirX * attackRange * 0.5f, -attackRange, 0);
+        if (crowdCount == 3) return basePos + new Vector3(-dirX * attackRange, 0, 0); 
+
+        return basePos + new Vector3(dirX * (attackRange + crowdCount * 0.6f), 0, 0); 
+    }
+
+    Vector2 GetSeparationVector()
+    {
+        Vector2 separation = Vector2.zero;
+        Collider2D[] nearby = Physics2D.OverlapCircleAll(transform.position, 0.6f);
+        foreach (var col in nearby)
+        {
+            if (col.gameObject != gameObject && col.CompareTag(gameObject.tag) && !col.isTrigger)
+            {
+                Vector2 diff = transform.position - col.transform.position;
+                if (diff.magnitude > 0.01f) separation += diff.normalized * (1f - diff.magnitude / 0.6f);
+            }
+        }
+        return separation;
+    }
+
+    void MoveTo(Vector3 targetPosition, bool useSeparation)
+    {
+        if (Vector2.Distance(transform.position, targetPosition) < 0.15f)
         {
             rb.linearVelocity = Vector2.zero;
             if (animator) animator.SetBool("IsMoving", false);
@@ -191,21 +197,18 @@ public class Spearman : MonoBehaviour
         if (hit.collider != null && hit.collider.gameObject != gameObject)
         {
             float dodgeDirY = (transform.position.y >= hit.collider.bounds.center.y) ? 1f : -1f;
-            Vector2 avoidance = new Vector2(0, dodgeDirY); 
-            direction += avoidance * avoidanceForce;
-            direction.Normalize(); 
+            direction += new Vector2(0, dodgeDirY) * avoidanceForce;
         }
 
-        rb.linearVelocity = direction * speed;
+        if (useSeparation) direction += GetSeparationVector() * 1.5f;
+        rb.linearVelocity = direction.normalized * speed;
     }
 
     void FlipSprite(float targetX)
     {
         float absX = Mathf.Abs(originalScale.x);
-        if (targetX > transform.position.x) 
-            transform.localScale = new Vector3(absX, originalScale.y, originalScale.z); 
-        else if (targetX < transform.position.x) 
-            transform.localScale = new Vector3(-absX, originalScale.y, originalScale.z); 
+        if (targetX > transform.position.x) transform.localScale = new Vector3(absX, originalScale.y, originalScale.z); 
+        else if (targetX < transform.position.x) transform.localScale = new Vector3(-absX, originalScale.y, originalScale.z); 
     }
 
     void FindNearestTarget()
@@ -232,14 +235,9 @@ public class Spearman : MonoBehaviour
             if (go.transform.position.x > maxX || go.transform.position.x < minX) continue;
 
             float dist = Vector2.Distance(transform.position, go.transform.position);
-
             float perceivedDist = go.GetComponent<BatteringRam>() ? dist - 1.5f : dist;
 
-            if (perceivedDist < shortestDist) 
-            {
-                shortestDist = perceivedDist;
-                closestEnemy = go;
-            }
+            if (perceivedDist < shortestDist) { shortestDist = perceivedDist; closestEnemy = go; }
         }
 
         if (closestEnemy != null)
@@ -253,10 +251,7 @@ public class Spearman : MonoBehaviour
         }
     }
 
-    void Attack()
-    {
-        if (animator) animator.SetTrigger("Attack");
-    }
+    void Attack() { if (animator) animator.SetTrigger("Attack"); }
 
     public void Hit() 
     {
@@ -307,11 +302,7 @@ public class Spearman : MonoBehaviour
         if (currentHealth <= 0) Die();
     }
 
-    void UpdateHealthBar()
-    {
-        if (healthBarFill != null)
-            healthBarFill.fillAmount = Mathf.Clamp01((float)currentHealth / maxHealth);
-    }
+    void UpdateHealthBar() { if (healthBarFill != null) healthBarFill.fillAmount = Mathf.Clamp01((float)currentHealth / maxHealth); }
 
     private IEnumerator FlashColor()
     {
@@ -329,14 +320,9 @@ public class Spearman : MonoBehaviour
         Collider2D col = GetComponent<Collider2D>();
         if (col != null) col.enabled = false;
         
-        if (GameManager.Instance != null && !GameManager.Instance.isResettingUnits) 
-        { 
-            GameManager.Instance.OnUnitDeath(gameObject, "Spearman"); 
-        }
+        if (GameManager.Instance != null && !GameManager.Instance.isResettingUnits) GameManager.Instance.OnUnitDeath(gameObject, "Spearman"); 
 
-        if (healthBarFill != null && healthBarFill.transform.parent != null) 
-            healthBarFill.transform.parent.gameObject.SetActive(false);
-
+        if (healthBarFill != null && healthBarFill.transform.parent != null) healthBarFill.transform.parent.gameObject.SetActive(false);
         if (animator) { animator.Rebind(); animator.Update(0f); animator.enabled = false; }
         transform.Rotate(0, 0, -90);
         if (spriteRenderer != null) { spriteRenderer.color = Color.gray; spriteRenderer.sortingOrder = 0; }

@@ -99,7 +99,7 @@ SpriteRenderer:
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
-  m_SpriteSortPoint: 0
+  m_SpriteSortPoint: 1
 --- !u!95 &7941571505676687981
 Animator:
   serializedVersion: 7
@@ -139,7 +139,7 @@ MonoBehaviour:
   attackRange: 1.8
   attackCooldown: 2
   damage: 25
-  maxHealth: 90
+  maxHealth: 120
   obstacleLayer:
     serializedVersion: 2
     m_Bits: 256
@@ -245,6 +245,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemyStats
   baseGoldReward: 25
   currentGoldReward: 0
+  maxHealth: 50
+  currentHealth: 0
 --- !u!114 &4341986672442566882
 MonoBehaviour:
   m_ObjectHideFlags: 0

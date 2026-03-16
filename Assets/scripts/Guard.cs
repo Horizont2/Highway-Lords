@@ -59,7 +59,6 @@ public class Guard : MonoBehaviour
         myStats = GetComponent<UnitStats>();
 
         originalScale = transform.localScale;
-
         rb.bodyType = RigidbodyType2D.Dynamic;
         rb.gravityScale = 0;
         rb.freezeRotation = true;
@@ -69,13 +68,12 @@ public class Guard : MonoBehaviour
 
         if (GameManager.Instance != null)
         {
-            int wave = GameManager.Instance.currentWave;
-            health = EconomyConfig.GetEnemyHealth(_baseHealth, wave);
-            damage = EconomyConfig.GetEnemyDamage(_baseDamage, wave);
-            GameManager.Instance.RegisterEnemy();
+            _maxHealth = GameManager.Instance.GetScaledEnemyHealth(_baseHealth);
+            damage = Mathf.RoundToInt(_baseDamage * GameManager.Instance.GetEnemyDamageMultiplier());
         }
-
-        _maxHealth = health;
+        else { _maxHealth = _baseHealth; }
+        
+        health = _maxHealth; 
 
         if (spriteRenderer != null) defaultColor = spriteRenderer.color;
         UpdateHealthBar();
@@ -97,17 +95,16 @@ public class Guard : MonoBehaviour
         }
 
         retargetTimer -= Time.deltaTime;
-        if (retargetTimer <= 0f)
-        {
-            FindTarget();
-            retargetTimer = 0.25f;
-        }
+        if (retargetTimer <= 0f) { FindTarget(); retargetTimer = 0.25f; }
 
         if (target != null && (target.CompareTag("Untagged") || !target.gameObject.activeInHierarchy)) 
             target = null;
 
+        if (IsCartTooClose()) { DodgeCart(); return; }
+
         if (target != null)
         {
+            FaceTarget(target.position);
             bool isStructure = target.TryGetComponent<Spikes>(out _) || target.TryGetComponent<Wall>(out _);
             float distanceToTarget;
 
@@ -121,31 +118,23 @@ public class Guard : MonoBehaviour
 
             if (distanceToTarget <= attackRange)
             {
-                StopMoving();
+                Vector2 sep = GetSeparationVector();
+                if (sep.magnitude > 0.2f) rb.linearVelocity = sep * (speed * 0.3f);
+                else rb.linearVelocity = Vector2.zero;
+
+                if (animator) animator.SetBool("IsRunning", false);
+
                 if (Time.time >= nextAttackTime)
                 {
                     StartAttack(); 
                     nextAttackTime = Time.time + attackCooldown;
                 }
-                return; 
             }
-        }
-
-        if (IsCartTooClose())
-        {
-            DodgeCart();
-            return; 
-        }
-
-        if (target != null)
-        {
-            FaceTarget(target.position);
-            bool isStructure = target.TryGetComponent<Spikes>(out _) || target.TryGetComponent<Wall>(out _);
-            Vector3 dest = target.position;
-            float distance = Vector2.Distance(transform.position, target.position);
-
-            if (!isStructure && distance > 3.5f) dest.y += laneOffset;
-            MoveTowards(dest, isStructure);
+            else
+            {
+                Vector3 dest = isStructure ? target.position : GetDynamicEngagementPosition(target);
+                MoveTowards(dest, isStructure, true);
+            }
         }
         else
         {
@@ -153,8 +142,63 @@ public class Guard : MonoBehaviour
             Vector3 destination = transform.position + Vector3.left;
             destination.y = baseY + laneOffset;
             FaceTarget(destination); 
-            MoveTowards(destination, false);
+            MoveTowards(destination, false, false);
         }
+    }
+
+    Vector3 GetDynamicEngagementPosition(Transform targetTransform)
+    {
+        Vector3 basePos = targetTransform.position;
+        float dirX = (transform.position.x > basePos.x) ? 1f : -1f;
+        Vector3 frontSlot = basePos + new Vector3(dirX * (attackRange * 0.8f), 0, 0);
+
+        Collider2D[] friends = Physics2D.OverlapCircleAll(frontSlot, 0.4f);
+        int crowdCount = 0;
+        foreach(var col in friends) {
+            if (col.gameObject != gameObject && col.CompareTag(gameObject.tag)) crowdCount++;
+        }
+
+        if (crowdCount == 0) return frontSlot; 
+        if (crowdCount == 1) return basePos + new Vector3(dirX * attackRange * 0.5f, attackRange, 0); 
+        if (crowdCount == 2) return basePos + new Vector3(dirX * attackRange * 0.5f, -attackRange, 0); 
+        if (crowdCount == 3) return basePos + new Vector3(-dirX * attackRange, 0, 0); 
+
+        return basePos + new Vector3(dirX * (attackRange + crowdCount * 0.6f), 0, 0); 
+    }
+
+    Vector2 GetSeparationVector()
+    {
+        Vector2 separation = Vector2.zero;
+        Collider2D[] nearby = Physics2D.OverlapCircleAll(transform.position, 0.6f);
+        foreach (var col in nearby)
+        {
+            if (col.gameObject != gameObject && col.CompareTag(gameObject.tag) && !col.isTrigger)
+            {
+                Vector2 diff = transform.position - col.transform.position;
+                if (diff.magnitude > 0.01f) separation += diff.normalized * (1f - diff.magnitude / 0.6f);
+            }
+        }
+        return separation;
+    }
+
+    void MoveTowards(Vector3 destination, bool isStructureTarget, bool useSeparation)
+    {
+        if (animator) animator.SetBool("IsRunning", true);
+        Vector3 targetPosFixed = new Vector3(destination.x, destination.y, transform.position.z);
+        if (isStructureTarget) targetPosFixed = new Vector3(destination.x, transform.position.y, transform.position.z);
+
+        Vector2 direction = (targetPosFixed - transform.position).normalized;
+        RaycastHit2D hit = Physics2D.Raycast(transform.position, direction, 1.5f, obstacleLayer);
+        
+        if (hit.collider != null && hit.collider.gameObject != gameObject)
+        {
+            bool hitMyTarget = false;
+            if (target != null && (hit.collider.transform == target || hit.collider.transform.IsChildOf(target))) hitMyTarget = true;
+            if (!hitMyTarget) direction += hit.normal * avoidanceForce; 
+        }
+
+        if (useSeparation) direction += GetSeparationVector() * 1.5f;
+        rb.linearVelocity = direction.normalized * speed; 
     }
 
     void FindTarget()
@@ -177,33 +221,15 @@ public class Guard : MonoBehaviour
 
         Knight[] knights = FindObjectsByType<Knight>(FindObjectsSortMode.None);
         foreach (Knight k in knights) CheckDistance(k.transform);
-
         Archer[] archers = FindObjectsByType<Archer>(FindObjectsSortMode.None);
         foreach (Archer a in archers) CheckDistance(a.transform);
-        
         Spearman[] spearmen = FindObjectsByType<Spearman>(FindObjectsSortMode.None); 
         foreach (Spearman s in spearmen) CheckDistance(s.transform);
+        Cavalry[] cavalries = FindObjectsByType<Cavalry>(FindObjectsSortMode.None); 
+        foreach (Cavalry c in cavalries) CheckDistance(c.transform);
 
         if (closestTarget != null && minDistance <= aggroRadius) target = closestTarget;
         else if (GameManager.Instance != null && GameManager.Instance.castle != null) target = GameManager.Instance.castle.transform;
-    }
-
-    void MoveTowards(Vector3 destination, bool isStructureTarget)
-    {
-        if (animator) animator.SetBool("IsRunning", true);
-        Vector3 targetPosFixed = new Vector3(destination.x, destination.y, transform.position.z);
-        if (isStructureTarget) targetPosFixed = new Vector3(destination.x, transform.position.y, transform.position.z);
-
-        Vector2 direction = (targetPosFixed - transform.position).normalized;
-        RaycastHit2D hit = Physics2D.Raycast(transform.position, direction, 1.5f, obstacleLayer);
-        
-        if (hit.collider != null && hit.collider.gameObject != gameObject)
-        {
-            bool hitMyTarget = false;
-            if (target != null && (hit.collider.transform == target || hit.collider.transform.IsChildOf(target))) hitMyTarget = true;
-            if (!hitMyTarget) { direction += hit.normal * avoidanceForce; direction.Normalize(); }
-        }
-        rb.linearVelocity = direction * speed; 
     }
 
     void StopMoving() { rb.linearVelocity = Vector2.zero; if (animator) animator.SetBool("IsRunning", false); }
@@ -262,6 +288,7 @@ public class Guard : MonoBehaviour
         if (target.TryGetComponent<Knight>(out Knight k)) k.TakeDamage(finalDamage);
         else if (target.TryGetComponent<Archer>(out Archer a)) a.TakeDamage(finalDamage);
         else if (target.TryGetComponent<Spearman>(out Spearman s)) s.TakeDamage(finalDamage);
+        else if (target.TryGetComponent<Cavalry>(out Cavalry cV)) cV.TakeDamage(finalDamage);
         else if (target.TryGetComponent<Wall>(out Wall c)) { c.TakeDamage(finalDamage); if (CameraShake.Instance != null) CameraShake.Instance.Shake(0.1f, 0.2f); if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.castleDamage); }
         else if (target.TryGetComponent<Spikes>(out Spikes spikes)) { spikes.TakeDamage(finalDamage); if (CameraShake.Instance != null) CameraShake.Instance.Shake(0.05f, 0.1f); }
     }
@@ -288,8 +315,7 @@ public class Guard : MonoBehaviour
 
     void UpdateHealthBar()
     {
-        if (healthBarFill != null)
-            healthBarFill.fillAmount = Mathf.Clamp01((float)health / _maxHealth);
+        if (healthBarFill != null) healthBarFill.fillAmount = Mathf.Clamp01((float)health / _maxHealth);
     }
 
     private IEnumerator FlashColor()

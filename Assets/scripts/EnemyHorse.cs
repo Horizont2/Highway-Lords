@@ -57,14 +57,12 @@ public class EnemyHorse : MonoBehaviour
 
         if (GameManager.Instance != null)
         {
-            int wave = GameManager.Instance.currentWave;
-            maxHealth = EconomyConfig.GetEnemyHealth(_baseMaxHealth, wave);
-            damage = EconomyConfig.GetEnemyDamage(_baseDamage, wave);
-            GameManager.Instance.RegisterEnemy();
+            _maxHealth = GameManager.Instance.GetScaledEnemyHealth(_baseMaxHealth);
+            damage = Mathf.RoundToInt(_baseDamage * GameManager.Instance.GetEnemyDamageMultiplier());
         }
-
-        currentHealth = maxHealth;
-        _maxHealth = maxHealth;
+        else { _maxHealth = _baseMaxHealth; }
+        
+        currentHealth = _maxHealth;
 
         if (healthBar != null)
         {
@@ -106,17 +104,81 @@ public class EnemyHorse : MonoBehaviour
 
             if (distanceToTarget <= attackRange)
             {
-                StopMoving();
+                Vector2 sep = GetSeparationVector();
+                if (sep.magnitude > 0.2f) rb.linearVelocity = sep * (speed * 0.3f);
+                else rb.linearVelocity = Vector2.zero;
+
+                if (animator) animator.SetBool("IsRunning", false);
+
                 if (Time.time >= nextAttackTime) { Attack(); nextAttackTime = Time.time + attackCooldown; }
             }
-            else MoveTowards(target.position, isStructure);
+            else
+            {
+                Vector3 dest = isStructure ? target.position : GetDynamicEngagementPosition(target);
+                MoveTowards(dest, isStructure, true);
+            }
         }
         else
         {
             Vector3 forwardPos = transform.position + Vector3.left * 5f;
             FaceDirection(forwardPos);
-            MoveTowards(forwardPos, false);
+            MoveTowards(forwardPos, false, false);
         }
+    }
+
+    Vector3 GetDynamicEngagementPosition(Transform targetTransform)
+    {
+        Vector3 basePos = targetTransform.position;
+        float dirX = (transform.position.x > basePos.x) ? 1f : -1f;
+        Vector3 frontSlot = basePos + new Vector3(dirX * (attackRange * 0.8f), 0, 0);
+
+        Collider2D[] friends = Physics2D.OverlapCircleAll(frontSlot, 0.4f);
+        int crowdCount = 0;
+        foreach(var col in friends) {
+            if (col.gameObject != gameObject && col.CompareTag(gameObject.tag)) crowdCount++;
+        }
+
+        if (crowdCount == 0) return frontSlot; 
+        if (crowdCount == 1) return basePos + new Vector3(dirX * attackRange * 0.5f, attackRange, 0); 
+        if (crowdCount == 2) return basePos + new Vector3(dirX * attackRange * 0.5f, -attackRange, 0); 
+        if (crowdCount == 3) return basePos + new Vector3(-dirX * attackRange, 0, 0); 
+
+        return basePos + new Vector3(dirX * (attackRange + crowdCount * 0.6f), 0, 0); 
+    }
+
+    Vector2 GetSeparationVector()
+    {
+        Vector2 separation = Vector2.zero;
+        Collider2D[] nearby = Physics2D.OverlapCircleAll(transform.position, 0.6f);
+        foreach (var col in nearby)
+        {
+            if (col.gameObject != gameObject && col.CompareTag(gameObject.tag) && !col.isTrigger)
+            {
+                Vector2 diff = transform.position - col.transform.position;
+                if (diff.magnitude > 0.01f) separation += diff.normalized * (1f - diff.magnitude / 0.6f);
+            }
+        }
+        return separation;
+    }
+
+    void MoveTowards(Vector3 destination, bool isStructureTarget, bool useSeparation)
+    {
+        if (animator) animator.SetBool("IsRunning", true);
+        Vector3 targetPosFixed = new Vector3(destination.x, destination.y, transform.position.z);
+        if (isStructureTarget) targetPosFixed = new Vector3(destination.x, transform.position.y, transform.position.z);
+
+        Vector2 direction = (targetPosFixed - transform.position).normalized;
+        RaycastHit2D hit = Physics2D.Raycast(transform.position, direction, 1.5f, obstacleLayer);
+        
+        if (hit.collider != null && hit.collider.gameObject != gameObject)
+        {
+            bool hitMyTarget = false;
+            if (target != null && (hit.collider.transform == target || hit.collider.transform.IsChildOf(target))) hitMyTarget = true;
+            if (!hitMyTarget) { float dodgeDirY = (transform.position.y >= hit.collider.bounds.center.y) ? 1f : -1f; direction += new Vector2(0, dodgeDirY) * avoidanceForce; direction.Normalize(); }
+        }
+
+        if (useSeparation) direction += GetSeparationVector() * 1.5f;
+        rb.linearVelocity = direction.normalized * speed;
     }
 
     void FindTarget()
@@ -141,6 +203,8 @@ public class EnemyHorse : MonoBehaviour
         foreach (var k in knights) Check(k.transform);
         Spearman[] spearmen = FindObjectsByType<Spearman>(FindObjectsSortMode.None);
         foreach (var s in spearmen) Check(s.transform);
+        Cavalry[] cavalries = FindObjectsByType<Cavalry>(FindObjectsSortMode.None);
+        foreach (var c in cavalries) Check(c.transform);
         Archer[] archers = FindObjectsByType<Archer>(FindObjectsSortMode.None);
         foreach (var a in archers) Check(a.transform);
 
@@ -148,25 +212,6 @@ public class EnemyHorse : MonoBehaviour
         else if (GameManager.Instance != null && GameManager.Instance.castle != null) target = GameManager.Instance.castle.transform;
     }
 
-    void MoveTowards(Vector3 destination, bool isStructureTarget)
-    {
-        if (animator) animator.SetBool("IsRunning", true);
-        Vector3 targetPosFixed = new Vector3(destination.x, destination.y, transform.position.z);
-        if (isStructureTarget) targetPosFixed = new Vector3(destination.x, transform.position.y, transform.position.z);
-
-        Vector2 direction = (targetPosFixed - transform.position).normalized;
-        RaycastHit2D hit = Physics2D.Raycast(transform.position, direction, 1.5f, obstacleLayer);
-        
-        if (hit.collider != null && hit.collider.gameObject != gameObject)
-        {
-            bool hitMyTarget = false;
-            if (target != null && (hit.collider.transform == target || hit.collider.transform.IsChildOf(target))) hitMyTarget = true;
-            if (!hitMyTarget) { float dodgeDirY = (transform.position.y >= hit.collider.bounds.center.y) ? 1f : -1f; direction += new Vector2(0, dodgeDirY) * avoidanceForce; direction.Normalize(); }
-        }
-        rb.linearVelocity = direction * speed;
-    }
-
-    void StopMoving() { rb.linearVelocity = Vector2.zero; if (animator) animator.SetBool("IsRunning", false); }
     void FaceDirection(Vector3 targetPos) { float absX = Mathf.Abs(originalScale.x); transform.localScale = new Vector3(targetPos.x > transform.position.x ? absX : -absX, originalScale.y, originalScale.z); }
 
     void Attack() { hasHitThisAttack = false; if (animator) animator.SetTrigger("Attack"); }
@@ -200,6 +245,7 @@ public class EnemyHorse : MonoBehaviour
         if (target.TryGetComponent<Knight>(out Knight k)) k.TakeDamage(finalDamage);
         else if (target.TryGetComponent<Archer>(out Archer a)) a.TakeDamage(finalDamage);
         else if (target.TryGetComponent<Spearman>(out Spearman s)) s.TakeDamage(finalDamage);
+        else if (target.TryGetComponent<Cavalry>(out Cavalry cV)) cV.TakeDamage(finalDamage);
         else if (target.TryGetComponent<Wall>(out Wall c)) { c.TakeDamage(finalDamage); if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.castleDamage); }
         else if (target.TryGetComponent<Spikes>(out Spikes sp)) sp.TakeDamage(finalDamage);
     }

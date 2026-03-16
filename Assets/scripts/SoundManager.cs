@@ -51,7 +51,11 @@ public class SoundManager : MonoBehaviour
 
     [Header("Події гри")]
     public AudioClip waveStart;     
-    public AudioClip victory;       
+    public AudioClip victory;  
+    [Tooltip("Короткі фанфари після відбиття хвилі")]
+    public AudioClip victoryMusicStinger; 
+    [Tooltip("Галас натовпу, що радіє перемозі")]
+    public AudioClip victoryCries;        
     public AudioClip defeat;        
 
     [HideInInspector] public float musicVolume = 0.5f;
@@ -72,7 +76,6 @@ public class SoundManager : MonoBehaviour
             return;
         }
 
-        // Завантажуємо налаштування гучності
         musicVolume = PlayerPrefs.GetFloat("MusicVolume", 0.5f);
         sfxVolume = PlayerPrefs.GetFloat("SFXVolume", 1f);
     }
@@ -83,16 +86,12 @@ public class SoundManager : MonoBehaviour
         if (sfxSource != null) sfxSource.volume = sfxVolume;
         if (ambientSource != null) ambientSource.volume = 0f; 
         
-        // Зі старту грає спокійна музика
         PlayIdleMusic();
     }
-
-    // === КЕРУВАННЯ МУЗИКОЮ (РАНДОМ + КРОСФЕЙД) ===
 
     public void PlayIdleMusic()
     {
         if (idleMusicTracks == null || idleMusicTracks.Length == 0) return;
-        
         AudioClip clipToPlay = GetRandomTrack(idleMusicTracks, ref lastIdleTrack);
         SwitchMusic(clipToPlay);
     }
@@ -100,26 +99,21 @@ public class SoundManager : MonoBehaviour
     public void PlayBattleMusic()
     {
         if (battleMusicTracks == null || battleMusicTracks.Length == 0) return;
-
         AudioClip clipToPlay = GetRandomTrack(battleMusicTracks, ref lastBattleTrack);
         SwitchMusic(clipToPlay);
     }
 
-    // Розумний вибір випадкового треку (уникає повторень)
     private AudioClip GetRandomTrack(AudioClip[] tracks, ref AudioClip lastPlayed)
     {
         if (tracks.Length == 1) return tracks[0];
-
-        AudioClip randomTrack = tracks[Random.Range(0, tracks.Length)];
         
-        // Якщо випав той самий трек, що грав минулого разу - пробуємо обрати інший (до 10 спроб)
+        AudioClip randomTrack = tracks[Random.Range(0, tracks.Length)];
         int attempts = 0;
         while (randomTrack == lastPlayed && attempts < 10)
         {
             randomTrack = tracks[Random.Range(0, tracks.Length)];
             attempts++;
         }
-
         lastPlayed = randomTrack;
         return randomTrack;
     }
@@ -127,13 +121,9 @@ public class SoundManager : MonoBehaviour
     private void SwitchMusic(AudioClip newClip)
     {
         if (musicSource == null || newClip == null) return;
-        
-        // Якщо цей трек вже грає, нічого не робимо
         if (musicSource.clip == newClip && musicSource.isPlaying) return;
 
         if (musicTransitionCoroutine != null) StopCoroutine(musicTransitionCoroutine);
-        
-        // Запускаємо плавний перехід тривалістю 1.5 секунди
         musicTransitionCoroutine = StartCoroutine(CrossfadeMusic(newClip, 1.5f));
     }
 
@@ -143,7 +133,6 @@ public class SoundManager : MonoBehaviour
         float startVolume = musicSource.volume;
         float t = 0f;
 
-        // 1. Плавно затихаємо поточну музику
         if (musicSource.isPlaying)
         {
             while (t < halfDuration)
@@ -154,14 +143,11 @@ public class SoundManager : MonoBehaviour
             }
         }
 
-        // 2. Змінюємо трек
         musicSource.clip = newClip;
         musicSource.loop = true;
         musicSource.Play();
-
         t = 0f;
         
-        // 3. Плавно нарощуємо гучність нової музики
         while (t < halfDuration)
         {
             t += Time.unscaledDeltaTime;
@@ -172,8 +158,6 @@ public class SoundManager : MonoBehaviour
         musicSource.volume = musicVolume;
     }
 
-    // === МЕТОДИ ДЛЯ ПОГОДИ (З ПЛАВНИМ ПЕРЕХОДОМ) ===
-    
     public void PlayRain()
     {
         if (ambientSource != null && rainSound != null && !ambientSource.isPlaying)
@@ -218,14 +202,8 @@ public class SoundManager : MonoBehaviour
         }
 
         ambientSource.volume = targetVolume;
-
-        if (stopAudioAtEnd)
-        {
-            ambientSource.Stop();
-        }
+        if (stopAudioAtEnd) ambientSource.Stop();
     }
-    
-    // === ЗВУКИ SFX ===
 
     public void PlaySFX(AudioClip clip, float volumeScale = 1.0f)
     {
@@ -256,12 +234,7 @@ public class SoundManager : MonoBehaviour
     {
         sfxVolume = volume;
         if (sfxSource != null) sfxSource.volume = sfxVolume;
-        
-        if (ambientSource != null && ambientSource.isPlaying) 
-        {
-            ambientSource.volume = sfxVolume * 0.4f; 
-        }
-        
+        if (ambientSource != null && ambientSource.isPlaying) ambientSource.volume = sfxVolume * 0.4f; 
         PlayerPrefs.SetFloat("SFXVolume", sfxVolume);
     }
 }

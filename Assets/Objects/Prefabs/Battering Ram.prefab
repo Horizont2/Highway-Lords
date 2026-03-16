@@ -179,7 +179,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BatteringRam
   healthBar: {fileID: 5028116062317788131}
-  speed: 0.8
+  speed: 0.9
   attackRange: 2.5
   attackCooldown: 3
   baseDamage: 50
@@ -229,6 +229,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemyStats
   baseGoldReward: 50
   currentGoldReward: 0
+  maxHealth: 50
+  currentHealth: 0
 --- !u!114 &-8045559229390776135
 MonoBehaviour:
   m_ObjectHideFlags: 0

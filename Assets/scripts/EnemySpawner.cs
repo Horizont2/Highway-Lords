@@ -27,6 +27,16 @@ public class EnemySpawner : MonoBehaviour
     public int bossEscortMin = 3;
     public int bossEscortMax = 5;
 
+    [Header("Масштабування розміру загону (Армія)")]
+    [Tooltip("Мінімальна кількість ворогів на початку гри")]
+    public int baseSquadMin = 3;
+    [Tooltip("Максимальна кількість ворогів на початку гри")]
+    public int baseSquadMax = 6;
+    [Tooltip("На скільки збільшується загін кожну хвилю. 0.5 означає +1 ворог кожні 2 хвилі")]
+    public float squadGrowthPerWave = 0.5f; 
+    [Tooltip("Максимальний ліміт ворогів у одному загоні, щоб не було лагів")]
+    public int absoluteMaxSquadSize = 18; 
+
     [Header("Налаштування Хвилі")]
     public Transform[] spawnPoints;      
     public float fastSpawnDelay = 0.3f; 
@@ -111,9 +121,32 @@ public class EnemySpawner : MonoBehaviour
         int escortCount = 0;
         
         if (isBossMoment && (isBossWave || isElephantWave || isRamWave)) 
+        {
+            // Боси зазвичай мають свій фіксований ескорт, але ти теж можеш його масштабувати за бажанням
             escortCount = Random.Range(bossEscortMin, bossEscortMax + 1);
+        }
         else if (squadToSpawn.Count == 0) 
-            escortCount = Random.Range(3, 6);
+        {
+            // Рахуємо максимально можливий розмір армії для поточної хвилі
+            int currentWaveMax = baseSquadMax + Mathf.FloorToInt(currentWaveNumber * squadGrowthPerWave);
+            currentWaveMax = Mathf.Min(currentWaveMax, absoluteMaxSquadSize);
+
+            // ШАНС 35% НА ВЕЛИЧЕЗНУ АРМІЮ (починає працювати після 4-ї хвилі)
+            bool isMassiveHorde = (Random.value < 0.35f) && (currentWaveNumber > 4);
+
+            if (isMassiveHorde)
+            {
+                // Виходить ОРДА: кількість від (максимум - 3) до максимуму
+                int hordeMin = Mathf.Max(baseSquadMax, currentWaveMax - 3);
+                escortCount = Random.Range(hordeMin, currentWaveMax + 1);
+            }
+            else
+            {
+                // Виходить ЗВИЧАЙНИЙ ЗАГІН: кількість від базового мінімуму до половини можливої армії
+                int normalMax = Mathf.Max(baseSquadMin + 2, currentWaveMax / 2);
+                escortCount = Random.Range(baseSquadMin, normalMax + 1);
+            }
+        }
 
         for (int i = 0; i < escortCount; i++)
         {
@@ -136,7 +169,11 @@ public class EnemySpawner : MonoBehaviour
             }
 
             SpawnEnemy(unitConfig, sp.position);
-            yield return new WaitForSeconds(fastSpawnDelay);
+            
+            // Якщо армія дуже велика, можна трохи зменшити затримку між спавнами, 
+            // щоб вони вибігали щільнішим натовпом
+            float actualDelay = squadToSpawn.Count > 10 ? fastSpawnDelay * 0.7f : fastSpawnDelay;
+            yield return new WaitForSeconds(actualDelay);
         }
     }
 

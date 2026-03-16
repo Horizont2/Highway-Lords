@@ -2,7 +2,6 @@ using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
 
-[RequireComponent(typeof(Button))] // Гарантує, що на об'єкті точно є кнопка
 public class LivingButton : MonoBehaviour
 {
     [Header("Налаштування пульсації (Дихання)")]
@@ -10,50 +9,81 @@ public class LivingButton : MonoBehaviour
     public float pulseAmount = 0.05f;
 
     [Header("Налаштування Бліку (Shine)")]
-    public RectTransform shineTransform; // Дочірній об'єкт бліку
-    public float shineInterval = 3f;     // Раз на скільки секунд блищить
-    public float shineSpeed = 1.5f;      // Швидкість руху смужки
+    public RectTransform shineTransform;
+    public float shineInterval = 3f;
+    public float shineSpeed = 1.5f;
 
     private Vector3 originalScale;
     private float shineTimer;
     private float shineWidth;
     
-    private Button myButton; // Посилання на саму кнопку
+    private Button myButton;
+    private CanvasGroup myCanvasGroup;
+    private Image[] childImages;
+
+    void Awake()
+    {
+        // Записуємо базовий масштаб найпершим
+        originalScale = transform.localScale;
+        
+        myButton = GetComponentInParent<Button>();
+        myCanvasGroup = GetComponentInParent<CanvasGroup>();
+        // Збираємо всі картинки, щоб потім знайти серед них кільце кулдауну
+        childImages = GetComponentsInChildren<Image>(true);
+    }
 
     void Start()
     {
-        originalScale = transform.localScale;
         shineTimer = shineInterval;
-        
-        // Отримуємо компонент кнопки
-        myButton = GetComponent<Button>();
-
         if (shineTransform != null)
         {
-            // Запам'ятовуємо ширину, щоб знати, куди летіти
             shineWidth = GetComponent<RectTransform>().rect.width * 2f;
             ResetShinePosition();
         }
     }
 
-    void Update()
+    // Супер-перевірка: чи дійсно кнопка готова?
+    bool CanPulse()
     {
-        // === ГОЛОВНА ЗМІНА ===
-        // Якщо кнопка неактивна - зупиняємо всі ефекти і скидаємо розмір
-        if (myButton != null && !myButton.interactable)
+        if (myButton != null && !myButton.interactable) return false;
+        
+        if (myCanvasGroup != null)
         {
-            transform.localScale = originalScale;
-            return; // Виходимо, щоб код нижче не виконувався
+            if (!myCanvasGroup.blocksRaycasts || myCanvasGroup.alpha < 0.1f) return false;
         }
 
-        // 1. Ефект дихання (Пульсація)
-        float pulse = 1f + Mathf.Sin(Time.time * pulseSpeed) * pulseAmount;
+        // ХАК ДЛЯ КУЛДАУНУ: Перевіряємо, чи є кільце перезарядки
+        if (childImages != null)
+        {
+            foreach (var img in childImages)
+            {
+                // Якщо картинка "Filled" і вона не заповнена на 100% та не порожня на 0%
+                if (img != null && img.type == Image.Type.Filled)
+                {
+                    if (img.fillAmount > 0.01f && img.fillAmount < 0.99f)
+                        return false; // Кнопка ще на кулдауні!
+                }
+            }
+        }
+        
+        return true;
+    }
+
+    void Update()
+    {
+        if (!CanPulse())
+        {
+            // Якщо кнопка "мертва" - жорстко скидаємо розмір і зупиняємось
+            transform.localScale = originalScale;
+            return; 
+        }
+
+        float pulse = 1f + Mathf.Sin(Time.unscaledTime * pulseSpeed) * pulseAmount;
         transform.localScale = originalScale * pulse;
 
-        // 2. Логіка бліку
         if (shineTransform != null)
         {
-            shineTimer -= Time.deltaTime;
+            shineTimer -= Time.unscaledDeltaTime;
             if (shineTimer <= 0)
             {
                 StartCoroutine(PlayShineEffect());
@@ -72,17 +102,15 @@ public class LivingButton : MonoBehaviour
 
         while (elapsed < duration)
         {
-            // Перериваємо блік, якщо кнопку раптово вимкнули під час анімації
-            if (myButton != null && !myButton.interactable)
+            if (!CanPulse())
             {
                 ResetShinePosition();
                 yield break;
             }
 
-            elapsed += Time.deltaTime;
+            elapsed += Time.unscaledDeltaTime;
             float t = elapsed / duration;
             
-            // Рухаємо блік зліва направо
             shineTransform.anchoredPosition = Vector2.Lerp(startPos, endPos, t);
             yield return null;
         }

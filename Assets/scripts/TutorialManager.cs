@@ -29,7 +29,6 @@ public class TutorialManager : MonoBehaviour
     
     [Header("Налаштування вказівника")]
     public Vector2 pointerOffset = new Vector2(0, 0);
-    [Tooltip("Напрямок стрибка: (0,1) - вверх/вниз, (1,0) - вправо/вліво")]
     public Vector2 bounceDirection = new Vector2(0, 1); 
 
     [Header("Кроки")]
@@ -39,8 +38,8 @@ public class TutorialManager : MonoBehaviour
     public int currentStepIndex = 0;
     private bool isTutorialActive = false;
     private RectTransform currentTarget;
-    private Button currentButton;
-
+    
+    private Button[] activeButtons;
     private Canvas addedCanvas;
     private GraphicRaycaster addedRaycaster;
     private int originalSortingOrder;
@@ -83,7 +82,18 @@ public class TutorialManager : MonoBehaviour
 
         RestorePreviousTarget();
 
+        // ПРИМУСОВО повертаємо час, якщо крок не вимагає паузи
         Time.timeScale = step.pauseGame ? 0f : 1f;
+
+        if (tutorialCanvas != null)
+        {
+            Canvas tutCanvas = tutorialCanvas.GetComponent<Canvas>();
+            if (tutCanvas != null)
+            {
+                tutCanvas.overrideSorting = true;
+                tutCanvas.sortingOrder = 30000;
+            }
+        }
 
         if (darkOverlay != null)
         {
@@ -100,6 +110,7 @@ public class TutorialManager : MonoBehaviour
         {
             case TutorialTrigger.ClickButton:
                 if (step.targetUI != null) HighlightTarget(step.targetUI);
+                else { Debug.LogWarning("Tutorial: TargetUI is null for ClickButton step!"); NextStep(); }
                 break;
             case TutorialTrigger.WaitForWaveEnd:
                 HideTutorialVisuals();
@@ -127,34 +138,57 @@ public class TutorialManager : MonoBehaviour
     {
         if (!isTutorialActive) return;
 
-        if (currentButton != null && !currentButton.interactable)
+        if (activeButtons != null)
         {
-            currentButton.interactable = true;
-            CanvasGroup cg = currentButton.GetComponent<CanvasGroup>();
-            if (cg != null && cg.alpha < 1f) cg.alpha = 1f;
+            foreach (var b in activeButtons)
+            {
+                if (b != null) // Перевірка на null
+                {
+                    b.interactable = true;
+                    
+                    CanvasGroup cg = b.GetComponent<CanvasGroup>();
+                    if (cg != null)
+                    {
+                        cg.alpha = 1f;
+                        cg.blocksRaycasts = true;
+                    }
+
+                    ColorBlock cb = b.colors;
+                    cb.normalColor = Color.white;
+                    cb.highlightedColor = Color.white;
+                    cb.pressedColor = new Color(0.8f, 0.8f, 0.8f, 1f);
+                    cb.disabledColor = Color.white;
+                    cb.colorMultiplier = 1f;
+                    b.colors = cb;
+                }
+            }
         }
 
         if (pointerHand != null && pointerHand.gameObject.activeSelf)
         {
             float bounce = Mathf.Sin(Time.unscaledTime * 6f) * 15f;
-            // Використовуємо bounceDirection, щоб стрибати у потрібному напрямку
             pointerHand.anchoredPosition = (Vector2.zero + pointerOffset) + (bounceDirection * bounce);
         }
     }
 
     void HighlightTarget(RectTransform target)
     {
+        if (target == null) return; // Захист
+
+        Button actualButton = target.GetComponentInChildren<Button>();
+        if (actualButton != null && actualButton.transform != target)
+        {
+            target = actualButton.GetComponent<RectTransform>();
+        }
+
         currentTarget = target;
-        currentButton = target.GetComponent<Button>();
+        activeButtons = target.GetComponentsInChildren<Button>(true);
 
         if (pointerHand != null)
         {
             pointerHand.gameObject.SetActive(true);
             pointerHand.SetParent(target, false);
             pointerHand.anchoredPosition = Vector2.zero + pointerOffset;
-            
-            // ВИДАЛЕНО: pointerHand.localRotation = Quaternion.identity; 
-            // Тепер рукавиця зберігає той поворот (Rotation), який ви задали їй в сцені!
         }
 
         addedCanvas = target.gameObject.GetComponent<Canvas>();
@@ -169,27 +203,57 @@ public class TutorialManager : MonoBehaviour
         }
 
         addedCanvas.overrideSorting = true;
-        addedCanvas.sortingOrder = 2000;
+        addedCanvas.sortingOrder = 30010;
+
+        CanvasGroup targetCg = target.GetComponent<CanvasGroup>();
+        if (targetCg == null) targetCg = target.gameObject.AddComponent<CanvasGroup>();
+        targetCg.ignoreParentGroups = true;
+        targetCg.blocksRaycasts = true;
+        targetCg.interactable = true;
 
         addedRaycaster = target.gameObject.GetComponent<GraphicRaycaster>();
-        if (addedRaycaster == null)
-        {
-            addedRaycaster = target.gameObject.AddComponent<GraphicRaycaster>();
-        }
+        if (addedRaycaster == null) addedRaycaster = target.gameObject.AddComponent<GraphicRaycaster>();
 
-        if (currentButton != null)
+        if (activeButtons != null)
         {
-            currentButton.interactable = true;
-            currentButton.onClick.RemoveListener(OnTargetButtonClicked);
-            currentButton.onClick.AddListener(OnTargetButtonClicked);
+            foreach (var b in activeButtons)
+            {
+                if (b == null) continue;
+                b.interactable = true;
+                b.onClick.RemoveListener(OnTargetButtonClicked);
+                b.onClick.AddListener(OnTargetButtonClicked);
+
+                CanvasGroup bcg = b.GetComponent<CanvasGroup>();
+                if (bcg != null)
+                {
+                    bcg.ignoreParentGroups = true;
+                    bcg.blocksRaycasts = true;
+                    bcg.interactable = true;
+                }
+            }
         }
     }
 
     void RestorePreviousTarget()
     {
-        if (currentButton != null)
+        if (activeButtons != null)
         {
-            currentButton.onClick.RemoveListener(OnTargetButtonClicked);
+            foreach (var b in activeButtons)
+            {
+                if (b != null)
+                {
+                    b.onClick.RemoveListener(OnTargetButtonClicked);
+                    CanvasGroup bcg = b.GetComponent<CanvasGroup>();
+                    if (bcg != null) bcg.ignoreParentGroups = false;
+                }
+            }
+            activeButtons = null;
+        }
+
+        if (currentTarget != null)
+        {
+            CanvasGroup targetCg = currentTarget.GetComponent<CanvasGroup>();
+            if (targetCg != null) targetCg.ignoreParentGroups = false;
         }
 
         if (addedCanvas != null)
@@ -202,10 +266,7 @@ public class TutorialManager : MonoBehaviour
 
             if (addedRaycaster != null) Destroy(addedRaycaster);
 
-            if (originalSortingOrder == 0)
-            {
-                Destroy(addedCanvas);
-            }
+            if (originalSortingOrder == 0) Destroy(addedCanvas);
             else
             {
                 addedCanvas.overrideSorting = false;
@@ -215,17 +276,21 @@ public class TutorialManager : MonoBehaviour
             addedCanvas = null;
         }
 
-        currentButton = null;
         currentTarget = null;
+        
+        if (GameManager.Instance != null) GameManager.Instance.UpdateUI();
     }
 
     void OnTargetButtonClicked()
     {
         if (steps[currentStepIndex].trigger != TutorialTrigger.ClickButton) return;
 
-        if (currentButton != null)
+        if (activeButtons != null)
         {
-            currentButton.onClick.RemoveListener(OnTargetButtonClicked);
+            foreach (var b in activeButtons)
+            {
+                if (b != null) b.onClick.RemoveListener(OnTargetButtonClicked);
+            }
         }
 
         NextStep();
@@ -251,11 +316,14 @@ public class TutorialManager : MonoBehaviour
     {
         if (!isTutorialActive) return;
 
-        Time.timeScale = 1f;
+        Time.timeScale = 1f; // ПРИМУСОВЕ ВІДНОВЛЕННЯ ЧАСУ ПЕРЕД ПЕРЕХОДОМ
         RestorePreviousTarget();
 
-        if (darkOverlay != null && darkOverlay.GetComponent<Button>() != null)
-            darkOverlay.GetComponent<Button>().onClick.RemoveAllListeners();
+        if (darkOverlay != null)
+        {
+            Button b = darkOverlay.GetComponent<Button>();
+            if (b != null) b.onClick.RemoveAllListeners();
+        }
 
         currentStepIndex++;
         PlayerPrefs.SetInt("TutorialStepIndex", currentStepIndex);
@@ -267,7 +335,9 @@ public class TutorialManager : MonoBehaviour
     public void EndTutorial()
     {
         isTutorialActive = false;
+        Time.timeScale = 1f; // ПРИМУСОВО
         RestorePreviousTarget();
+        HideTutorialVisuals();
         if (tutorialCanvas != null) tutorialCanvas.SetActive(false);
         PlayerPrefs.SetInt("TutorialStepIndex", 999);
     }
@@ -275,8 +345,11 @@ public class TutorialManager : MonoBehaviour
     IEnumerator WaitForWaveRoutine()
     {
         yield return new WaitForSeconds(2f);
-        while (GameManager.Instance.enemiesAlive > 0 || GameManager.Instance.waveTimerBar.value > 0)
-            yield return null;
+        if (GameManager.Instance != null)
+        {
+            while (GameManager.Instance.enemiesAlive > 0 || (GameManager.Instance.waveTimerBar != null && GameManager.Instance.waveTimerBar.value > 0))
+                yield return null;
+        }
         yield return new WaitForSeconds(1.5f);
         NextStep();
     }
@@ -294,26 +367,26 @@ public class TutorialManager : MonoBehaviour
 
         yield return new WaitForSeconds(0.5f);
         GameObject cart = GameObject.FindGameObjectWithTag("Cart");
-        CameraController cam = Camera.main.GetComponent<CameraController>();
+        CameraController cam = Camera.main != null ? Camera.main.GetComponent<CameraController>() : null;
 
         if (cart != null && cam != null) cam.StartFollowing(cart.transform);
 
         float timer = 0f;
         while (cart != null && timer < backupTime)
         {
-            timer += Time.deltaTime;
+            timer += Time.unscaledDeltaTime; 
             yield return null;
         }
 
         if (cam != null) { cam.StopFollowing(); cam.ReturnToBase(); }
-        yield return new WaitForSeconds(1.5f);
+        yield return new WaitForSecondsRealtime(1.5f);
         NextStep();
     }
 
     IEnumerator WaitForSpearmanRoutine()
     {
         EnemySpearman spearman = null;
-        while (spearman == null)
+        while (spearman == null && isTutorialActive)
         {
             spearman = FindFirstObjectByType<EnemySpearman>();
             yield return new WaitForSeconds(0.5f);
