@@ -1,6 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.SceneManagement; // ВАЖЛИВО ДЛЯ ПЕРЕВІРКИ СЦЕНИ
+using UnityEngine.SceneManagement;
 using TMPro;
 using System.Collections;
 using System.Collections.Generic;
@@ -54,7 +54,7 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager Instance;
 
-    [HideInInspector] public bool isCampaignBattle = false; // Розумний перемикач режимів
+    [HideInInspector] public bool isCampaignBattle = false; 
 
     [Header("=== МЕТА-ПРОГРЕСІЯ (КРИСТАЛИ) ===")]
     public int gems = 0;
@@ -198,7 +198,7 @@ public class GameManager : MonoBehaviour
     public Button openInfoButton; 
     public Button requestCartButton; 
     public Button volleyBarrageButton; 
-    public Button openMapButton; // Кнопка глобальної мапи
+    public Button openMapButton;
     
     [Header("Ефекти пульсації кнопок")]
     public UIPulseEffect shopPulse;
@@ -442,12 +442,11 @@ public class GameManager : MonoBehaviour
         if (Instance == null) Instance = this;
         else Destroy(gameObject);
 
-        // Перевіряємо сцену
+        // --- РОЗУМНИЙ РЕЖИМ ---
         isCampaignBattle = (SceneManager.GetActiveScene().name == "SiegeBattleScene");
 
-        if (isCampaignBattle)
+        if (isCampaignBattle) 
         {
-            // ПРИМУСОВО вмикаємо режим бою, щоб юніти почали працювати
             isWaveInProgress = true; 
         }
 
@@ -456,12 +455,7 @@ public class GameManager : MonoBehaviour
 
     void Start()
     {
-        // ЯКЩО МИ В БИТВІ НА ГЛОБАЛЬНІЙ МАПІ - ІГНОРУЄМО ВЕСЬ UI ТА ХВИЛІ!
-        if (isCampaignBattle) 
-        {
-            isWaveInProgress = true; 
-            return; 
-        }
+        if (isCampaignBattle) return; 
 
         if (goldText != null)
         {
@@ -500,7 +494,6 @@ public class GameManager : MonoBehaviour
         }
 
         enemiesAlive = 0;
-
         CloseAllPanels();
         if (defeatPanel) defeatPanel.SetActive(false);
 
@@ -535,7 +528,6 @@ public class GameManager : MonoBehaviour
             DeleteSave();
         }
 
-        // ЯКЩО МИ В БИТВІ НА ГЛОБАЛЬНІЙ МАПІ - БЛОКУЄМО СТАНДАРТНИЙ СПАВН ВОРОГІВ!
         if (isCampaignBattle) return;
 
         if (isWaveInProgress && !isCinematicActive)
@@ -577,10 +569,7 @@ public class GameManager : MonoBehaviour
         {
             for (int i = 0; i < Mathf.Min(guideTextElements.Length, guideMessages.Length); i++)
             {
-                if (guideTextElements[i] != null)
-                {
-                    guideTextElements[i].text = guideMessages[i];
-                }
+                if (guideTextElements[i] != null) guideTextElements[i].text = guideMessages[i];
             }
         }
     }
@@ -606,7 +595,6 @@ public class GameManager : MonoBehaviour
     public void OnTowerToggleClicked()
     {
         if (isWaveInProgress || isCinematicActive) return; 
-        
         isTowerPanelOpen = !isTowerPanelOpen;
         AnimateTowerPanel(isTowerPanelOpen, true);
     }
@@ -798,7 +786,6 @@ public class GameManager : MonoBehaviour
         float slideDistance = 400f; 
         float t = 0f;
 
-        // Включили кнопку openMapButton в анімацію ховання
         Button[] buttonsToAnimate = new Button[] { 
             hammerButton, openShopButton, openMetaShopButton, nextWaveButton, barracksIconButton, openMapButton 
         };
@@ -1808,8 +1795,6 @@ public class GameManager : MonoBehaviour
     public float GetEnemyDamageMultiplier() 
     {
         if (currentWave <= 1) return 0.5f;
-        
-        // ФІКС: Урон ворогів тепер РЕАЛЬНО росте кожну хвилю
         return 1.0f + (currentWave * 0.05f) + (Mathf.Pow(currentWave, 2) * 0.001f);
     }
     
@@ -2341,11 +2326,9 @@ public class GameManager : MonoBehaviour
         if (crossbowTowers.Length > 0 && crossbowTowers[0] != null) 
             crossbowTowers[0].SetActive(true); 
         
-        // ФІКС: Друга баліста на 10 рівні (було 2)
         if (crossbowDamageLevel >= 10 && crossbowTowers.Length > 1 && crossbowTowers[1] != null) 
             crossbowTowers[1].SetActive(true); 
         
-        // ФІКС: Третя баліста на 25 рівні (було 35)
         if (crossbowDamageLevel >= 25 && crossbowTowers.Length > 2 && crossbowTowers[2] != null) 
             crossbowTowers[2].SetActive(true); 
     }
@@ -2812,12 +2795,11 @@ public class GameManager : MonoBehaviour
         PlayerPrefs.SetInt("MetaEfficientCarts", metaEfficientCarts);
         PlayerPrefs.SetInt("MetaMendingMasonry", metaMendingMasonry);
 
-        // ФІКС: Зберігаємо координати армії ТІЛЬКИ якщо ми на головній базі!
+        // ФІКС: Більше ніяких поламаних збережень на сцені битви
         if (!isCampaignBattle)
         {
             SaveUnits();
         }
-        
         PlayerPrefs.Save();
     }
 
@@ -2937,8 +2919,9 @@ public class GameManager : MonoBehaviour
         spearmanFixedCost = 60;
         cavalryFixedCost = 120; 
 
-        // ФІКС: Спавнимо базу і армію ТІЛЬКИ на головній сцені! 
-        // В битві нам потрібна тільки статистика.
+        // ФІКС: Юніти спавняться ТІЛЬКИ на основній базі
+        // ФІКС: Юніти спавняться ТІЛЬКИ на основній базі
+        // ФІКС: Юніти спавняться ТІЛЬКИ на основній базі
         if (!isCampaignBattle)
         {
             if (isBarracksBuilt) SpawnBarracksObject();
@@ -2952,7 +2935,23 @@ public class GameManager : MonoBehaviour
                 castle.LoadState(savedCastleLvl);
             }
 
-            LoadUnits();
+            // --- НОВИЙ КОД: ЗБЕРЕЖЕННЯ АРМІЇ У "ПУЛ", А НЕ НА БАЗУ ---
+            if (CrossSceneData.isReturningFromBattle)
+            {
+                // Додаємо врятованих юнітів до твого резерву (Pool)
+                PlayerPrefs.SetInt("PoolKnights", PlayerPrefs.GetInt("PoolKnights", 0) + CrossSceneData.knightsCount);
+                PlayerPrefs.SetInt("PoolArchers", PlayerPrefs.GetInt("PoolArchers", 0) + CrossSceneData.archersCount);
+                PlayerPrefs.SetInt("PoolSpearmen", PlayerPrefs.GetInt("PoolSpearmen", 0) + CrossSceneData.spearmenCount);
+                PlayerPrefs.SetInt("PoolCavalry", PlayerPrefs.GetInt("PoolCavalry", 0) + CrossSceneData.cavalryCount);
+                PlayerPrefs.Save();
+
+                CrossSceneData.isReturningFromBattle = false; // Скидаємо статус
+                LoadUnits(); // Завантажуємо звичайних захисників бази
+            }
+            else
+            {
+                LoadUnits(); // Звичайне завантаження
+            }
         }
     }
 
@@ -2987,6 +2986,25 @@ public class GameManager : MonoBehaviour
                 }
             }
             UpdateUI();
+        }
+    }
+
+    void SpawnReturningUnits(GameObject prefab, int count, string type)
+    {
+        if (prefab == null || count <= 0) return;
+
+        for (int i = 0; i < count; i++)
+        {
+            // Спавнимо юніта на стандартній точці бази
+            GameObject newUnit = Instantiate(prefab, unitSpawnPoint.position, Quaternion.identity);
+
+            // Розподіляємо по активних списках
+            if (type == "Knight") activeKnights.Add(newUnit.GetComponent<Knight>());
+            else if (type == "Archer") activeArchers.Add(newUnit.GetComponent<Archer>());
+            else if (type == "Spearman") activeSpearmen.Add(newUnit.GetComponent<Spearman>());
+            else if (type == "Cavalry") activeCavalry.Add(newUnit.GetComponent<Cavalry>());
+
+            currentUnits++;
         }
     }
 

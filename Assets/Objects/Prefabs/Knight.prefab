@@ -5358,4 +5358,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8463ee9254fdefa408fc6c5d4056b18b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MovementVFX
-  dustParticles: {fileID: 0}
+  dustParticles: {fileID: 9116828386731008478, guid: 22689fd2b2dce1b41a968494fa9eb847, type: 3}

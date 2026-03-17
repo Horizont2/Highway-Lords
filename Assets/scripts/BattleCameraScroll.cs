@@ -1,38 +1,53 @@
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 public class BattleCameraScroll : MonoBehaviour
 {
-    public float panSpeed = 20f;
-    public float minX = -10f; // Ліва межа карти
-    public float maxX = 30f;  // Права межа карти (де вороги)
+    public float panSpeed = 15f;
+    public float minX = -40f; 
+    public float maxX = 30f;  
 
-    private Vector3 dragOrigin;
     private Camera cam;
+    private Vector3 dragOrigin;
+    private bool isDragging;
 
     void Start() { cam = GetComponent<Camera>(); }
 
     void Update()
     {
-        PanCamera();
-    }
-
-    void PanCamera()
-    {
-        // Зберігаємо точку, де ми натиснули мишку
-        if (Input.GetMouseButtonDown(0))
+        if (BattleManager.Instance != null && 
+           (BattleManager.Instance.currentState == BattleManager.BattleState.Intro || 
+            BattleManager.Instance.currentState == BattleManager.BattleState.March))
         {
-            dragOrigin = cam.ScreenToWorldPoint(Input.mousePosition);
+            isDragging = false;
+            return;
         }
 
-        // Рухаємо камеру, поки мишка затиснута
-        if (Input.GetMouseButton(0))
+        // Рух на WASD / Стрілочки
+        float moveX = Input.GetAxis("Horizontal");
+        
+        // РУХ НА ЛІВУ КНОПКУ МИШІ (0)
+        if (Input.GetMouseButtonDown(0))
         {
-            Vector3 difference = dragOrigin - cam.ScreenToWorldPoint(Input.mousePosition);
-            
-            // Рухаємо тільки по осі X (вліво-вправо)
-            Vector3 newPos = transform.position + new Vector3(difference.x, 0, 0);
-            newPos.x = Mathf.Clamp(newPos.x, minX, maxX); // Обмежуємо вихід за краї
+            // Якщо клікнули по кнопці UI - ігноруємо скрол
+            if (EventSystem.current.IsPointerOverGameObject()) return;
 
+            dragOrigin = cam.ScreenToWorldPoint(Input.mousePosition);
+            isDragging = true;
+        }
+        
+        if (Input.GetMouseButton(0) && isDragging)
+        {
+            Vector3 diff = dragOrigin - cam.ScreenToWorldPoint(Input.mousePosition);
+            moveX = diff.x * 2f; 
+        }
+        
+        if (Input.GetMouseButtonUp(0)) isDragging = false;
+
+        if (Mathf.Abs(moveX) > 0.01f)
+        {
+            Vector3 newPos = transform.position + new Vector3(moveX * panSpeed * Time.deltaTime, 0, 0);
+            newPos.x = Mathf.Clamp(newPos.x, minX, maxX);
             transform.position = newPos;
         }
     }

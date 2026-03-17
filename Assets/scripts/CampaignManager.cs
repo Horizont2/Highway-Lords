@@ -10,8 +10,8 @@ public class CampaignManager : MonoBehaviour
     public static CampaignManager Instance { get; private set; }
 
     [Header("Main Panels")]
-    public GameObject mainCampaignPanel; // Сюди кидай ГОЛОВНИЙ об'єкт (де є темна тінь-фон)
-    public Transform campaignContentPanel; // Сюди кидай ПЕРГАМЕНТ (щоб анімувався тільки він)
+    public GameObject mainCampaignPanel; 
+    public Transform campaignContentPanel; 
     public GameObject scoutPanel; 
 
     [Header("Information Texts")]
@@ -66,8 +66,6 @@ public class CampaignManager : MonoBehaviour
 
     void Start()
     {
-        // --- ФІКС КНОПОК МІНУС ТА ПЛЮС ---
-        // Жорстке призначення замість циклу for, щоб уникнути втрати індексів делегатами в Unity
         if (addButtons.Length > 0 && addButtons[0] != null) { addButtons[0].onClick.RemoveAllListeners(); addButtons[0].onClick.AddListener(() => AddUnit(0)); }
         if (addButtons.Length > 1 && addButtons[1] != null) { addButtons[1].onClick.RemoveAllListeners(); addButtons[1].onClick.AddListener(() => AddUnit(1)); }
         if (addButtons.Length > 2 && addButtons[2] != null) { addButtons[2].onClick.RemoveAllListeners(); addButtons[2].onClick.AddListener(() => AddUnit(2)); }
@@ -88,16 +86,41 @@ public class CampaignManager : MonoBehaviour
         if (CrossSceneData.isReturningFromBattle)
         {
             CrossSceneData.isReturningFromBattle = false;
-            if (AnimatedBattleResult.Instance != null)
-            {
-                AnimatedBattleResult.Instance.ShowResult(
-                    CrossSceneData.lastBattleWon, 
-                    CrossSceneData.rewardGold, 
-                    CrossSceneData.rewardWood, 
-                    CrossSceneData.rewardStone
-                );
-            }
+            StartCoroutine(ShowBattleResultDelayed());
         }
+    }
+
+    IEnumerator ShowBattleResultDelayed()
+    {
+        // 1. Оновлюємо резерв армії (як ми робили раніше)
+        if (!CrossSceneData.lastBattleWon)
+        {
+            PlayerPrefs.SetInt("FreeKnights", PlayerPrefs.GetInt("FreeKnights", 0) + CrossSceneData.knightsCount);
+            PlayerPrefs.SetInt("FreeArchers", PlayerPrefs.GetInt("FreeArchers", 0) + CrossSceneData.archersCount);
+            PlayerPrefs.SetInt("FreeSpearmen", PlayerPrefs.GetInt("FreeSpearmen", 0) + CrossSceneData.spearmenCount);
+            PlayerPrefs.SetInt("FreeCavalry", PlayerPrefs.GetInt("FreeCavalry", 0) + CrossSceneData.cavalryCount);
+            PlayerPrefs.Save();
+        }
+
+        // 2. Чекаємо трошки, поки екран завантаження повністю зникне
+        yield return new WaitForSeconds(1.0f);
+
+        // 3. Показуємо анімовану панель
+        if (AnimatedBattleResult.Instance != null)
+        {
+            AnimatedBattleResult.Instance.ShowResult(
+                CrossSceneData.lastBattleWon, 
+                CrossSceneData.rewardGold, 
+                CrossSceneData.rewardWood, 
+                CrossSceneData.rewardStone
+            );
+        }
+        else
+        {
+            Debug.LogWarning("AnimatedBattleResult не знайдено на головній сцені!");
+        }
+        
+        UpdateUI(); // Оновлюємо тексти золота і резерву
     }
 
     public void ResetCampaignLimits()
@@ -128,9 +151,8 @@ public class CampaignManager : MonoBehaviour
         
         if (mainCampaignPanel) 
         {
-            mainCampaignPanel.SetActive(true); // Темний фон з'являється миттєво
+            mainCampaignPanel.SetActive(true); 
             
-            // Анімуємо тільки пергамент
             Transform targetPanel = campaignContentPanel != null ? campaignContentPanel : mainCampaignPanel.transform;
             StartCoroutine(AnimatePanel(targetPanel, true));
         }
@@ -147,7 +169,6 @@ public class CampaignManager : MonoBehaviour
         }
     }
 
-    // --- МАГІЯ АНІМАЦІЇ UI ---
     private IEnumerator AnimatePanel(Transform panel, bool show)
     {
         float duration = 0.25f;
@@ -180,7 +201,6 @@ public class CampaignManager : MonoBehaviour
         panel.localScale = endScale;
         cg.alpha = endAlpha;
 
-        // Важливо: після закінчення анімації зникнення вимикаємо всю панель з фоном
         if (!show && mainCampaignPanel != null) mainCampaignPanel.SetActive(false);
     }
 
@@ -298,12 +318,11 @@ public class CampaignManager : MonoBehaviour
                 
                 removeButtons[i].interactable = canRemove;
 
-                // --- ЖОРСТКИЙ ФІКС КЛІКІВ ТА ВІЗУАЛУ ---
                 CanvasGroup cg = removeButtons[i].GetComponent<CanvasGroup>();
                 if (cg == null) cg = removeButtons[i].gameObject.AddComponent<CanvasGroup>();
                 
-                cg.alpha = canRemove ? 1f : 0.4f; // Робимо яскравою, якщо можна відняти
-                cg.blocksRaycasts = canRemove;    // Примусово вмикаємо реєстрацію кліків мишки
+                cg.alpha = canRemove ? 1f : 0.4f; 
+                cg.blocksRaycasts = canRemove;    
                 cg.interactable = canRemove;
             }
         }
@@ -450,7 +469,20 @@ public class CampaignManager : MonoBehaviour
 
         if (SoundManager.Instance) SoundManager.Instance.PlaySFX(SoundManager.Instance.waveStart);
         
-        SceneManager.LoadScene("SiegeBattleScene");
+        // ФІКС: Шукаємо LoadingManager навіть якщо ти його вимкнув в Інспекторі!
+        LoadingManager lm = LoadingManager.Instance;
+        if (lm == null)
+        {
+            LoadingManager[] foundManagers = Resources.FindObjectsOfTypeAll<LoadingManager>();
+            if (foundManagers.Length > 0)
+            {
+                lm = foundManagers[0];
+                lm.gameObject.SetActive(true); // Вмикаємо його!
+            }
+        }
+
+        if (lm != null) lm.LoadScene("SiegeBattleScene");
+        else SceneManager.LoadScene("SiegeBattleScene"); // Запасний варіант
     }
 
     void PlayError() { if (SoundManager.Instance) SoundManager.Instance.PlaySFX(SoundManager.Instance.error); }

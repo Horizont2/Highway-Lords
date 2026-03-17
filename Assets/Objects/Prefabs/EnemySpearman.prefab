@@ -261,8 +261,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8463ee9254fdefa408fc6c5d4056b18b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MovementVFX
-  dustEffect: {fileID: 1388760577258591908}
-  velocityThreshold: 0.1
+  dustParticles: {fileID: 9116828386731008478, guid: 22689fd2b2dce1b41a968494fa9eb847, type: 3}
 --- !u!1 &7370234385630690009
 GameObject:
   m_ObjectHideFlags: 0
@@ -515,10 +514,5 @@ PrefabInstance:
 --- !u!4 &22340126299120631 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7894804957194867853, guid: 22689fd2b2dce1b41a968494fa9eb847, type: 3}
-  m_PrefabInstance: {fileID: 7908502907469444986}
-  m_PrefabAsset: {fileID: 0}
---- !u!198 &1388760577258591908 stripped
-ParticleSystem:
-  m_CorrespondingSourceObject: {fileID: 9116828386731008478, guid: 22689fd2b2dce1b41a968494fa9eb847, type: 3}
   m_PrefabInstance: {fileID: 7908502907469444986}
   m_PrefabAsset: {fileID: 0}

@@ -1,0 +1,336 @@
+fileFormatVersion: 2
+guid: 9ceabb2b6489ca44cad5a02f3e4e4d64
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -3804391375351212762
+    second: LoadingElements_0
+  - first:
+      213: -5029089541979662572
+    second: LoadingElements_1
+  - first:
+      213: 3279643148985746876
+    second: LoadingElements_2
+  - first:
+      213: 6605556547734500502
+    second: LoadingElements_3
+  - first:
+      213: -1942304539010690056
+    second: LoadingElements_4
+  - first:
+      213: 4741102164608219379
+    second: LoadingElements_5
+  - first:
+      213: -1761219146334098761
+    second: LoadingElements_6
+  - first:
+      213: -3806670119973816843
+    second: LoadingElements_7
+  - first:
+      213: 814790337451951526
+    second: LoadingElements_8
+  - first:
+      213: 4840926996776694323
+    second: LoadingElements_9
+  - first:
+      213: -1664186015701694530
+    second: LoadingElements_10
+  - first:
+      213: 2156558347728177250
+    second: LoadingElements_11
+  - first:
+      213: -7814956513145750245
+    second: LoadingElements_12
+  - first:
+      213: 916158275317818414
+    second: LoadingElements_13
+  - first:
+      213: -8682300946926144337
+    second: LoadingElements_14
+  - first:
+      213: -4383978623500538773
+    second: LoadingElements_15
+  - first:
+      213: -6783605210630393541
+    second: LoadingElements_16
+  - first:
+      213: 3307938310291181834
+    second: LoadingElements_17
+  - first:
+      213: 6293172149339812829
+    second: LoadingElements_18
+  - first:
+      213: 8728532331699020111
+    second: LoadingElements_19
+  - first:
+      213: 6553923240547045177
+    second: LoadingElements_20
+  - first:
+      213: 3287310518303576759
+    second: LoadingElements_21
+  - first:
+      213: -7818047831250327794
+    second: LoadingElements_22
+  - first:
+      213: -7266356265126963044
+    second: LoadingElements_23
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: LoadingElements_0
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 2787
+        width: 5
+        height: 5
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 62591ad5336143bc0800000000000000
+      internalID: -3804391375351212762
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: LoadingElements_11
+      rect:
+        serializedVersion: 2
+        x: 4455
+        y: 896
+        width: 541
+        height: 367
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 268cdbd2462aded10800000000000000
+      internalID: 2156558347728177250
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: LoadingElements_12
+      rect:
+        serializedVersion: 2
+        x: 2085
+        y: 1109
+        width: 1586
+        height: 214
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b1d72dae472bb8390800000000000000
+      internalID: -7814956513145750245
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: LoadingElements_15
+      rect:
+        serializedVersion: 2
+        x: 2085
+        y: 825
+        width: 1586
+        height: 210
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b6c28535baaf823c0800000000000000
+      internalID: -4383978623500538773
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: LoadingElements_23
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 5
+        height: 5
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c985ca5c977b82b90800000000000000
+      internalID: -7266356265126963044
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: acc83fc6758043f479763b17af640fc7
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      LoadingElements_0: -3804391375351212762
+      LoadingElements_1: -5029089541979662572
+      LoadingElements_10: -1664186015701694530
+      LoadingElements_11: 2156558347728177250
+      LoadingElements_12: -7814956513145750245
+      LoadingElements_13: 916158275317818414
+      LoadingElements_14: -8682300946926144337
+      LoadingElements_15: -4383978623500538773
+      LoadingElements_16: -6783605210630393541
+      LoadingElements_17: 3307938310291181834
+      LoadingElements_18: 6293172149339812829
+      LoadingElements_19: 8728532331699020111
+      LoadingElements_2: 3279643148985746876
+      LoadingElements_20: 6553923240547045177
+      LoadingElements_21: 3287310518303576759
+      LoadingElements_22: -7818047831250327794
+      LoadingElements_23: -7266356265126963044
+      LoadingElements_3: 6605556547734500502
+      LoadingElements_4: -1942304539010690056
+      LoadingElements_5: 4741102164608219379
+      LoadingElements_6: -1761219146334098761
+      LoadingElements_7: -3806670119973816843
+      LoadingElements_8: 814790337451951526
+      LoadingElements_9: 4840926996776694323
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

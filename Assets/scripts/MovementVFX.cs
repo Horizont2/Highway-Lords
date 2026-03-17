@@ -8,7 +8,7 @@ public class MovementVFX : MonoBehaviour
     void Start()
     {
         anim = GetComponent<Animator>();
-        if (anim == null) anim = GetComponentInParent<Animator>(); // Шукаємо аніматор
+        if (anim == null) anim = GetComponentInParent<Animator>(); 
     }
 
     void Update()
@@ -17,7 +17,7 @@ public class MovementVFX : MonoBehaviour
         {
             bool isMoving = anim.GetBool("IsMoving");
             
-            // ЄДИНИЙ ПРАВИЛЬНИЙ СПОСІБ вмикати частинки в Unity:
+            // ЄДИНИЙ безпечний спосіб вмикати частинки
             var emission = dustParticles.emission;
             emission.enabled = isMoving;
         }
