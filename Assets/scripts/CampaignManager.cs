@@ -2,13 +2,16 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using TMPro;
+using System.Collections; 
+using System.Collections.Generic;
 
 public class CampaignManager : MonoBehaviour
 {
     public static CampaignManager Instance { get; private set; }
 
     [Header("Main Panels")]
-    public GameObject mainCampaignPanel; 
+    public GameObject mainCampaignPanel; // Сюди кидай ГОЛОВНИЙ об'єкт (де є темна тінь-фон)
+    public Transform campaignContentPanel; // Сюди кидай ПЕРГАМЕНТ (щоб анімувався тільки він)
     public GameObject scoutPanel; 
 
     [Header("Information Texts")]
@@ -22,7 +25,6 @@ public class CampaignManager : MonoBehaviour
     public Button[] removeButtons;
     public TMP_Text[] unitCostTexts;
     
-    // МАСИВИ ДЛЯ СТАТІВ ТА АВАТАРІВ
     public TMP_Text[] unitDamageTexts; 
     public TMP_Text[] unitHealthTexts; 
     public Image[] unitAvatars;        
@@ -47,7 +49,7 @@ public class CampaignManager : MonoBehaviour
 
     private int[] selectedUnits = new int[4];
     private MapNode currentNode;
-    private int globalMaxLimit = 80; 
+    private int globalMaxLimit = 15; 
     private int limitUpgradeCost = 1500;
 
     void Awake()
@@ -58,18 +60,23 @@ public class CampaignManager : MonoBehaviour
         if (mainCampaignPanel) mainCampaignPanel.SetActive(false);
         if (scoutPanel) scoutPanel.SetActive(false);
 
-        globalMaxLimit = PlayerPrefs.GetInt("CampaignGlobalLimit", 80);
+        globalMaxLimit = PlayerPrefs.GetInt("CampaignGlobalLimit", 15);
         UpdateLimitUpgradeCost();
     }
 
     void Start()
     {
-        for (int i = 0; i < 4; i++)
-        {
-            int index = i; 
-            if (addButtons.Length > i && addButtons[index] != null) addButtons[index].onClick.AddListener(() => AddUnit(index));
-            if (removeButtons.Length > i && removeButtons[index] != null) removeButtons[index].onClick.AddListener(() => RemoveUnit(index));
-        }
+        // --- ФІКС КНОПОК МІНУС ТА ПЛЮС ---
+        // Жорстке призначення замість циклу for, щоб уникнути втрати індексів делегатами в Unity
+        if (addButtons.Length > 0 && addButtons[0] != null) { addButtons[0].onClick.RemoveAllListeners(); addButtons[0].onClick.AddListener(() => AddUnit(0)); }
+        if (addButtons.Length > 1 && addButtons[1] != null) { addButtons[1].onClick.RemoveAllListeners(); addButtons[1].onClick.AddListener(() => AddUnit(1)); }
+        if (addButtons.Length > 2 && addButtons[2] != null) { addButtons[2].onClick.RemoveAllListeners(); addButtons[2].onClick.AddListener(() => AddUnit(2)); }
+        if (addButtons.Length > 3 && addButtons[3] != null) { addButtons[3].onClick.RemoveAllListeners(); addButtons[3].onClick.AddListener(() => AddUnit(3)); }
+
+        if (removeButtons.Length > 0 && removeButtons[0] != null) { removeButtons[0].onClick.RemoveAllListeners(); removeButtons[0].onClick.AddListener(() => RemoveUnit(0)); }
+        if (removeButtons.Length > 1 && removeButtons[1] != null) { removeButtons[1].onClick.RemoveAllListeners(); removeButtons[1].onClick.AddListener(() => RemoveUnit(1)); }
+        if (removeButtons.Length > 2 && removeButtons[2] != null) { removeButtons[2].onClick.RemoveAllListeners(); removeButtons[2].onClick.AddListener(() => RemoveUnit(2)); }
+        if (removeButtons.Length > 3 && removeButtons[3] != null) { removeButtons[3].onClick.RemoveAllListeners(); removeButtons[3].onClick.AddListener(() => RemoveUnit(3)); }
 
         if (closeButton) closeButton.onClick.AddListener(ClosePanel);
         if (attackButton) attackButton.onClick.AddListener(LaunchAttack);
@@ -78,11 +85,9 @@ public class CampaignManager : MonoBehaviour
         if (openScoutBtn) openScoutBtn.onClick.AddListener(OpenScoutPanel);
         if (closeScoutBtn) closeScoutBtn.onClick.AddListener(CloseScoutPanel);
 
-        // ПЕРЕВІРКА ПОВЕРНЕННЯ З БОЮ
         if (CrossSceneData.isReturningFromBattle)
         {
             CrossSceneData.isReturningFromBattle = false;
-
             if (AnimatedBattleResult.Instance != null)
             {
                 AnimatedBattleResult.Instance.ShowResult(
@@ -93,6 +98,17 @@ public class CampaignManager : MonoBehaviour
                 );
             }
         }
+    }
+
+    public void ResetCampaignLimits()
+    {
+        PlayerPrefs.DeleteKey("CampaignGlobalLimit");
+        globalMaxLimit = 15; 
+        for (int i = 0; i < 4; i++) selectedUnits[i] = 0;
+        UpdateLimitUpgradeCost();
+        UpdateUI();
+        if (SoundManager.Instance) SoundManager.Instance.PlaySFX(SoundManager.Instance.clickSound);
+        Debug.Log("Слоти армії та вибір скинуто до 15!");
     }
 
     public void OpenPanel(MapNode node)
@@ -110,35 +126,80 @@ public class CampaignManager : MonoBehaviour
         SyncUnitStats(); 
         UpdateUI();
         
-        if (mainCampaignPanel) mainCampaignPanel.SetActive(true);
+        if (mainCampaignPanel) 
+        {
+            mainCampaignPanel.SetActive(true); // Темний фон з'являється миттєво
+            
+            // Анімуємо тільки пергамент
+            Transform targetPanel = campaignContentPanel != null ? campaignContentPanel : mainCampaignPanel.transform;
+            StartCoroutine(AnimatePanel(targetPanel, true));
+        }
     }
 
     public void ClosePanel()
     {
         if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.clickSound);
-        if (mainCampaignPanel) mainCampaignPanel.SetActive(false);
+        
+        if (mainCampaignPanel) 
+        {
+            Transform targetPanel = campaignContentPanel != null ? campaignContentPanel : mainCampaignPanel.transform;
+            StartCoroutine(AnimatePanel(targetPanel, false));
+        }
     }
 
-    // --- СИНХРОНІЗАЦІЯ СТАТІВ ---
+    // --- МАГІЯ АНІМАЦІЇ UI ---
+    private IEnumerator AnimatePanel(Transform panel, bool show)
+    {
+        float duration = 0.25f;
+        float time = 0f;
+
+        Vector3 startScale = show ? new Vector3(0.8f, 0.8f, 1f) : Vector3.one;
+        Vector3 endScale = show ? Vector3.one : new Vector3(0.8f, 0.8f, 1f);
+
+        CanvasGroup cg = panel.GetComponent<CanvasGroup>();
+        if (cg == null) cg = panel.gameObject.AddComponent<CanvasGroup>();
+
+        float startAlpha = show ? 0f : 1f;
+        float endAlpha = show ? 1f : 0f;
+
+        if (show) panel.localScale = startScale;
+
+        while (time < duration)
+        {
+            time += Time.unscaledDeltaTime; 
+            float t = time / duration;
+            
+            float ease = show ? (t * t * (3f - 2f * t)) : (t * t); 
+
+            panel.localScale = Vector3.Lerp(startScale, endScale, ease);
+            cg.alpha = Mathf.Lerp(startAlpha, endAlpha, t);
+            
+            yield return null;
+        }
+
+        panel.localScale = endScale;
+        cg.alpha = endAlpha;
+
+        // Важливо: після закінчення анімації зникнення вимикаємо всю панель з фоном
+        if (!show && mainCampaignPanel != null) mainCampaignPanel.SetActive(false);
+    }
+
     void SyncUnitStats()
     {
         if (GameManager.Instance == null) return;
 
-        // 1. Knight
         int k_lvl = GameManager.Instance.knightLevel;
         if (unitDamageTexts.Length > 0 && unitDamageTexts[0]) unitDamageTexts[0].text = (35 + (k_lvl * 7)).ToString(); 
         if (unitHealthTexts.Length > 0 && unitHealthTexts[0]) unitHealthTexts[0].text = (120 + (k_lvl * 20)).ToString();  
         if (unitCostTexts.Length > 0 && unitCostTexts[0]) unitCostTexts[0].text = GameManager.Instance.knightFixedCost.ToString();
         if (unitAvatars.Length > 0 && unitAvatars[0]) unitAvatars[0].color = Color.white;
 
-        // 2. Archer
         int a_lvl = GameManager.Instance.archerLevel;
         if (unitDamageTexts.Length > 1 && unitDamageTexts[1]) unitDamageTexts[1].text = (25 + (a_lvl * 5)).ToString();
         if (unitHealthTexts.Length > 1 && unitHealthTexts[1]) unitHealthTexts[1].text = (60 + (a_lvl * 10)).ToString();
         if (unitCostTexts.Length > 1 && unitCostTexts[1]) unitCostTexts[1].text = GameManager.Instance.archerFixedCost.ToString();
         if (unitAvatars.Length > 1 && unitAvatars[1]) unitAvatars[1].color = Color.white;
 
-        // 3. Spearman
         if (GameManager.Instance.isSpearmanUnlocked)
         {
             int s_lvl = GameManager.Instance.spearmanLevel;
@@ -155,7 +216,6 @@ public class CampaignManager : MonoBehaviour
             if (unitAvatars.Length > 2 && unitAvatars[2]) unitAvatars[2].color = Color.black; 
         }
 
-        // 4. Cavalry
         bool cavUnlocked = GameManager.Instance.isCavalryUnlocked && GameManager.Instance.barracksLevel >= 3;
         if (cavUnlocked)
         {
@@ -223,13 +283,28 @@ public class CampaignManager : MonoBehaviour
 
         for (int i = 0; i < 4; i++)
         {
+            bool isLocked = false;
+            if (i == 2 && (GameManager.Instance == null || !GameManager.Instance.isSpearmanUnlocked)) isLocked = true;
+            if (i == 3 && (GameManager.Instance == null || !GameManager.Instance.isCavalryUnlocked || GameManager.Instance.barracksLevel < 3)) isLocked = true;
+
             if (unitCountersTexts.Length > i && unitCountersTexts[i] != null)
             {
-                bool isLocked = false;
-                if (i == 2 && (GameManager.Instance == null || !GameManager.Instance.isSpearmanUnlocked)) isLocked = true;
-                if (i == 3 && (GameManager.Instance == null || !GameManager.Instance.isCavalryUnlocked || GameManager.Instance.barracksLevel < 3)) isLocked = true;
-
                 unitCountersTexts[i].text = isLocked ? "-" : selectedUnits[i].ToString();
+            }
+
+            if (removeButtons.Length > i && removeButtons[i] != null)
+            {
+                bool canRemove = (!isLocked && selectedUnits[i] > 0);
+                
+                removeButtons[i].interactable = canRemove;
+
+                // --- ЖОРСТКИЙ ФІКС КЛІКІВ ТА ВІЗУАЛУ ---
+                CanvasGroup cg = removeButtons[i].GetComponent<CanvasGroup>();
+                if (cg == null) cg = removeButtons[i].gameObject.AddComponent<CanvasGroup>();
+                
+                cg.alpha = canRemove ? 1f : 0.4f; // Робимо яскравою, якщо можна відняти
+                cg.blocksRaycasts = canRemove;    // Примусово вмикаємо реєстрацію кліків мишки
+                cg.interactable = canRemove;
             }
         }
 
@@ -257,14 +332,11 @@ public class CampaignManager : MonoBehaviour
         if (addButtons.Length > 3 && addButtons[3] != null) addButtons[3].interactable = (currentGold >= totalCost + GameManager.Instance.cavalryFixedCost) && limitNotReached && GameManager.Instance.isCavalryUnlocked && GameManager.Instance.barracksLevel >= 3;
     }
 
-    // --- ОНОВЛЕНИЙ КАЛЬКУЛЯТОР ПЕРЕМОГИ ---
     void UpdateWinChanceSlider()
     {
         if (currentNode == null || GameManager.Instance == null) return;
 
         float playerPower = 0;
-        
-        // Формула: 1 юніт = 1 база + (0.4 за кожен рівень вище 1-го)
         playerPower += selectedUnits[0] * (1f + Mathf.Max(0, GameManager.Instance.knightLevel - 1) * 0.4f);
         playerPower += selectedUnits[1] * (1f + Mathf.Max(0, GameManager.Instance.archerLevel - 1) * 0.4f);
         playerPower += selectedUnits[2] * (1f + Mathf.Max(0, GameManager.Instance.spearmanLevel - 1) * 0.4f);
@@ -311,7 +383,7 @@ public class CampaignManager : MonoBehaviour
 
     void UpdateLimitUpgradeCost()
     {
-        limitUpgradeCost = 1500 + ((globalMaxLimit - 80) / 5 * 500);
+        limitUpgradeCost = 1500 + ((globalMaxLimit - 15) / 5 * 500);
         if (upgradeLimitCostText) upgradeLimitCostText.text = limitUpgradeCost.ToString();
     }
 

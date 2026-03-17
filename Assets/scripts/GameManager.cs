@@ -194,7 +194,8 @@ public class GameManager : MonoBehaviour
     public Button openShopButton;
     public Button openInfoButton; 
     public Button requestCartButton; 
-    public Button volleyBarrageButton; 
+    public Button volleyBarrageButton;
+    public Button openMapButton;
     
     [Header("Ефекти пульсації кнопок")]
     public UIPulseEffect shopPulse;
@@ -737,7 +738,7 @@ public class GameManager : MonoBehaviour
         float t = 0f;
 
         Button[] buttonsToAnimate = new Button[] { 
-            hammerButton, openShopButton, openMetaShopButton, nextWaveButton, barracksIconButton 
+            hammerButton, openShopButton, openMetaShopButton, nextWaveButton, barracksIconButton, openMapButton
         };
         
         List<RectTransform> rects = new List<RectTransform>();
@@ -1786,8 +1787,11 @@ public class GameManager : MonoBehaviour
 
     public float GetEnemyDamageMultiplier() 
     {
-        if (currentWave <= 1) return 0.1f;
-        return 1.0f;
+        if (currentWave <= 1) return 0.5f;
+        
+        // ФІКС: Урон ворогів тепер РЕАЛЬНО росте кожну хвилю
+        // Хвиля 10: x1.6 урон | Хвиля 40: x4.6 урон | Хвиля 80: x11 урон
+        return 1.0f + (currentWave * 0.05f) + (Mathf.Pow(currentWave, 2) * 0.001f);
     }
     
     public int GetGoldReward() 
@@ -2318,10 +2322,12 @@ public class GameManager : MonoBehaviour
         if (crossbowTowers.Length > 0 && crossbowTowers[0] != null) 
             crossbowTowers[0].SetActive(true); 
         
-        if (crossbowDamageLevel >= 2 && crossbowTowers.Length > 1 && crossbowTowers[1] != null) 
+        // ФІКС: Друга баліста на 10 рівні (було 2)
+        if (crossbowDamageLevel >= 10 && crossbowTowers.Length > 1 && crossbowTowers[1] != null) 
             crossbowTowers[1].SetActive(true); 
         
-        if (crossbowDamageLevel >= 35 && crossbowTowers.Length > 2 && crossbowTowers[2] != null) 
+        // ФІКС: Третя баліста на 25 рівні (було 35)
+        if (crossbowDamageLevel >= 25 && crossbowTowers.Length > 2 && crossbowTowers[2] != null) 
             crossbowTowers[2].SetActive(true); 
     }
 
@@ -3026,6 +3032,11 @@ public class GameManager : MonoBehaviour
         UpdateBarracksStateUI();
         UpdateMetaUI();
 
+        if (CampaignManager.Instance != null)
+        {
+            CampaignManager.Instance.ResetCampaignLimits();
+        }
+
         Debug.Log("Збереження видалено! (Кеш очищено)");
     }
 
@@ -3201,20 +3212,14 @@ public class GameManager : MonoBehaviour
         if (hireSpearmanButton != null)
         {
             bool canSeeSpearman = isSpearmanUnlocked && barracksLevel > 0;
-            if (!isWaitingForNextWave) 
-            {
-                hireSpearmanButton.gameObject.SetActive(canSeeSpearman);
-            }
+            hireSpearmanButton.gameObject.SetActive(canSeeSpearman);
             UpdateButtonState(hireSpearmanButton, canHireSpearman && canSeeSpearman);
         }
 
         if (hireCavalryButton != null)
         {
             bool canSeeCavalry = isCavalryUnlocked && barracksLevel >= 3;
-            if (!isWaitingForNextWave) 
-            {
-                hireCavalryButton.gameObject.SetActive(canSeeCavalry);
-            }
+            hireCavalryButton.gameObject.SetActive(canSeeCavalry);
             UpdateButtonState(hireCavalryButton, canHireCavalry && canSeeCavalry);
         }
 

@@ -6,21 +6,27 @@ using System.Collections.Generic;
 
 public class BattleManager : MonoBehaviour
 {
-    [Header("UI")]
+    [Header("UI Битви")]
     public Button attackButton;
     public Button retreatButton;
 
+    [Header("Пауза та Налаштування")]
+    public GameObject settingsPanel;
+    public Button openSettingsButton;
+    public Button closeSettingsButton;
+    public Button surrenderButton; // Кнопка "Здатися" в меню налаштувань
+
     [Header("Префаби Гравця (ТВОЇ)")]
-    public GameObject playerKnightPrefab; // Сюди кидай префаб зі скриптом Knight
-    public GameObject playerArcherPrefab; // Зі скриптом Archer
-    public GameObject playerSpearmanPrefab; // Зі скриптом Spearman
-    public GameObject playerCavalryPrefab; // Зі скриптом Cavalry
+    public GameObject playerKnightPrefab; 
+    public GameObject playerArcherPrefab; 
+    public GameObject playerSpearmanPrefab; 
+    public GameObject playerCavalryPrefab; 
 
     [Header("Префаби Ворога (ТВОЇ)")]
-    public GameObject enemyGuardPrefab; // Зі скриптом Guard
-    public GameObject enemyArcherPrefab; // Зі скриптом EnemyArcher
-    public GameObject enemySpearmanPrefab; // Зі скриптом EnemySpearman
-    public GameObject enemyCavalryPrefab; // Зі скриптом EnemyHorse
+    public GameObject enemyGuardPrefab; 
+    public GameObject enemyArcherPrefab; 
+    public GameObject enemySpearmanPrefab; 
+    public GameObject enemyCavalryPrefab; 
 
     [Header("Точки Спавну")]
     public Transform playerSpawnPoint; 
@@ -40,9 +46,15 @@ public class BattleManager : MonoBehaviour
         attackButton.onClick.AddListener(StartClash);
         retreatButton.onClick.AddListener(Retreat);
         
+        // --- Підключення кнопок налаштувань ---
+        if (openSettingsButton) openSettingsButton.onClick.AddListener(ToggleSettings);
+        if (closeSettingsButton) closeSettingsButton.onClick.AddListener(ToggleSettings);
+        if (surrenderButton) surrenderButton.onClick.AddListener(SurrenderBattle);
+
+        if (settingsPanel) settingsPanel.SetActive(false);
+
         audioSrc = gameObject.AddComponent<AudioSource>();
 
-        // Перевіряємо, чи є SoundManager і вмикаємо бойову музику
         if (SoundManager.Instance != null)
         {
             SoundManager.Instance.PlayBattleMusic();
@@ -50,19 +62,40 @@ public class BattleManager : MonoBehaviour
 
         SpawnArmies();
 
-        // ЗАПУСКАЄМО КІНЕМАТОГРАФІЧНУ КАТСЦЕНУ З КАМЕРОЮ
         StartCoroutine(IntroCutscene());
+    }
+
+    // --- ЛОГІКА НАЛАШТУВАНЬ ТА ПАУЗИ ---
+    public void ToggleSettings()
+    {
+        if (settingsPanel != null)
+        {
+            bool isOpening = !settingsPanel.activeSelf;
+            settingsPanel.SetActive(isOpening);
+            
+            // Зупиняємо час у грі, коли меню відкрите
+            Time.timeScale = isOpening ? 0f : 1f;
+
+            if (SoundManager.Instance != null) 
+                SoundManager.Instance.PlaySFX(SoundManager.Instance.clickSound);
+        }
+    }
+
+    public void SurrenderBattle()
+    {
+        Time.timeScale = 1f; // Повертаємо нормальний час
+        EndBattle(false); // Завершуємо бій поразкою
     }
 
     IEnumerator IntroCutscene()
     {
         attackButton.gameObject.SetActive(false);
         retreatButton.gameObject.SetActive(false);
+        if (openSettingsButton) openSettingsButton.gameObject.SetActive(false);
 
         float startOffset = -18f; 
         float marchDuration = 8.0f; 
 
-        // Відкидаємо тільки НАШИХ союзників назад
         Dictionary<GameObject, Vector3> finalPositions = new Dictionary<GameObject, Vector3>();
         foreach (var ally in spawnedAllies)
         {
@@ -71,7 +104,6 @@ public class BattleManager : MonoBehaviour
                 finalPositions[ally] = ally.transform.position;
                 ally.transform.position += new Vector3(startOffset, 0, 0); 
                 
-                // Вмикаємо анімацію бігу (в твоїх скриптах це "IsMoving")
                 Animator anim = ally.GetComponent<Animator>();
                 if (anim) anim.SetBool("IsMoving", true);
             }
@@ -127,17 +159,16 @@ public class BattleManager : MonoBehaviour
         
         attackButton.gameObject.SetActive(true);
         retreatButton.gameObject.SetActive(true);
+        if (openSettingsButton) openSettingsButton.gameObject.SetActive(true);
     }
 
     void SpawnArmies()
     {
-        // СПАВН НАШИХ
         SpawnGroup(playerKnightPrefab, CrossSceneData.knightsCount, playerSpawnPoint.position, false);
         SpawnGroup(playerSpearmanPrefab, CrossSceneData.spearmenCount, playerSpawnPoint.position + new Vector3(-1.5f, 0, 0), false);
         SpawnGroup(playerArcherPrefab, CrossSceneData.archersCount, playerSpawnPoint.position + new Vector3(-3.0f, 0, 0), false);
         SpawnGroup(playerCavalryPrefab, CrossSceneData.cavalryCount, playerSpawnPoint.position + new Vector3(-4.5f, 0, 0), false);
 
-        // СПАВН ВОРОГІВ
         SpawnGroup(enemyGuardPrefab, CrossSceneData.enemyGuards, enemySpawnPoint.position, true);
         SpawnGroup(enemySpearmanPrefab, CrossSceneData.enemySpearmen, enemySpawnPoint.position + new Vector3(1.5f, 0, 0), true);
         SpawnGroup(enemyArcherPrefab, CrossSceneData.enemyArchers, enemySpawnPoint.position + new Vector3(3.0f, 0, 0), true);
@@ -166,10 +197,8 @@ public class BattleManager : MonoBehaviour
 
             GameObject unitGO = Instantiate(prefab, spawnPos, Quaternion.identity);
             
-            // Задаємо правильний тег для пошуку ворогів у ТВОЇХ скриптах
             unitGO.tag = isEnemy ? "Enemy" : "PlayerUnit"; 
 
-            // Повертаємо ворогів обличчям вліво
             if (isEnemy)
             {
                 Vector3 scale = unitGO.transform.localScale;
@@ -177,17 +206,13 @@ public class BattleManager : MonoBehaviour
                 unitGO.transform.localScale = scale;
             }
 
-            // Вимикаємо скрипти логіки, поки не натиснули Attack
-            // Вимикаємо скрипти логіки, щоб вони не почали битися під час маршу
             MonoBehaviour[] scripts = unitGO.GetComponents<MonoBehaviour>();
             foreach (var script in scripts)
             {
                 if (script == null) continue;
 
-                // Отримуємо ім'я типу скрипта
                 string sName = script.GetType().Name;
                 
-                // Якщо це скрипт анімації, рендерер або сам BattleManager - НЕ вимикаємо їх
                 if (sName == "Animator" || sName == "SpriteRenderer" || sName == "Canvas" || sName == "Image") 
                 {
                     continue; 
@@ -239,7 +264,6 @@ public class BattleManager : MonoBehaviour
         
         battleIsActive = true;
 
-        // Вмикаємо всі бойові скрипти!
         foreach (var ally in spawnedAllies) if (ally != null) EnableUnitLogic(ally);
         foreach (var enemy in spawnedEnemies) if (enemy != null) EnableUnitLogic(enemy);
     }
@@ -254,7 +278,6 @@ public class BattleManager : MonoBehaviour
     {
         if (!battleIsActive) return;
         
-        // Перевіряємо кожну секунду, а не кожен кадр (для оптимізації)
         if (Time.frameCount % 60 == 0) CheckBattleStatus();
     }
 
@@ -265,7 +288,6 @@ public class BattleManager : MonoBehaviour
 
         foreach (var ally in spawnedAllies)
         {
-            // Перевіряємо, чи юніт ще живий (тег Untagged ти ставиш при смерті)
             if (ally != null && !ally.CompareTag("Untagged")) playerAlive++;
         }
 
@@ -286,6 +308,8 @@ public class BattleManager : MonoBehaviour
     void EndBattle(bool isVictory)
     {
         battleIsActive = false;
+        Time.timeScale = 1f; // Підстраховка: скидаємо час, якщо вийшли через паузу
+
         SaveSurvivorsToData(); 
 
         CrossSceneData.isReturningFromBattle = true;
@@ -297,7 +321,6 @@ public class BattleManager : MonoBehaviour
             PlayerPrefs.Save();
         }
 
-        // Повертаємо спокійну музику перед виходом
         if (SoundManager.Instance != null) SoundManager.Instance.PlayIdleMusic();
 
         SceneManager.LoadScene("Main"); 

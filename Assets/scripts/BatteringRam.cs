@@ -8,17 +8,16 @@ public class BatteringRam : MonoBehaviour
     public HealthBar healthBar;
 
     [Header("Характеристики")]
-    public float speed = 0.8f;           // Повільний
-    public float attackRange = 2.5f;     
-    public float attackCooldown = 3.0f;  // Повільна, але потужна атака
+    public float speed = 0.8f;          
+    public float attackRange = 2.5f;    
+    public float attackCooldown = 3.0f; 
     
     [Header("Базові Стати")]
-    public int baseDamage = 100;         
-    public int baseHealth = 500;         
+    public int baseDamage = 100;        
+    public int baseHealth = 500;        
 
     [Header("Еволюція (Аніматори)")]
-    [Tooltip("0 - базовий (хвилі 1-49), 1 - (хвилі 50-99), 2 - (хвилі 100-149) і т.д.")]
-    public RuntimeAnimatorController[] tierAnimators; // Масив для різних скінів
+    public RuntimeAnimatorController[] tierAnimators; 
 
     private Animator animator;
     private Rigidbody2D rb;
@@ -29,7 +28,6 @@ public class BatteringRam : MonoBehaviour
     private Transform targetStructure;
     private float nextAttackTime = 0f;
 
-    // ЗБЕРЕЖЕННЯ БАЗОВИХ ЗНАЧЕНЬ ІНСПЕКТОРА
     private int _baseHealth;
     private int _baseDamage;
 
@@ -51,32 +49,19 @@ public class BatteringRam : MonoBehaviour
         if (GameManager.Instance != null)
         {
             int wave = GameManager.Instance.currentWave;
-            
-            // Застосовуємо формулу
             _maxHealth = EconomyConfig.GetEnemyHealth(_baseHealth, wave);
             baseDamage = EconomyConfig.GetEnemyDamage(_baseDamage, wave) * 5; 
 
-            // === ЛОГІКА ЗМІНИ СКІНА (АНІМАТОРА) ===
             if (tierAnimators != null && tierAnimators.Length > 0 && animator != null)
             {
-                // Визначаємо індекс: хвиля 1-49 = 0, 50-99 = 1, 100-149 = 2
                 int skinIndex = (wave - 1) / 50; 
-                
-                // Захист від виходу за межі (якщо хвиля дуже велика, ставимо останній скін)
-                if (skinIndex >= tierAnimators.Length)
-                {
-                    skinIndex = tierAnimators.Length - 1; 
-                }
-                
+                if (skinIndex >= tierAnimators.Length) skinIndex = tierAnimators.Length - 1; 
                 animator.runtimeAnimatorController = tierAnimators[skinIndex];
             }
 
             GameManager.Instance.RegisterEnemy();
         }
-        else
-        {
-            _maxHealth = _baseHealth;
-        }
+        else { _maxHealth = _baseHealth; }
 
         currentHealth = _maxHealth;
 
@@ -119,39 +104,25 @@ public class BatteringRam : MonoBehaviour
                     nextAttackTime = Time.time + attackCooldown;
                 }
             }
-            else
-            {
-                MoveTowards(targetStructure.position);
-            }
+            else MoveTowards(targetStructure.position);
         }
-        else
-        {
-            MoveTowards(transform.position + Vector3.left * 5f);
-        }
+        else MoveTowards(transform.position + Vector3.left * 5f);
     }
 
     void FindTarget()
     {
         if (GameManager.Instance != null)
         {
-            if (GameManager.Instance.currentSpikes != null)
-            {
-                targetStructure = GameManager.Instance.currentSpikes.transform;
-            }
-            else if (GameManager.Instance.castle != null)
-            {
-                targetStructure = GameManager.Instance.castle.transform;
-            }
+            if (GameManager.Instance.currentSpikes != null) targetStructure = GameManager.Instance.currentSpikes.transform;
+            else if (GameManager.Instance.castle != null) targetStructure = GameManager.Instance.castle.transform;
         }
     }
 
     void MoveTowards(Vector3 destination)
     {
         if (animator) animator.SetBool("IsMoving", true);
-        
         Vector3 targetPosFixed = new Vector3(destination.x, transform.position.y, transform.position.z);
         Vector2 direction = (targetPosFixed - transform.position).normalized;
-        
         rb.linearVelocity = direction * speed;
     }
 
@@ -185,9 +156,7 @@ public class BatteringRam : MonoBehaviour
     public void TakeDamage(int damageAmount)
     {
         if (isDead) return;
-        
         currentHealth -= damageAmount;
-        
         if (healthBar != null) healthBar.SetHealth(currentHealth, _maxHealth);
         GameManager.CreateDamagePopup(transform.position, damageAmount);
         
@@ -200,22 +169,12 @@ public class BatteringRam : MonoBehaviour
         isDead = true;
         gameObject.tag = "Untagged";
 
-        if (healthBar != null) healthBar.gameObject.SetActive(false);
-        if (rb) { rb.linearVelocity = Vector2.zero; rb.bodyType = RigidbodyType2D.Static; }
-        
-        Collider2D col = GetComponent<Collider2D>();
-        if (col) col.enabled = false;
-
         if (TryGetComponent<EnemyStats>(out EnemyStats stats)) stats.GiveGold();
         else if (GameManager.Instance != null) GameManager.Instance.UnregisterEnemy();
 
         if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.enemyDeath);
 
-        if (animator) { animator.enabled = false; }
-        
-        transform.Rotate(0, 0, -90);
-        
-        this.enabled = false;
-        Destroy(gameObject, 5f);
+        // ФІКС: Миттєве зникнення тарана
+        Destroy(gameObject); 
     }
 }
