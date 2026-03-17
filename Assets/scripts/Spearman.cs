@@ -224,9 +224,20 @@ public class Spearman : MonoBehaviour
 
     void FlipSprite(float targetX)
     {
+        // ВАЖЛИВО: Для Лицаря/Списоносця/Кінноти логіка має бути ТАКОЮ:
+        
         float absX = Mathf.Abs(originalScale.x);
-        if (targetX > transform.position.x) transform.localScale = new Vector3(absX, originalScale.y, originalScale.z); 
-        else if (targetX < transform.position.x) transform.localScale = new Vector3(-absX, originalScale.y, originalScale.z); 
+        
+        // Якщо йдемо ВПРАВО (targetX > currentX) -> ставимо МІНУСОВИЙ scale (щоб відзеркалити спрайт вправо)
+        if (targetX > transform.position.x) 
+        {
+            transform.localScale = new Vector3(-absX, originalScale.y, originalScale.z);
+        }
+        // Якщо йдемо ВЛІВО (targetX < currentX) -> ставимо ПОЗИТИВНИЙ scale (оригінальний вигляд спрайту)
+        else if (targetX < transform.position.x)
+        {
+            transform.localScale = new Vector3(absX, originalScale.y, originalScale.z);
+        }
     }
 
     void FindNearestTarget()

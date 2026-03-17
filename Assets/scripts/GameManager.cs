@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement; // ВАЖЛИВО ДЛЯ ПЕРЕВІРКИ СЦЕНИ
 using TMPro;
 using System.Collections;
 using System.Collections.Generic;
@@ -52,6 +53,8 @@ public class UnitEvolutionUI
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance;
+
+    [HideInInspector] public bool isCampaignBattle = false; // Розумний перемикач режимів
 
     [Header("=== МЕТА-ПРОГРЕСІЯ (КРИСТАЛИ) ===")]
     public int gems = 0;
@@ -194,8 +197,8 @@ public class GameManager : MonoBehaviour
     public Button openShopButton;
     public Button openInfoButton; 
     public Button requestCartButton; 
-    public Button volleyBarrageButton;
-    public Button openMapButton;
+    public Button volleyBarrageButton; 
+    public Button openMapButton; // Кнопка глобальної мапи
     
     [Header("Ефекти пульсації кнопок")]
     public UIPulseEffect shopPulse;
@@ -439,11 +442,27 @@ public class GameManager : MonoBehaviour
         if (Instance == null) Instance = this;
         else Destroy(gameObject);
 
+        // Перевіряємо сцену
+        isCampaignBattle = (SceneManager.GetActiveScene().name == "SiegeBattleScene");
+
+        if (isCampaignBattle)
+        {
+            // ПРИМУСОВО вмикаємо режим бою, щоб юніти почали працювати
+            isWaveInProgress = true; 
+        }
+
         LoadGame();
     }
 
     void Start()
     {
+        // ЯКЩО МИ В БИТВІ НА ГЛОБАЛЬНІЙ МАПІ - ІГНОРУЄМО ВЕСЬ UI ТА ХВИЛІ!
+        if (isCampaignBattle) 
+        {
+            isWaveInProgress = true; 
+            return; 
+        }
+
         if (goldText != null)
         {
             goldText.gameObject.SetActive(true);
@@ -457,7 +476,6 @@ public class GameManager : MonoBehaviour
         RecalculateUnits();
         
         InitializeGameGuide(); 
-
         UpdateCrossbowVisibility();
 
         if (towerToggleButton != null)
@@ -508,6 +526,49 @@ public class GameManager : MonoBehaviour
         }
 
         StartCoroutine(WaveWatchdog());
+    }
+
+    void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.F12))
+        {
+            DeleteSave();
+        }
+
+        // ЯКЩО МИ В БИТВІ НА ГЛОБАЛЬНІЙ МАПІ - БЛОКУЄМО СТАНДАРТНИЙ СПАВН ВОРОГІВ!
+        if (isCampaignBattle) return;
+
+        if (isWaveInProgress && !isCinematicActive)
+        {
+            waveTimer += Time.deltaTime;
+            float progress = waveTimer / waveDuration;
+
+            if (waveTimerBar != null)
+            {
+                waveTimerBar.value = 1f - progress;
+            }
+
+            for (int i = currentWaveMilestones.Count - 1; i >= 0; i--)
+            {
+                if (progress >= currentWaveMilestones[i])
+                {
+                    SpawnEnemySquad();
+                    currentWaveMilestones.RemoveAt(i);
+
+                    if (tickContainer != null && tickContainer.childCount > 0)
+                    {
+                        Destroy(tickContainer.GetChild(0).gameObject);
+                    }
+                }
+            }
+
+            if (progress >= 1f)
+            {
+                isWaveInProgress = false;
+                if (waveTimerBar != null) waveTimerBar.value = 0f;
+                CheckWaveState();
+            }
+        }
     }
 
     void InitializeGameGuide()
@@ -737,8 +798,9 @@ public class GameManager : MonoBehaviour
         float slideDistance = 400f; 
         float t = 0f;
 
+        // Включили кнопку openMapButton в анімацію ховання
         Button[] buttonsToAnimate = new Button[] { 
-            hammerButton, openShopButton, openMetaShopButton, nextWaveButton, barracksIconButton, openMapButton
+            hammerButton, openShopButton, openMetaShopButton, nextWaveButton, barracksIconButton, openMapButton 
         };
         
         List<RectTransform> rects = new List<RectTransform>();
@@ -880,46 +942,6 @@ public class GameManager : MonoBehaviour
             UpdateUI();
         }
         else if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.error);
-    }
-
-    void Update()
-    {
-        if (Input.GetKeyDown(KeyCode.F12))
-        {
-            DeleteSave();
-        }
-
-        if (isWaveInProgress && !isCinematicActive)
-        {
-            waveTimer += Time.deltaTime;
-            float progress = waveTimer / waveDuration;
-
-            if (waveTimerBar != null)
-            {
-                waveTimerBar.value = 1f - progress;
-            }
-
-            for (int i = currentWaveMilestones.Count - 1; i >= 0; i--)
-            {
-                if (progress >= currentWaveMilestones[i])
-                {
-                    SpawnEnemySquad();
-                    currentWaveMilestones.RemoveAt(i);
-
-                    if (tickContainer != null && tickContainer.childCount > 0)
-                    {
-                        Destroy(tickContainer.GetChild(0).gameObject);
-                    }
-                }
-            }
-
-            if (progress >= 1f)
-            {
-                isWaveInProgress = false;
-                if (waveTimerBar != null) waveTimerBar.value = 0f;
-                CheckWaveState();
-            }
-        }
     }
 
     void ResolveUIRefs()
@@ -1186,13 +1208,11 @@ public class GameManager : MonoBehaviour
     {
         if (formationStartPoint == null) return;
 
-        // ДИНАМІЧНА ШИРИНА СТРОЮ: чим більше юнітів, тим ширшим стає стрій (по осі Y)
         int unitsPerColumn = 4 + (currentUnits / 10);
         unitsPerColumn = Mathf.Clamp(unitsPerColumn, 4, 8); 
 
         float currentXOffset = 0f;
 
-        // Кожна група посуває наступну за собою, щоб класи не накладалися
         currentXOffset = AssignPositionsToGroupDynamic(activeKnights.Cast<MonoBehaviour>().ToList(), currentXOffset, unitsPerColumn);
         currentXOffset = AssignPositionsToGroupDynamic(activeSpearmen.Cast<MonoBehaviour>().ToList(), currentXOffset, unitsPerColumn);
         currentXOffset = AssignPositionsToGroupDynamic(activeCavalry.Cast<MonoBehaviour>().ToList(), currentXOffset, unitsPerColumn); 
@@ -1790,7 +1810,6 @@ public class GameManager : MonoBehaviour
         if (currentWave <= 1) return 0.5f;
         
         // ФІКС: Урон ворогів тепер РЕАЛЬНО росте кожну хвилю
-        // Хвиля 10: x1.6 урон | Хвиля 40: x4.6 урон | Хвиля 80: x11 урон
         return 1.0f + (currentWave * 0.05f) + (Mathf.Pow(currentWave, 2) * 0.001f);
     }
     
@@ -2793,7 +2812,12 @@ public class GameManager : MonoBehaviour
         PlayerPrefs.SetInt("MetaEfficientCarts", metaEfficientCarts);
         PlayerPrefs.SetInt("MetaMendingMasonry", metaMendingMasonry);
 
-        SaveUnits();
+        // ФІКС: Зберігаємо координати армії ТІЛЬКИ якщо ми на головній базі!
+        if (!isCampaignBattle)
+        {
+            SaveUnits();
+        }
+        
         PlayerPrefs.Save();
     }
 
@@ -2913,18 +2937,23 @@ public class GameManager : MonoBehaviour
         spearmanFixedCost = 60;
         cavalryFixedCost = 120; 
 
-        if (isBarracksBuilt) SpawnBarracksObject();
-        if (isMineBuilt) SpawnMineObject();
-
-        if (castle == null) castle = FindFirstObjectByType<Wall>();
-
-        if (castle != null)
+        // ФІКС: Спавнимо базу і армію ТІЛЬКИ на головній сцені! 
+        // В битві нам потрібна тільки статистика.
+        if (!isCampaignBattle)
         {
-            int savedCastleLvl = PlayerPrefs.GetInt("SavedCastleLevel", 1);
-            castle.LoadState(savedCastleLvl);
-        }
+            if (isBarracksBuilt) SpawnBarracksObject();
+            if (isMineBuilt) SpawnMineObject();
 
-        LoadUnits();
+            if (castle == null) castle = FindFirstObjectByType<Wall>();
+
+            if (castle != null)
+            {
+                int savedCastleLvl = PlayerPrefs.GetInt("SavedCastleLevel", 1);
+                castle.LoadState(savedCastleLvl);
+            }
+
+            LoadUnits();
+        }
     }
 
     void LoadUnits()
@@ -3085,9 +3114,9 @@ public class GameManager : MonoBehaviour
             int percentDmg = Mathf.RoundToInt(((float)(nextDmg - curDmg) / curDmg) * 100f);
 
             string extraInfo = "";
-            if (crossbowDamageLevel < 20) 
+            if (crossbowDamageLevel < 10) 
                 extraInfo = "<color=#FFCC00>2nd Tower at Lvl 10!</color>";
-            else if (crossbowDamageLevel < 35) 
+            else if (crossbowDamageLevel < 25) 
                 extraInfo = "<color=#FFCC00>3rd Tower at Lvl 25!</color>";
             else 
                 extraInfo = "<color=#008800>Max Towers Reached!</color>";
@@ -3212,14 +3241,20 @@ public class GameManager : MonoBehaviour
         if (hireSpearmanButton != null)
         {
             bool canSeeSpearman = isSpearmanUnlocked && barracksLevel > 0;
-            hireSpearmanButton.gameObject.SetActive(canSeeSpearman);
+            if (!isWaitingForNextWave) 
+            {
+                hireSpearmanButton.gameObject.SetActive(canSeeSpearman);
+            }
             UpdateButtonState(hireSpearmanButton, canHireSpearman && canSeeSpearman);
         }
 
         if (hireCavalryButton != null)
         {
             bool canSeeCavalry = isCavalryUnlocked && barracksLevel >= 3;
-            hireCavalryButton.gameObject.SetActive(canSeeCavalry);
+            if (!isWaitingForNextWave) 
+            {
+                hireCavalryButton.gameObject.SetActive(canSeeCavalry);
+            }
             UpdateButtonState(hireCavalryButton, canHireCavalry && canSeeCavalry);
         }
 
@@ -3247,7 +3282,6 @@ public class GameManager : MonoBehaviour
             if (unlockSpearmanRowGroup != null) unlockSpearmanRowGroup.gameObject.SetActive(isBarracksBuilt);
             else unlockSpearmanButton.gameObject.SetActive(isBarracksBuilt);
 
-            // ФІКС: Активуємо кнопку, якщо є гроші і юніт ще не відкритий
             if (isSpearmanUnlocked)
             {
                 UpdateButtonState(unlockSpearmanButton, false);
@@ -3263,7 +3297,6 @@ public class GameManager : MonoBehaviour
             if (unlockCavalryRowGroup != null) unlockCavalryRowGroup.gameObject.SetActive(isBarracksBuilt);
             else unlockCavalryButton.gameObject.SetActive(isBarracksBuilt);
 
-            // ФІКС: Активуємо кнопку, якщо є гроші, бараки >= 3 і юніт ще не відкритий
             if (isCavalryUnlocked || barracksLevel < 3)
             {
                 UpdateButtonState(unlockCavalryButton, false);

@@ -3,10 +3,18 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 
 public class BattleManager : MonoBehaviour
 {
-    [Header("UI Битви")]
+    public static BattleManager Instance { get; private set; }
+
+    [Header("UI Битви (HUD)")]
+    public TMP_Text locationNameText;
+    public TMP_Text enemyCountText;
+    public TMP_Text armyCountText;
+
+    [Header("Управління Битвой")]
     public Button attackButton;
     public Button retreatButton;
 
@@ -14,15 +22,15 @@ public class BattleManager : MonoBehaviour
     public GameObject settingsPanel;
     public Button openSettingsButton;
     public Button closeSettingsButton;
-    public Button surrenderButton; // Кнопка "Здатися" в меню налаштувань
+    public Button surrenderButton; 
 
-    [Header("Префаби Гравця (ТВОЇ)")]
+    [Header("Префаби Гравця")]
     public GameObject playerKnightPrefab; 
     public GameObject playerArcherPrefab; 
     public GameObject playerSpearmanPrefab; 
     public GameObject playerCavalryPrefab; 
 
-    [Header("Префаби Ворога (ТВОЇ)")]
+    [Header("Префаби Ворога")]
     public GameObject enemyGuardPrefab; 
     public GameObject enemyArcherPrefab; 
     public GameObject enemySpearmanPrefab; 
@@ -41,12 +49,48 @@ public class BattleManager : MonoBehaviour
     private List<GameObject> spawnedAllies = new List<GameObject>();
     private List<GameObject> spawnedEnemies = new List<GameObject>();
 
+    void Awake()
+    {
+        if (Instance == null) Instance = this;
+        else Destroy(gameObject);
+
+        if (GameManager.Instance == null)
+        {
+            GameObject gmObj = new GameObject("Temp_GameManager");
+            gmObj.AddComponent<GameManager>(); 
+        }
+
+        if (GameManager.Instance.engagementLine == null)
+        {
+            GameObject dummyLine = new GameObject("DummyEngagementLine");
+            dummyLine.transform.position = Vector3.zero; 
+            GameManager.Instance.engagementLine = dummyLine.transform;
+        }
+        if (GameManager.Instance.castle == null)
+        {
+            GameObject dummyCastle = new GameObject("DummyCastle");
+            dummyCastle.transform.position = new Vector3(-30f, 0, 0); 
+            Wall fakeWall = dummyCastle.AddComponent<Wall>();
+            fakeWall.maxHealth = 999999;
+            fakeWall.currentHealth = 999999;
+            GameManager.Instance.castle = fakeWall;
+        }
+        
+        GameObject dummyL = new GameObject("DummyL"); dummyL.transform.position = new Vector3(-20f, 0, 0);
+        GameManager.Instance.leftBoundary = dummyL.transform;
+        GameObject dummyR = new GameObject("DummyR"); dummyR.transform.position = new Vector3(20f, 0, 0);
+        GameManager.Instance.rightBoundary = dummyR.transform;
+    }
+
     void Start()
     {
+        if (locationNameText) locationNameText.text = "BATTLE: " + CrossSceneData.campName.ToUpper();
+        if (enemyCountText) enemyCountText.text = "<color=#FF4444>Enemies: Waiting</color>";
+        if (armyCountText) armyCountText.text = "<color=#44FF44>Your Army: Ready</color>";
+
         attackButton.onClick.AddListener(StartClash);
         retreatButton.onClick.AddListener(Retreat);
         
-        // --- Підключення кнопок налаштувань ---
         if (openSettingsButton) openSettingsButton.onClick.AddListener(ToggleSettings);
         if (closeSettingsButton) closeSettingsButton.onClick.AddListener(ToggleSettings);
         if (surrenderButton) surrenderButton.onClick.AddListener(SurrenderBattle);
@@ -55,36 +99,27 @@ public class BattleManager : MonoBehaviour
 
         audioSrc = gameObject.AddComponent<AudioSource>();
 
-        if (SoundManager.Instance != null)
-        {
-            SoundManager.Instance.PlayBattleMusic();
-        }
+        if (SoundManager.Instance != null) SoundManager.Instance.PlayBattleMusic();
 
         SpawnArmies();
-
         StartCoroutine(IntroCutscene());
     }
 
-    // --- ЛОГІКА НАЛАШТУВАНЬ ТА ПАУЗИ ---
     public void ToggleSettings()
     {
         if (settingsPanel != null)
         {
             bool isOpening = !settingsPanel.activeSelf;
             settingsPanel.SetActive(isOpening);
-            
-            // Зупиняємо час у грі, коли меню відкрите
             Time.timeScale = isOpening ? 0f : 1f;
-
-            if (SoundManager.Instance != null) 
-                SoundManager.Instance.PlaySFX(SoundManager.Instance.clickSound);
+            if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.clickSound);
         }
     }
 
     public void SurrenderBattle()
     {
-        Time.timeScale = 1f; // Повертаємо нормальний час
-        EndBattle(false); // Завершуємо бій поразкою
+        Time.timeScale = 1f; 
+        EndBattle(false); 
     }
 
     IEnumerator IntroCutscene()
@@ -94,7 +129,7 @@ public class BattleManager : MonoBehaviour
         if (openSettingsButton) openSettingsButton.gameObject.SetActive(false);
 
         float startOffset = -18f; 
-        float marchDuration = 8.0f; 
+        float marchDuration = 6.0f; 
 
         Dictionary<GameObject, Vector3> finalPositions = new Dictionary<GameObject, Vector3>();
         foreach (var ally in spawnedAllies)
@@ -115,7 +150,7 @@ public class BattleManager : MonoBehaviour
         mainCam.transform.position = camStartPos;
 
         if (warHornSound) audioSrc.PlayOneShot(warHornSound, 1f);
-        yield return new WaitForSeconds(2.0f);
+        yield return new WaitForSeconds(1.5f);
 
         if (marchingSound)
         {
@@ -133,10 +168,7 @@ public class BattleManager : MonoBehaviour
 
             foreach (var kvp in finalPositions)
             {
-                if (kvp.Key != null)
-                {
-                    kvp.Key.transform.position = Vector3.Lerp(kvp.Value + new Vector3(startOffset, 0, 0), kvp.Value, smoothT);
-                }
+                if (kvp.Key != null) kvp.Key.transform.position = Vector3.Lerp(kvp.Value + new Vector3(startOffset, 0, 0), kvp.Value, smoothT);
             }
 
             float camT = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(t * 1.15f));
@@ -197,6 +229,7 @@ public class BattleManager : MonoBehaviour
 
             GameObject unitGO = Instantiate(prefab, spawnPos, Quaternion.identity);
             
+            // ФІКС УРОНУ ЛУЧНИКІВ: Тег вішається ТІЛЬКИ на головний об'єкт
             unitGO.tag = isEnemy ? "Enemy" : "PlayerUnit"; 
 
             if (isEnemy)
@@ -205,19 +238,20 @@ public class BattleManager : MonoBehaviour
                 scale.x = -Mathf.Abs(scale.x);
                 unitGO.transform.localScale = scale;
             }
+            else
+            {
+                Vector3 scale = unitGO.transform.localScale;
+                scale.x = Mathf.Abs(scale.x);
+                unitGO.transform.localScale = scale;
+            }
 
             MonoBehaviour[] scripts = unitGO.GetComponents<MonoBehaviour>();
             foreach (var script in scripts)
             {
                 if (script == null) continue;
-
                 string sName = script.GetType().Name;
+                if (sName == "Animator" || sName == "SpriteRenderer" || sName == "Canvas" || sName == "Image" || sName == "AudioSource" || sName == "MovementVFX") continue; 
                 
-                if (sName == "Animator" || sName == "SpriteRenderer" || sName == "Canvas" || sName == "Image") 
-                {
-                    continue; 
-                }
-
                 script.enabled = false;
             }
 
@@ -228,6 +262,7 @@ public class BattleManager : MonoBehaviour
 
     void StartClash()
     {
+        if (SoundManager.Instance) SoundManager.Instance.PlaySFX(SoundManager.Instance.clickSound);
         StartCoroutine(AnimateButtonsAndStartBattle());
     }
 
@@ -270,45 +305,99 @@ public class BattleManager : MonoBehaviour
 
     void EnableUnitLogic(GameObject unit)
     {
+        // 1. Вмикаємо всі скрипти на об'єкті
         MonoBehaviour[] scripts = unit.GetComponents<MonoBehaviour>();
-        foreach (var script in scripts) script.enabled = true;
+        foreach (var script in scripts)
+        {
+            if (script == null) continue;
+            script.enabled = true;
+        }
+
+        // 2. ЖОРСТКИЙ ЗАПУСК ЛОГІКИ
+        // Оскільки юніти могли "заснути" під час катсцени, ми примусово 
+        // викликаємо їхні методи пошуку цілей.
+        
+        // Для твоїх лицарів/піхоти:
+        unit.SendMessage("SetStateMovingToEngagementLine", SendMessageOptions.DontRequireReceiver);
+        
+        // Для всіх (і наших, і ворогів):
+        unit.SendMessage("FindNextTarget", SendMessageOptions.DontRequireReceiver);
+        
+        // Якщо у юніта є логіка вибору цілі через GameManager:
+        if (unit.CompareTag("PlayerUnit"))
+        {
+            unit.SendMessage("ScanForEnemies", SendMessageOptions.DontRequireReceiver);
+        }
     }
 
     void Update()
     {
         if (!battleIsActive) return;
         
-        if (Time.frameCount % 60 == 0) CheckBattleStatus();
+        UpdateHUDText();
+        if (Time.frameCount % 30 == 0) CheckBattleVictoryCondition();
     }
 
-    void CheckBattleStatus()
+    void UpdateHUDText()
     {
         int playerAlive = 0;
         int enemyAlive = 0;
 
         foreach (var ally in spawnedAllies)
-        {
             if (ally != null && !ally.CompareTag("Untagged")) playerAlive++;
-        }
 
         foreach (var enemy in spawnedEnemies)
-        {
             if (enemy != null && !enemy.CompareTag("Untagged")) enemyAlive++;
-        }
 
-        if (enemyAlive == 0) EndBattle(true);
-        else if (playerAlive == 0) EndBattle(false);
+        if (enemyCountText) enemyCountText.text = "<color=#FF4444>Enemies: " + enemyAlive + "</color>";
+        if (armyCountText) armyCountText.text = "<color=#44FF44>Your Army: " + playerAlive + "</color>";
+    }
+
+    void CheckBattleVictoryCondition()
+    {
+        int playerAlive = 0;
+        int enemyAlive = 0;
+
+        foreach (var ally in spawnedAllies)
+            if (ally != null && !ally.CompareTag("Untagged")) playerAlive++;
+
+        foreach (var enemy in spawnedEnemies)
+            if (enemy != null && !enemy.CompareTag("Untagged")) enemyAlive++;
+
+        if (enemyAlive == 0 && battleIsActive && spawnedEnemies.Count > 0) 
+        {
+            StartCoroutine(VictorySlowMotion());
+        }
+        else if (playerAlive == 0 && battleIsActive && spawnedAllies.Count > 0) 
+        {
+            EndBattle(false);
+        }
+    }
+
+    IEnumerator VictorySlowMotion()
+    {
+        battleIsActive = false; 
+        Time.timeScale = 0.3f;
+        
+        if (SoundManager.Instance != null && SoundManager.Instance.victoryMusicStinger != null) 
+            SoundManager.Instance.PlaySFX(SoundManager.Instance.victoryMusicStinger);
+
+        yield return new WaitForSecondsRealtime(1.8f);
+
+        Time.timeScale = 1f; 
+        EndBattle(true);
     }
 
     void Retreat()
     {
+        if (SoundManager.Instance) SoundManager.Instance.PlaySFX(SoundManager.Instance.clickSound);
         EndBattle(false);
     }
 
     void EndBattle(bool isVictory)
     {
         battleIsActive = false;
-        Time.timeScale = 1f; // Підстраховка: скидаємо час, якщо вийшли через паузу
+        Time.timeScale = 1f; 
 
         SaveSurvivorsToData(); 
 

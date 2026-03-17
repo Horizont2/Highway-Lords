@@ -5255,7 +5255,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Knight
   healthBarFill: {fileID: 6922633173305940471}
   hitParticlePrefab: {fileID: 2978876853960275596, guid: 938b59e62d459cf4085a4c92fc89aeaa, type: 3}
-  speed: 2.2
+  speed: 2
   attackRange: 1
   attackRate: 1
   maxHealth: 120
@@ -5264,6 +5264,7 @@ MonoBehaviour:
     m_Bits: 256
   avoidanceForce: 2
   checkDistance: 1.5
+  aggroRange: 4.5
   animator: {fileID: 748861169845927127}
   spriteRenderer: {fileID: 5716449123384979781}
   currentHealth: 0
@@ -5357,5 +5358,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8463ee9254fdefa408fc6c5d4056b18b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MovementVFX
-  dustEffect: {fileID: 1966911667281628718}
-  velocityThreshold: 0.1
+  dustParticles: {fileID: 0}

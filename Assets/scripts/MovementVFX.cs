@@ -2,40 +2,24 @@ using UnityEngine;
 
 public class MovementVFX : MonoBehaviour
 {
-    [Header("Налаштування")]
-    public ParticleSystem dustEffect; // Сюди перетягнемо наш префаб
-    public float velocityThreshold = 0.1f; // Поріг швидкості для появи пилу
-
-    private Rigidbody2D rb;
-    private ParticleSystem.EmissionModule emission;
+    public ParticleSystem dustParticles;
+    private Animator anim;
 
     void Start()
     {
-        rb = GetComponent<Rigidbody2D>();
-        
-        if (dustEffect != null)
-        {
-            emission = dustEffect.emission;
-            // Спочатку вимикаємо емісію
-            emission.enabled = false;
-        }
+        anim = GetComponent<Animator>();
+        if (anim == null) anim = GetComponentInParent<Animator>(); // Шукаємо аніматор
     }
 
     void Update()
     {
-        if (dustEffect == null || rb == null) return;
-
-        // Перевіряємо, чи рухається юніт (величина вектора швидкості)
-        bool isMoving = rb.linearVelocity.magnitude > velocityThreshold;
-
-        // Вмикаємо/вимикаємо потік частинок
-        if (isMoving && !emission.enabled)
+        if (anim != null && dustParticles != null)
         {
-            emission.enabled = true;
-        }
-        else if (!isMoving && emission.enabled)
-        {
-            emission.enabled = false;
+            bool isMoving = anim.GetBool("IsMoving");
+            
+            // ЄДИНИЙ ПРАВИЛЬНИЙ СПОСІБ вмикати частинки в Unity:
+            var emission = dustParticles.emission;
+            emission.enabled = isMoving;
         }
     }
 }
