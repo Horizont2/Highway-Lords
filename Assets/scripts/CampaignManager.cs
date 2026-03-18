@@ -3,7 +3,7 @@ using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using TMPro;
 using System.Collections; 
-using System.Collections.Generic;
+using System.Linq;
 
 public class CampaignManager : MonoBehaviour
 {
@@ -13,21 +13,27 @@ public class CampaignManager : MonoBehaviour
     public GameObject mainCampaignPanel; 
     public Transform campaignContentPanel; 
     public GameObject scoutPanel; 
+    public Transform canvasTransform;
 
     [Header("Information Texts")]
     public TMP_Text titleText; 
     public TMP_Text enemyPowerText;
     public TMP_Text goldRewardText, woodRewardText, stoneRewardText;
 
-    [Header("Unit Management (Knight, Archer, Spear, Cav)")]
-    public TMP_Text[] unitCountersTexts; 
-    public Button[] addButtons;
-    public Button[] removeButtons;
-    public TMP_Text[] unitCostTexts;
-    
-    public TMP_Text[] unitDamageTexts; 
-    public TMP_Text[] unitHealthTexts; 
-    public Image[] unitAvatars;        
+    [Header("Smart Scroll Shop (8 Cards)")]
+    // Порядок: 0=Knight, 1=Archer, 2=Spear, 3=Cav, 4=MercKnight, 5=MercArcher, 6=MercSpear, 7=MercCav
+    public GameObject[] shopCardObjects; 
+    public RectTransform[] shopCardRects;
+    public Button[] shopAddButtons; 
+    public TMP_Text[] shopPowerTexts;
+    public TMP_Text[] shopCostTexts;
+    public Sprite[] unitAvatars;
+    public RectTransform scrollContentRect;
+
+    [Header("Legion Slots (9 Slots)")]
+    public Button[] legionSlotButtons; 
+    public Image[] legionSlotImages;
+    public GameObject flyingIconPrefab;
 
     [Header("Bottom UI")]
     public Slider winChanceSlider; 
@@ -36,21 +42,25 @@ public class CampaignManager : MonoBehaviour
     public TMP_Text playerGoldText; 
     public Button attackButton;
     public Button closeButton;
+    public TMP_Text currentLimitDisplay; 
+    public TMP_Text yourPowerText; 
 
     [Header("Limit Upgrades")]
     public Button upgradeLimitBtn;
     public TMP_Text upgradeLimitCostText;
-    public TMP_Text currentLimitDisplay; 
 
     [Header("Scout")]
     public Button openScoutBtn;
     public Button closeScoutBtn;
     public TMP_Text scoutInfoText; 
 
-    private int[] selectedUnits = new int[4];
+    private int[] currentSquadSlots = new int[] { -1, -1, -1, -1, -1, -1, -1, -1, -1 };
+    private int[] squadCosts = new int[8];
+    private int[] squadPowers = new int[8];
+    private int[] selectedUnitsCount = new int[8];
+
     private MapNode currentNode;
-    private int globalMaxLimit = 15; 
-    private int limitUpgradeCost = 1500;
+    private bool isAnimating = false;
 
     void Awake()
     {
@@ -60,78 +70,60 @@ public class CampaignManager : MonoBehaviour
         if (mainCampaignPanel) mainCampaignPanel.SetActive(false);
         if (scoutPanel) scoutPanel.SetActive(false);
 
-        globalMaxLimit = PlayerPrefs.GetInt("CampaignGlobalLimit", 15);
-        UpdateLimitUpgradeCost();
+        // Прив'язка кнопок слотів (для прибирання загону)
+        if (legionSlotButtons != null && legionSlotButtons.Length > 0)
+        {
+            for (int i = 0; i < 9; i++)
+            {
+                if (legionSlotImages != null && i < legionSlotImages.Length && legionSlotImages[i] != null)
+                    legionSlotImages[i].enabled = false;
+                    
+                if (i < legionSlotButtons.Length && legionSlotButtons[i] != null)
+                {
+                    int slotIndex = i; 
+                    legionSlotButtons[i].onClick.RemoveAllListeners();
+                    legionSlotButtons[i].onClick.AddListener(() => RemoveSquadFromSlot(slotIndex));
+                }
+            }
+        }
+
+        // Прив'язка кнопок магазину
+        if (shopAddButtons != null && shopAddButtons.Length > 0)
+        {
+            for (int i = 0; i < shopAddButtons.Length; i++)
+            {
+                int unitIndex = i;
+                if (shopAddButtons[i] != null)
+                {
+                    shopAddButtons[i].onClick.RemoveAllListeners();
+                    shopAddButtons[i].onClick.AddListener(() => AddUnit(unitIndex));
+                }
+            }
+        }
     }
 
     void Start()
     {
-        if (addButtons.Length > 0 && addButtons[0] != null) { addButtons[0].onClick.RemoveAllListeners(); addButtons[0].onClick.AddListener(() => AddUnit(0)); }
-        if (addButtons.Length > 1 && addButtons[1] != null) { addButtons[1].onClick.RemoveAllListeners(); addButtons[1].onClick.AddListener(() => AddUnit(1)); }
-        if (addButtons.Length > 2 && addButtons[2] != null) { addButtons[2].onClick.RemoveAllListeners(); addButtons[2].onClick.AddListener(() => AddUnit(2)); }
-        if (addButtons.Length > 3 && addButtons[3] != null) { addButtons[3].onClick.RemoveAllListeners(); addButtons[3].onClick.AddListener(() => AddUnit(3)); }
-
-        if (removeButtons.Length > 0 && removeButtons[0] != null) { removeButtons[0].onClick.RemoveAllListeners(); removeButtons[0].onClick.AddListener(() => RemoveUnit(0)); }
-        if (removeButtons.Length > 1 && removeButtons[1] != null) { removeButtons[1].onClick.RemoveAllListeners(); removeButtons[1].onClick.AddListener(() => RemoveUnit(1)); }
-        if (removeButtons.Length > 2 && removeButtons[2] != null) { removeButtons[2].onClick.RemoveAllListeners(); removeButtons[2].onClick.AddListener(() => RemoveUnit(2)); }
-        if (removeButtons.Length > 3 && removeButtons[3] != null) { removeButtons[3].onClick.RemoveAllListeners(); removeButtons[3].onClick.AddListener(() => RemoveUnit(3)); }
-
-        if (closeButton) closeButton.onClick.AddListener(ClosePanel);
-        if (attackButton) attackButton.onClick.AddListener(LaunchAttack);
-        
-        if (upgradeLimitBtn) upgradeLimitBtn.onClick.AddListener(UpgradeUnitLimit);
-        if (openScoutBtn) openScoutBtn.onClick.AddListener(OpenScoutPanel);
-        if (closeScoutBtn) closeScoutBtn.onClick.AddListener(CloseScoutPanel);
+        if (closeButton != null) closeButton.onClick.AddListener(ClosePanel);
+        if (attackButton != null) attackButton.onClick.AddListener(LaunchAttack);
+        if (openScoutBtn != null) openScoutBtn.onClick.AddListener(OpenScoutPanel);
+        if (closeScoutBtn != null) closeScoutBtn.onClick.AddListener(CloseScoutPanel);
 
         if (CrossSceneData.isReturningFromBattle)
         {
             CrossSceneData.isReturningFromBattle = false;
-            StartCoroutine(ShowBattleResultDelayed());
         }
-    }
-
-    IEnumerator ShowBattleResultDelayed()
-    {
-        // 1. Оновлюємо резерв армії (як ми робили раніше)
-        if (!CrossSceneData.lastBattleWon)
-        {
-            PlayerPrefs.SetInt("FreeKnights", PlayerPrefs.GetInt("FreeKnights", 0) + CrossSceneData.knightsCount);
-            PlayerPrefs.SetInt("FreeArchers", PlayerPrefs.GetInt("FreeArchers", 0) + CrossSceneData.archersCount);
-            PlayerPrefs.SetInt("FreeSpearmen", PlayerPrefs.GetInt("FreeSpearmen", 0) + CrossSceneData.spearmenCount);
-            PlayerPrefs.SetInt("FreeCavalry", PlayerPrefs.GetInt("FreeCavalry", 0) + CrossSceneData.cavalryCount);
-            PlayerPrefs.Save();
-        }
-
-        // 2. Чекаємо трошки, поки екран завантаження повністю зникне
-        yield return new WaitForSeconds(1.0f);
-
-        // 3. Показуємо анімовану панель
-        if (AnimatedBattleResult.Instance != null)
-        {
-            AnimatedBattleResult.Instance.ShowResult(
-                CrossSceneData.lastBattleWon, 
-                CrossSceneData.rewardGold, 
-                CrossSceneData.rewardWood, 
-                CrossSceneData.rewardStone
-            );
-        }
-        else
-        {
-            Debug.LogWarning("AnimatedBattleResult не знайдено на головній сцені!");
-        }
-        
-        UpdateUI(); // Оновлюємо тексти золота і резерву
     }
 
     public void ResetCampaignLimits()
     {
-        PlayerPrefs.DeleteKey("CampaignGlobalLimit");
-        globalMaxLimit = 15; 
-        for (int i = 0; i < 4; i++) selectedUnits[i] = 0;
-        UpdateLimitUpgradeCost();
+        for (int i = 0; i < 9; i++) currentSquadSlots[i] = -1;
+        if (legionSlotImages != null)
+        {
+            foreach (var img in legionSlotImages) if (img != null) img.enabled = false;
+        }
         UpdateUI();
         if (SoundManager.Instance) SoundManager.Instance.PlaySFX(SoundManager.Instance.clickSound);
-        Debug.Log("Слоти армії та вибір скинуто до 15!");
     }
 
     public void OpenPanel(MapNode node)
@@ -143,16 +135,20 @@ public class CampaignManager : MonoBehaviour
         if (goldRewardText) goldRewardText.text = node.rewardGold.ToString();
         if (woodRewardText) woodRewardText.text = node.rewardWood.ToString();
         if (stoneRewardText) stoneRewardText.text = node.rewardStone.ToString();
+        
+        for (int i = 0; i < 9; i++) currentSquadSlots[i] = -1;
+        if (legionSlotImages != null)
+        {
+            foreach (var img in legionSlotImages) if (img != null) img.enabled = false;
+        }
 
-        for (int i = 0; i < 4; i++) selectedUnits[i] = 0;
-
-        SyncUnitStats(); 
+        CalculateStatsAndPrices();
+        RefreshShopVisibility(); 
         UpdateUI();
         
         if (mainCampaignPanel) 
         {
             mainCampaignPanel.SetActive(true); 
-            
             Transform targetPanel = campaignContentPanel != null ? campaignContentPanel : mainCampaignPanel.transform;
             StartCoroutine(AnimatePanel(targetPanel, true));
         }
@@ -161,7 +157,6 @@ public class CampaignManager : MonoBehaviour
     public void ClosePanel()
     {
         if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.clickSound);
-        
         if (mainCampaignPanel) 
         {
             Transform targetPanel = campaignContentPanel != null ? campaignContentPanel : mainCampaignPanel.transform;
@@ -171,197 +166,261 @@ public class CampaignManager : MonoBehaviour
 
     private IEnumerator AnimatePanel(Transform panel, bool show)
     {
-        float duration = 0.25f;
-        float time = 0f;
-
+        float duration = 0.2f; float time = 0f;
         Vector3 startScale = show ? new Vector3(0.8f, 0.8f, 1f) : Vector3.one;
         Vector3 endScale = show ? Vector3.one : new Vector3(0.8f, 0.8f, 1f);
 
         CanvasGroup cg = panel.GetComponent<CanvasGroup>();
         if (cg == null) cg = panel.gameObject.AddComponent<CanvasGroup>();
 
-        float startAlpha = show ? 0f : 1f;
-        float endAlpha = show ? 1f : 0f;
-
+        float startAlpha = show ? 0f : 1f; float endAlpha = show ? 1f : 0f;
         if (show) panel.localScale = startScale;
 
         while (time < duration)
         {
-            time += Time.unscaledDeltaTime; 
-            float t = time / duration;
-            
-            float ease = show ? (t * t * (3f - 2f * t)) : (t * t); 
-
-            panel.localScale = Vector3.Lerp(startScale, endScale, ease);
+            time += Time.unscaledDeltaTime; float t = time / duration;
+            panel.localScale = Vector3.Lerp(startScale, endScale, t);
             cg.alpha = Mathf.Lerp(startAlpha, endAlpha, t);
-            
             yield return null;
         }
-
-        panel.localScale = endScale;
-        cg.alpha = endAlpha;
-
+        panel.localScale = endScale; cg.alpha = endAlpha;
         if (!show && mainCampaignPanel != null) mainCampaignPanel.SetActive(false);
     }
 
-    void SyncUnitStats()
+    void CalculateStatsAndPrices()
     {
         if (GameManager.Instance == null) return;
 
-        int k_lvl = GameManager.Instance.knightLevel;
-        if (unitDamageTexts.Length > 0 && unitDamageTexts[0]) unitDamageTexts[0].text = (35 + (k_lvl * 7)).ToString(); 
-        if (unitHealthTexts.Length > 0 && unitHealthTexts[0]) unitHealthTexts[0].text = (120 + (k_lvl * 20)).ToString();  
-        if (unitCostTexts.Length > 0 && unitCostTexts[0]) unitCostTexts[0].text = GameManager.Instance.knightFixedCost.ToString();
-        if (unitAvatars.Length > 0 && unitAvatars[0]) unitAvatars[0].color = Color.white;
+        int[] lvls = { GameManager.Instance.knightLevel, GameManager.Instance.archerLevel, GameManager.Instance.spearmanLevel, GameManager.Instance.cavalryLevel };
+        int[] baseDmgs = { 35, 25, 30, 40 };
+        int[] baseHPs = { 120, 60, 90, 150 };
+        int[] baseCosts = { 250, 375, 300, 600 }; 
+        int[] costPerLevel = { 10, 15, 10, 25 }; 
 
-        int a_lvl = GameManager.Instance.archerLevel;
-        if (unitDamageTexts.Length > 1 && unitDamageTexts[1]) unitDamageTexts[1].text = (25 + (a_lvl * 5)).ToString();
-        if (unitHealthTexts.Length > 1 && unitHealthTexts[1]) unitHealthTexts[1].text = (60 + (a_lvl * 10)).ToString();
-        if (unitCostTexts.Length > 1 && unitCostTexts[1]) unitCostTexts[1].text = GameManager.Instance.archerFixedCost.ToString();
-        if (unitAvatars.Length > 1 && unitAvatars[1]) unitAvatars[1].color = Color.white;
-
-        if (GameManager.Instance.isSpearmanUnlocked)
+        for (int i = 0; i < 4; i++)
         {
-            int s_lvl = GameManager.Instance.spearmanLevel;
-            if (unitDamageTexts.Length > 2 && unitDamageTexts[2]) unitDamageTexts[2].text = (30 + (s_lvl * 6)).ToString();
-            if (unitHealthTexts.Length > 2 && unitHealthTexts[2]) unitHealthTexts[2].text = (90 + (s_lvl * 15)).ToString();
-            if (unitCostTexts.Length > 2 && unitCostTexts[2]) unitCostTexts[2].text = GameManager.Instance.spearmanFixedCost.ToString();
-            if (unitAvatars.Length > 2 && unitAvatars[2]) unitAvatars[2].color = Color.white;
-        }
-        else
-        {
-            if (unitDamageTexts.Length > 2 && unitDamageTexts[2]) unitDamageTexts[2].text = "-";
-            if (unitHealthTexts.Length > 2 && unitHealthTexts[2]) unitHealthTexts[2].text = "-";
-            if (unitCostTexts.Length > 2 && unitCostTexts[2]) unitCostTexts[2].text = "-";
-            if (unitAvatars.Length > 2 && unitAvatars[2]) unitAvatars[2].color = Color.black; 
+            int currentDmg = baseDmgs[i] + (lvls[i] * 7);
+            int currentHp = baseHPs[i] + (lvls[i] * 20);
+            
+            squadPowers[i] = currentDmg + Mathf.RoundToInt(currentHp * 0.2f); 
+            squadCosts[i] = baseCosts[i] + ((lvls[i] - 1) * costPerLevel[i]);
         }
 
-        bool cavUnlocked = GameManager.Instance.isCavalryUnlocked && GameManager.Instance.barracksLevel >= 3;
-        if (cavUnlocked)
+        int cityBonus = (currentNode != null) ? currentNode.campLevel * 15 : 0;
+        for (int i = 4; i < 8; i++)
         {
-            int c_lvl = GameManager.Instance.cavalryLevel;
-            if (unitDamageTexts.Length > 3 && unitDamageTexts[3]) unitDamageTexts[3].text = (40 + (c_lvl * 8)).ToString();
-            if (unitHealthTexts.Length > 3 && unitHealthTexts[3]) unitHealthTexts[3].text = (150 + (c_lvl * 25)).ToString();
-            if (unitCostTexts.Length > 3 && unitCostTexts[3]) unitCostTexts[3].text = GameManager.Instance.cavalryFixedCost.ToString();
-            if (unitAvatars.Length > 3 && unitAvatars[3]) unitAvatars[3].color = Color.white;
+            squadPowers[i] = 120 + cityBonus;
+            squadCosts[i] = 0;
         }
-        else
+
+        if (shopPowerTexts != null)
         {
-            if (unitDamageTexts.Length > 3 && unitDamageTexts[3]) unitDamageTexts[3].text = "-";
-            if (unitHealthTexts.Length > 3 && unitHealthTexts[3]) unitHealthTexts[3].text = "-";
-            if (unitCostTexts.Length > 3 && unitCostTexts[3]) unitCostTexts[3].text = "-";
-            if (unitAvatars.Length > 3 && unitAvatars[3]) unitAvatars[3].color = Color.black;
+            for (int i = 0; i < 8; i++)
+            {
+                if (i < shopPowerTexts.Length && shopPowerTexts[i] != null) 
+                    shopPowerTexts[i].text = $"POWER: {squadPowers[i]}";
+            }
         }
     }
 
-    int GetTotalSelectedUnits() { return selectedUnits[0] + selectedUnits[1] + selectedUnits[2] + selectedUnits[3]; }
-
-    void AddUnit(int index)
+    void RefreshShopVisibility()
     {
-        if (GameManager.Instance != null)
+        if (GameManager.Instance == null || shopCardObjects == null || shopCardObjects.Length == 0) return;
+
+        bool[] shouldBeVisible = new bool[8];
+        shouldBeVisible[0] = true; 
+        shouldBeVisible[1] = true; 
+        shouldBeVisible[2] = GameManager.Instance.isSpearmanUnlocked;
+        shouldBeVisible[3] = GameManager.Instance.isCavalryUnlocked && GameManager.Instance.barracksLevel >= 3;
+        shouldBeVisible[4] = PlayerPrefs.GetInt("Merc_Knight_Battles", 0) > 0;
+        shouldBeVisible[5] = PlayerPrefs.GetInt("Merc_Archer_Battles", 0) > 0;
+        shouldBeVisible[6] = PlayerPrefs.GetInt("Merc_Spearman_Battles", 0) > 0;
+        shouldBeVisible[7] = PlayerPrefs.GetInt("Merc_Cavalry_Battles", 0) > 0;
+
+        // ФІКС: Якщо юніт вже є в БУДЬ-ЯКОМУ слоті, ми ховаємо його з магазину!
+        // Більше неможливо взяти 9 загонів однакового типу.
+        for (int i = 0; i < 9; i++)
         {
-            if (index == 2 && !GameManager.Instance.isSpearmanUnlocked) { PlayError(); return; }
-            if (index == 3 && (!GameManager.Instance.isCavalryUnlocked || GameManager.Instance.barracksLevel < 3)) { PlayError(); return; }
+            if (currentSquadSlots[i] != -1 && currentSquadSlots[i] < 8)
+            {
+                shouldBeVisible[currentSquadSlots[i]] = false; 
+            }
         }
 
-        if (GetTotalSelectedUnits() < globalMaxLimit)
+        for (int i = 0; i < 8; i++)
         {
-            selectedUnits[index]++;
-            if (SoundManager.Instance) SoundManager.Instance.PlaySFX(SoundManager.Instance.clickSound);
-            UpdateUI();
+            if (i < shopCardObjects.Length && shopCardObjects[i] != null)
+            {
+                shopCardObjects[i].SetActive(shouldBeVisible[i]);
+            }
+        }
+
+        if (scrollContentRect != null) LayoutRebuilder.ForceRebuildLayoutImmediate(scrollContentRect);
+    }
+
+    int GetTotalSelectedSquads()
+    {
+        int count = 0;
+        for (int i = 0; i < 9; i++) if (currentSquadSlots[i] != -1) count++;
+        return count;
+    }
+
+    void AddUnit(int unitIndex)
+    {
+        if (isAnimating) return;
+
+        if (GetTotalSelectedSquads() < 9)
+        {
+            int emptySlotIndex = -1;
+            for (int i = 0; i < 9; i++) { if (currentSquadSlots[i] == -1) { emptySlotIndex = i; break; } }
+
+            if (emptySlotIndex != -1)
+            {
+                if (SoundManager.Instance) SoundManager.Instance.PlaySFX(SoundManager.Instance.clickSound);
+                StartCoroutine(AnimateSquadToSlot(unitIndex, emptySlotIndex, false));
+            }
         }
         else PlayError();
     }
 
-    void RemoveUnit(int index)
+    void RemoveSquadFromSlot(int slotIndex)
     {
-        if (selectedUnits[index] > 0)
+        if (isAnimating || currentSquadSlots[slotIndex] == -1) return;
+
+        int unitIndex = currentSquadSlots[slotIndex];
+        if (SoundManager.Instance) SoundManager.Instance.PlaySFX(SoundManager.Instance.clickSound);
+        
+        StartCoroutine(AnimateSquadToSlot(unitIndex, slotIndex, true));
+    }
+
+    IEnumerator AnimateSquadToSlot(int unitIndex, int slotIndex, bool isRemoving)
+    {
+        isAnimating = true;
+
+        Vector3 startPos = canvasTransform != null ? canvasTransform.position : Vector3.zero;
+        Vector3 endPos = startPos;
+
+        if (isRemoving)
         {
-            selectedUnits[index]--;
-            if (SoundManager.Instance) SoundManager.Instance.PlaySFX(SoundManager.Instance.clickSound);
-            UpdateUI();
+            currentSquadSlots[slotIndex] = -1;
+            if (legionSlotImages != null && slotIndex < legionSlotImages.Length && legionSlotImages[slotIndex] != null) 
+                legionSlotImages[slotIndex].enabled = false;
+            
+            RefreshShopVisibility(); 
         }
+
+        if (legionSlotButtons != null && slotIndex < legionSlotButtons.Length && legionSlotButtons[slotIndex] != null)
+        {
+            if (isRemoving) startPos = legionSlotButtons[slotIndex].transform.position;
+            else endPos = legionSlotButtons[slotIndex].transform.position;
+        }
+
+        if (shopCardRects != null && unitIndex < shopCardRects.Length && shopCardRects[unitIndex] != null)
+        {
+            if (isRemoving) endPos = shopCardRects[unitIndex].position;
+            else startPos = shopCardRects[unitIndex].position;
+        }
+
+        GameObject flyingIcon = null;
+        if (flyingIconPrefab != null && canvasTransform != null)
+        {
+            flyingIcon = Instantiate(flyingIconPrefab, canvasTransform);
+            
+            RectTransform flyRect = flyingIcon.GetComponent<RectTransform>();
+            if (flyRect != null) flyRect.sizeDelta = new Vector2(90f, 90f); 
+            flyingIcon.transform.localScale = Vector3.one; 
+            
+            Image flyImg = flyingIcon.GetComponent<Image>();
+            if (unitAvatars != null && unitIndex < unitAvatars.Length && unitAvatars[unitIndex] != null) 
+            {
+                flyImg.sprite = unitAvatars[unitIndex];
+            }
+            flyingIcon.transform.position = startPos;
+        }
+
+        if (!isRemoving)
+        {
+            currentSquadSlots[slotIndex] = unitIndex; 
+            RefreshShopVisibility();
+        }
+
+        if (flyingIcon != null)
+        {
+            float duration = 0.25f;
+            float elapsed = 0f;
+
+            while (elapsed < duration)
+            {
+                elapsed += Time.unscaledDeltaTime;
+                if (flyingIcon != null)
+                    flyingIcon.transform.position = Vector3.Lerp(startPos, endPos, elapsed / duration);
+                yield return null;
+            }
+            if (flyingIcon != null) Destroy(flyingIcon);
+        }
+
+        if (!isRemoving)
+        {
+            if (legionSlotImages != null && slotIndex < legionSlotImages.Length && legionSlotImages[slotIndex] != null)
+            {
+                if (unitAvatars != null && unitIndex < unitAvatars.Length && unitAvatars[unitIndex] != null)
+                {
+                    legionSlotImages[slotIndex].sprite = unitAvatars[unitIndex];
+                    legionSlotImages[slotIndex].enabled = true;
+                    legionSlotImages[slotIndex].color = Color.white;
+                }
+            }
+        }
+
+        isAnimating = false; 
+        UpdateUI(); 
     }
 
     void UpdateUI()
     {
-        int totalUnits = GetTotalSelectedUnits();
+        int totalSquads = GetTotalSelectedSquads();
 
-        if (currentLimitDisplay) currentLimitDisplay.text = $"GLOBAL LIMIT: {totalUnits} / <color=#44FF44>{globalMaxLimit}</color>";
+        if (currentLimitDisplay) currentLimitDisplay.text = $"SQUADS: {totalSquads} / <color=#44FF44>9</color>";
 
         if (playerGoldText != null && GameManager.Instance != null)
             playerGoldText.text = "YOUR GOLD: " + GameManager.Instance.gold.ToString();
 
+        for (int i = 0; i < 8; i++) selectedUnitsCount[i] = 0;
+        for (int i = 0; i < 9; i++) { if (currentSquadSlots[i] != -1 && currentSquadSlots[i] < 8) selectedUnitsCount[currentSquadSlots[i]]++; }
+
         int totalCost = 0;
-        if (GameManager.Instance != null)
+        int totalPower = 0;
+
+        for (int i = 0; i < 4; i++) 
         {
-            totalCost += selectedUnits[0] * GameManager.Instance.knightFixedCost;
-            totalCost += selectedUnits[1] * GameManager.Instance.archerFixedCost;
-            totalCost += selectedUnits[2] * GameManager.Instance.spearmanFixedCost;
-            totalCost += selectedUnits[3] * GameManager.Instance.cavalryFixedCost;
-        }
+            string prefsKey = (i == 0) ? "FreeKnights" : (i == 1) ? "FreeArchers" : (i == 2) ? "FreeSpearmen" : "FreeCavalry";
+            int freeSquads = PlayerPrefs.GetInt(prefsKey, 0) / 5;
+            int squadsToBuy = Mathf.Max(0, selectedUnitsCount[i] - freeSquads);
+            totalCost += squadsToBuy * squadCosts[i];
 
-        for (int i = 0; i < 4; i++)
-        {
-            bool isLocked = false;
-            if (i == 2 && (GameManager.Instance == null || !GameManager.Instance.isSpearmanUnlocked)) isLocked = true;
-            if (i == 3 && (GameManager.Instance == null || !GameManager.Instance.isCavalryUnlocked || GameManager.Instance.barracksLevel < 3)) isLocked = true;
-
-            if (unitCountersTexts.Length > i && unitCountersTexts[i] != null)
+            if (shopCostTexts != null && i < shopCostTexts.Length && shopCostTexts[i] != null)
             {
-                unitCountersTexts[i].text = isLocked ? "-" : selectedUnits[i].ToString();
-            }
-
-            if (removeButtons.Length > i && removeButtons[i] != null)
-            {
-                bool canRemove = (!isLocked && selectedUnits[i] > 0);
-                
-                removeButtons[i].interactable = canRemove;
-
-                CanvasGroup cg = removeButtons[i].GetComponent<CanvasGroup>();
-                if (cg == null) cg = removeButtons[i].gameObject.AddComponent<CanvasGroup>();
-                
-                cg.alpha = canRemove ? 1f : 0.4f; 
-                cg.blocksRaycasts = canRemove;    
-                cg.interactable = canRemove;
+                if (freeSquads > 0) shopCostTexts[i].text = $"<color=#44FF44>FREE ({freeSquads})</color>\n{squadCosts[i]}G";
+                else shopCostTexts[i].text = $"{squadCosts[i]}G";
             }
         }
 
-        if (totalCostText) totalCostText.text = "TOTAL COST: " + totalCost.ToString();
+        for (int i = 4; i < 8; i++)
+        {
+            if (shopCostTexts != null && i < shopCostTexts.Length && shopCostTexts[i] != null)
+                shopCostTexts[i].text = "<color=#FFAAA>MERCENARY</color>";
+        }
 
-        bool canAfford = GameManager.Instance != null && GameManager.Instance.gold >= totalCost;
-        bool hasArmy = totalUnits > 0;
-        
-        if (attackButton) attackButton.interactable = canAfford && hasArmy;
+        for (int i = 0; i < 9; i++)
+        {
+            if (currentSquadSlots[i] != -1 && currentSquadSlots[i] < 8) totalPower += squadPowers[currentSquadSlots[i]];
+        }
 
-        UpdateWinChanceSlider();
-        UpdateButtonStates(canAfford, totalCost);
-    }
+        if (totalCostText) totalCostText.text = "TOTAL COST: " + totalCost.ToString() + "G";
+        if (yourPowerText) yourPowerText.text = "Your Power: " + totalPower.ToString();
 
-    void UpdateButtonStates(bool canAfford, int totalCost)
-    {
-        if (GameManager.Instance == null) return;
-        int currentGold = GameManager.Instance.gold;
-        int totalUnits = GetTotalSelectedUnits();
-        bool limitNotReached = totalUnits < globalMaxLimit;
-
-        if (addButtons.Length > 0 && addButtons[0] != null) addButtons[0].interactable = (currentGold >= totalCost + GameManager.Instance.knightFixedCost) && limitNotReached;
-        if (addButtons.Length > 1 && addButtons[1] != null) addButtons[1].interactable = (currentGold >= totalCost + GameManager.Instance.archerFixedCost) && limitNotReached;
-        if (addButtons.Length > 2 && addButtons[2] != null) addButtons[2].interactable = (currentGold >= totalCost + GameManager.Instance.spearmanFixedCost) && limitNotReached && GameManager.Instance.isSpearmanUnlocked;
-        if (addButtons.Length > 3 && addButtons[3] != null) addButtons[3].interactable = (currentGold >= totalCost + GameManager.Instance.cavalryFixedCost) && limitNotReached && GameManager.Instance.isCavalryUnlocked && GameManager.Instance.barracksLevel >= 3;
-    }
-
-    void UpdateWinChanceSlider()
-    {
-        if (currentNode == null || GameManager.Instance == null) return;
-
-        float playerPower = 0;
-        playerPower += selectedUnits[0] * (1f + Mathf.Max(0, GameManager.Instance.knightLevel - 1) * 0.4f);
-        playerPower += selectedUnits[1] * (1f + Mathf.Max(0, GameManager.Instance.archerLevel - 1) * 0.4f);
-        playerPower += selectedUnits[2] * (1f + Mathf.Max(0, GameManager.Instance.spearmanLevel - 1) * 0.4f);
-        playerPower += selectedUnits[3] * (1f + Mathf.Max(0, GameManager.Instance.cavalryLevel - 1) * 0.4f);
-
-        float ratio = playerPower / Mathf.Max(1f, currentNode.enemyPowerScore);
+        float enemyPowerAdjusted = (currentNode != null) ? currentNode.enemyPowerScore : 1f;
+        float ratio = (float)totalPower / Mathf.Max(1f, enemyPowerAdjusted);
 
         if (winChanceSlider)
         {
@@ -372,14 +431,47 @@ public class CampaignManager : MonoBehaviour
 
         if (winChanceLabel)
         {
-            if (ratio < 0.7f) { winChanceLabel.text = "<color=#FF4444>LOW</color>"; }
-            else if (ratio < 1.3f) { winChanceLabel.text = "<color=#FFDD44>MEDIUM</color>"; }
-            else { winChanceLabel.text = "<color=#44FF44>HIGH</color>"; }
+            string prefix = "WIN CHANCE: ";
+            if (ratio < 0.7f) { winChanceLabel.text = prefix + "<color=#FF4444>LOW</color>"; }
+            else if (ratio < 1.3f) { winChanceLabel.text = prefix + "<color=#FFDD44>MEDIUM</color>"; }
+            else { winChanceLabel.text = prefix + "<color=#44FF44>HIGH</color>"; }
+        }
+
+        bool canAfford = GameManager.Instance != null && GameManager.Instance.gold >= totalCost;
+        if (attackButton) attackButton.interactable = canAfford && totalSquads > 0 && !isAnimating;
+
+        UpdateButtonStates(totalCost);
+    }
+
+    void UpdateButtonStates(int totalCost)
+    {
+        if (GameManager.Instance == null || shopAddButtons == null) return;
+        int currentGold = GameManager.Instance.gold;
+        
+        bool limitNotReached = GetTotalSelectedSquads() < 9; 
+
+        for (int i = 0; i < 4; i++) 
+        {
+            if (i < shopAddButtons.Length && shopAddButtons[i] != null)
+            {
+                string prefsKey = (i == 0) ? "FreeKnights" : (i == 1) ? "FreeArchers" : (i == 2) ? "FreeSpearmen" : "FreeCavalry";
+                int freeSquads = PlayerPrefs.GetInt(prefsKey, 0) / 5;
+                bool canAfford = (selectedUnitsCount[i] < freeSquads) || (currentGold >= totalCost + squadCosts[i]);
+                shopAddButtons[i].interactable = limitNotReached && canAfford && !isAnimating;
+            }
+        }
+
+        for (int i = 4; i < 8; i++) 
+        {
+            if (i < shopAddButtons.Length && shopAddButtons[i] != null)
+            {
+                shopAddButtons[i].interactable = limitNotReached && !isAnimating;
+            }
         }
     }
 
-    void OpenScoutPanel()
-    {
+    void OpenScoutPanel() 
+    { 
         if (currentNode == null) return;
         if (SoundManager.Instance) SoundManager.Instance.PlaySFX(SoundManager.Instance.clickSound);
 
@@ -393,63 +485,54 @@ public class CampaignManager : MonoBehaviour
         }
         if (scoutPanel) scoutPanel.SetActive(true);
     }
-
-    void CloseScoutPanel()
-    {
+    
+    void CloseScoutPanel() 
+    { 
         if (SoundManager.Instance) SoundManager.Instance.PlaySFX(SoundManager.Instance.clickSound);
         if (scoutPanel) scoutPanel.SetActive(false);
     }
-
-    void UpdateLimitUpgradeCost()
-    {
-        limitUpgradeCost = 1500 + ((globalMaxLimit - 15) / 5 * 500);
-        if (upgradeLimitCostText) upgradeLimitCostText.text = limitUpgradeCost.ToString();
-    }
-
-    void UpgradeUnitLimit()
-    {
-        if (GameManager.Instance != null && GameManager.Instance.gold >= limitUpgradeCost)
-        {
-            GameManager.Instance.gold -= limitUpgradeCost;
-            globalMaxLimit += 5;
-            
-            PlayerPrefs.SetInt("CampaignGlobalLimit", globalMaxLimit);
-            PlayerPrefs.Save();
-
-            if (SoundManager.Instance) SoundManager.Instance.PlaySFX(SoundManager.Instance.unitUpgradeSound);
-            
-            UpdateLimitUpgradeCost();
-            UpdateUI();
-        }
-        else PlayError();
-    }
+    
+    void UpgradeUnitLimit() { PlayError(); }
 
     void LaunchAttack()
     {
         if (GameManager.Instance == null || currentNode == null) return;
 
-        int totalCost = (selectedUnits[0] * GameManager.Instance.knightFixedCost) +
-                        (selectedUnits[1] * GameManager.Instance.archerFixedCost) +
-                        (selectedUnits[2] * GameManager.Instance.spearmanFixedCost) +
-                        (selectedUnits[3] * GameManager.Instance.cavalryFixedCost);
+        int totalCost = 0;
+        for (int i = 0; i < 4; i++) 
+        {
+            string prefsKey = (i == 0) ? "FreeKnights" : (i == 1) ? "FreeArchers" : (i == 2) ? "FreeSpearmen" : "FreeCavalry";
+            int freeSquads = PlayerPrefs.GetInt(prefsKey, 0) / 5;
+            int squadsToBuy = Mathf.Max(0, selectedUnitsCount[i] - freeSquads);
+            totalCost += squadsToBuy * squadCosts[i];
+        }
+
+        PlayerPrefs.SetInt("FreeKnights", Mathf.Max(0, PlayerPrefs.GetInt("FreeKnights", 0) - (selectedUnitsCount[0] * 5)));
+        PlayerPrefs.SetInt("FreeArchers", Mathf.Max(0, PlayerPrefs.GetInt("FreeArchers", 0) - (selectedUnitsCount[1] * 5)));
+        PlayerPrefs.SetInt("FreeSpearmen", Mathf.Max(0, PlayerPrefs.GetInt("FreeSpearmen", 0) - (selectedUnitsCount[2] * 5)));
+        PlayerPrefs.SetInt("FreeCavalry", Mathf.Max(0, PlayerPrefs.GetInt("FreeCavalry", 0) - (selectedUnitsCount[3] * 5)));
 
         GameManager.Instance.gold -= totalCost;
         GameManager.Instance.SaveGame(); 
         
-        CrossSceneData.knightsCount = selectedUnits[0];
-        CrossSceneData.archersCount = selectedUnits[1];
-        CrossSceneData.spearmenCount = selectedUnits[2];
-        CrossSceneData.cavalryCount = selectedUnits[3];
+        CrossSceneData.knightsCount = selectedUnitsCount[0] * 5;
+        CrossSceneData.archersCount = selectedUnitsCount[1] * 5;
+        CrossSceneData.spearmenCount = selectedUnitsCount[2] * 5;
+        CrossSceneData.cavalryCount = selectedUnitsCount[3] * 5;
+
+        CrossSceneData.useMercKnights = currentSquadSlots.Contains(4);
+        CrossSceneData.useMercArchers = currentSquadSlots.Contains(5);
+        CrossSceneData.useMercSpearmen = currentSquadSlots.Contains(6);
+        CrossSceneData.useMercCavalry = currentSquadSlots.Contains(7);
+
+        CrossSceneData.squadSlots = (int[])currentSquadSlots.Clone();
 
         if (GameManager.Instance.knightSkins != null && GameManager.Instance.knightSkins.Length > 0)
             CrossSceneData.knightSkin = GameManager.Instance.knightSkins[Mathf.Clamp(GameManager.Instance.knightLevel, 0, GameManager.Instance.knightSkins.Length - 1)];
-
         if (GameManager.Instance.archerSkins != null && GameManager.Instance.archerSkins.Length > 0)
             CrossSceneData.archerSkin = GameManager.Instance.archerSkins[Mathf.Clamp(GameManager.Instance.archerLevel, 0, GameManager.Instance.archerSkins.Length - 1)];
-
         if (GameManager.Instance.spearmanSkins != null && GameManager.Instance.spearmanSkins.Length > 0)
             CrossSceneData.spearmanSkin = GameManager.Instance.spearmanSkins[Mathf.Clamp(GameManager.Instance.spearmanLevel, 0, GameManager.Instance.spearmanSkins.Length - 1)];
-
         if (GameManager.Instance.cavalrySkins != null && GameManager.Instance.cavalrySkins.Length > 0)
             CrossSceneData.cavalrySkin = GameManager.Instance.cavalrySkins[Mathf.Clamp(GameManager.Instance.cavalryLevel, 0, GameManager.Instance.cavalrySkins.Length - 1)];
 
@@ -469,20 +552,9 @@ public class CampaignManager : MonoBehaviour
 
         if (SoundManager.Instance) SoundManager.Instance.PlaySFX(SoundManager.Instance.waveStart);
         
-        // ФІКС: Шукаємо LoadingManager навіть якщо ти його вимкнув в Інспекторі!
-        LoadingManager lm = LoadingManager.Instance;
-        if (lm == null)
-        {
-            LoadingManager[] foundManagers = Resources.FindObjectsOfTypeAll<LoadingManager>();
-            if (foundManagers.Length > 0)
-            {
-                lm = foundManagers[0];
-                lm.gameObject.SetActive(true); // Вмикаємо його!
-            }
-        }
-
-        if (lm != null) lm.LoadScene("SiegeBattleScene");
-        else SceneManager.LoadScene("SiegeBattleScene"); // Запасний варіант
+        LoadingManager lm = Object.FindFirstObjectByType<LoadingManager>(FindObjectsInactive.Include);
+        if (lm != null) { lm.gameObject.SetActive(true); lm.LoadScene("SiegeBattleScene"); }
+        else SceneManager.LoadScene("SiegeBattleScene"); 
     }
 
     void PlayError() { if (SoundManager.Instance) SoundManager.Instance.PlaySFX(SoundManager.Instance.error); }

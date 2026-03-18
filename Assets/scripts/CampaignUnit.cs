@@ -112,7 +112,8 @@ public class CampaignUnit : MonoBehaviour
         {
             if (!isEnemy)
             {
-                transform.position += Vector3.left * (originalMoveSpeed * 2.5f) * Time.deltaTime;
+                // ШВИДКІСТЬ ВІДСТУПУ (x1.8 від звичайної швидкості - це швидкий біг, але не телепортація)
+                transform.position += Vector3.left * (originalMoveSpeed * 1.8f) * Time.deltaTime;
                 if (anim) anim.SetBool("IsMoving", true);
                 FlipTowards(transform.position + Vector3.left);
             }
@@ -127,7 +128,8 @@ public class CampaignUnit : MonoBehaviour
         {
             if (!isEnemy)
             {
-                transform.position += Vector3.right * 1.2f * Time.deltaTime;
+                // МАРШ ТЕПЕР ШВИДШИЙ (2.5)
+                transform.position += Vector3.right * 2.5f * Time.deltaTime;
                 tacticalTargetPos = transform.position; 
                 if (anim) anim.SetBool("IsMoving", true);
                 FlipTowards(transform.position + Vector3.right);

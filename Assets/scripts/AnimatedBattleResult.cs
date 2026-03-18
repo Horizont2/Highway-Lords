@@ -27,22 +27,25 @@ public class AnimatedBattleResult : MonoBehaviour
     void Awake()
     {
         if (Instance == null) Instance = this;
-        else Destroy(gameObject);
+        else if (Instance != this) Destroy(gameObject);
 
         canvasGroup = GetComponent<CanvasGroup>();
 
-        gameObject.SetActive(false); 
         if (victoryPanel) victoryPanel.SetActive(false);
         if (defeatPanel) defeatPanel.SetActive(false);
     }
 
     public void ShowResult(bool isVictory, int gold = 0, int wood = 0, int stone = 0)
     {
-        gameObject.SetActive(true);
+        gameObject.SetActive(true); // Примусово вмикаємо себе
+        
+        // Захист: якщо Awake не встиг відпрацювати через те, що об'єкт був вимкнений
+        if (canvasGroup == null) canvasGroup = GetComponent<CanvasGroup>();
+
         canvasGroup.alpha = 0; 
         transform.localScale = Vector3.one * 0.8f; 
 
-        // Зупиняємо всі попередні анімації, якщо вони ще йшли
+        // Зупиняємо всі попередні анімації
         StopAllCoroutines(); 
 
         if (isVictory)
@@ -99,7 +102,7 @@ public class AnimatedBattleResult : MonoBehaviour
         canvasGroup.alpha = 1f;
     }
 
-    // --- НОВА КОРУТИНА ДЛЯ АВТОМАТИЧНОГО ЗАКРИТТЯ ---
+    // --- АВТОМАТИЧНЕ ЗАКРИТТЯ ПАНЕЛІ ПОРАЗКИ ---
     IEnumerator AutoCloseDefeatCoroutine()
     {
         // 1. Чекаємо заданий час (наприклад, 3 секунди)
@@ -142,16 +145,7 @@ public class AnimatedBattleResult : MonoBehaviour
 
         textElement.text = targetValue.ToString();
     }
-    // --- ТИМЧАСОВІ МЕТОДИ ДЛЯ ТЕСТОВИХ КНОПОК ---
-    public void TestVictory()
-    {
-        // Викликаємо нашу головну функцію і передаємо тестові ресурси
-        ShowResult(true, 1000, 500, 250); 
-    }
 
-    public void TestDefeat()
-    {
-        // Викликаємо поразку (ресурси по нулях)
-        ShowResult(false); 
-    }
+    public void TestVictory() { ShowResult(true, 1000, 500, 250); }
+    public void TestDefeat() { ShowResult(false); }
 }

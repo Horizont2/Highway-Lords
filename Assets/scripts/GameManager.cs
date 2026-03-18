@@ -377,11 +377,14 @@ public class GameManager : MonoBehaviour
     public int gold = 0;
     public int wood = 0;
     public int stone = 0;
+    public int glory = 0; // ДОДАНО: Валюта Слави
 
     [Header("Тексти HUD")]
     public TMP_Text goldText;
     public TMP_Text woodText;
     public TMP_Text stoneText;
+    public TMP_Text gloryText; // ДОДАНО: Текст для Слави
+    public TMP_Text gloryPopupText; // Анімація +X Слави (додай у Інспекторі!)
     public TMP_Text waveText;
     public TMP_Text hirePriceText;
     public TMP_Text limitText;
@@ -436,6 +439,8 @@ public class GameManager : MonoBehaviour
 
     private bool isWaveInProgress = false;
     private float _lastHireTime = 0f;
+    private int killsForGloryCounter = 0;
+    private Vector2 defaultGloryPopupPos; // Початкова позиція попапу // ДОДАНО: Лічильник для розрахунку слави
 
     void Awake()
     {
@@ -455,6 +460,13 @@ public class GameManager : MonoBehaviour
 
     void Start()
     {
+        // Ховаємо попап слави на старті і запам'ятовуємо його місце
+        if (gloryPopupText != null)
+        {
+            defaultGloryPopupPos = gloryPopupText.rectTransform.anchoredPosition;
+            gloryPopupText.gameObject.SetActive(false);
+        }
+
         if (isCampaignBattle) return; 
 
         if (goldText != null)
@@ -875,6 +887,12 @@ public class GameManager : MonoBehaviour
         if (infoPanel != null) infoPanel.SetActive(false);
         if (metaShopPanel != null) metaShopPanel.SetActive(false);
         
+        // ДОДАНО ЗАКРИТТЯ ІНШИХ ВІКОН
+        if (CampaignManager.Instance != null && CampaignManager.Instance.mainCampaignPanel != null)
+            CampaignManager.Instance.mainCampaignPanel.SetActive(false);
+        if (TavernManager.Instance != null && TavernManager.Instance.tavernPanel != null)
+            TavernManager.Instance.CloseTavern();
+        
         if (settingsPanel != null && Time.timeScale != 0) settingsPanel.SetActive(false);
         
         Time.timeScale = 1f;
@@ -885,6 +903,9 @@ public class GameManager : MonoBehaviour
     {
         ToggleWaveHUD(false); 
         TriggerUIFade(true);  
+
+        // ДОДАНО: Бонус Слави за завершення хвилі
+        AddGlory(currentWave * 2);
 
         if (SoundManager.Instance != null) 
         {
@@ -1372,60 +1393,6 @@ public class GameManager : MonoBehaviour
             }
         }
         UpdateUI();
-    }
-
-    public void AddKillProgress(int amount)
-    {
-        currentKills += amount;
-        bool leveledUp = false;
-
-        while (currentKills >= killsToNextGem)
-        {
-            currentKills -= killsToNextGem;
-            gems++;
-            killsToNextGem = Mathf.RoundToInt(killsToNextGem * 1.15f); 
-            leveledUp = true;
-        }
-
-        if (leveledUp && SoundManager.Instance != null && SoundManager.Instance.coinPickup != null)
-        {
-            SoundManager.Instance.PlaySFX(SoundManager.Instance.coinPickup); 
-        }
-
-        UpdateMetaUI();
-    }
-
-    public void UpdateMetaUI()
-    {
-        if (gemsText != null) gemsText.text = gems.ToString();
-        if (topGemsText != null) topGemsText.text = gems.ToString();
-        
-        if (gemProgressBar != null)
-        {
-            gemProgressBar.minValue = 0f; 
-            gemProgressBar.maxValue = killsToNextGem;
-            gemProgressBar.value = currentKills;
-        }
-        if (gemProgressText != null) gemProgressText.text = $"{currentKills} / {killsToNextGem}";
-
-        UpdateMetaSlot(uiFortifiedWalls, metaFortifiedWalls, 10, 5, "Lv " + metaFortifiedWalls, 
-            $"<color=#111111><size=150%><voffset=0.8em><sprite name=\"icon_heart\" tint=1></voffset></size></color> Max HP: +{metaFortifiedWalls * 200} → <color=#008800>+{(metaFortifiedWalls + 1) * 200}</color>", true);
-            
-        UpdateMetaSlot(uiPrecisionBows, metaPrecisionBows, 15, 10, "Lv " + metaPrecisionBows, 
-            $"<color=#111111><size=150%><voffset=0.8em><sprite name=\"icon_sword\" tint=1></voffset></size></color> Arrow DMG: +{metaPrecisionBows * 15}% → <color=#008800>+{(metaPrecisionBows + 1) * 15}%</color>", true);
-            
-        UpdateMetaSlot(uiVolleyBarrage, metaVolleyBarrage, 25, 15, "Lv " + metaVolleyBarrage, 
-            $"<color=#111111><size=150%><voffset=0.8em><sprite name=\"icon_arrows\" tint=1></voffset></size></color> Extra Arrows: +{metaVolleyBarrage} → <color=#008800>+{metaVolleyBarrage + 1}</color>", true);
-            
-        UpdateMetaSlot(uiTrophyBounty, metaTrophyBounty, 10, 5, "Lv " + metaTrophyBounty, 
-            $"<color=#111111><size=150%><voffset=0.8em><sprite name=\"icon_coin\" tint=1></voffset></size></color> Gold Drop: +{metaTrophyBounty * 5}% → <color=#008800>+{(metaTrophyBounty + 1) * 5}%</color>", true);
-            
-        bool isMineUnlocked = (mineLevel > 0 || isMineBuilt);
-        UpdateMetaSlot(uiEfficientCarts, metaEfficientCarts, 15, 10, "Lv " + metaEfficientCarts, 
-            $"<color=#111111><size=150%><voffset=0.8em><sprite name=\"icon_cart\" tint=1></voffset></size></color> Cart Ore: +{metaEfficientCarts * 10}% → <color=#008800>+{(metaEfficientCarts + 1) * 10}%</color>", isMineUnlocked);
-            
-        UpdateMetaSlot(uiMendingMasonry, metaMendingMasonry, 20, 15, "Lv " + metaMendingMasonry, 
-            $"<color=#111111><size=150%><voffset=0.8em><sprite name=\"icon_heart\" tint=1></voffset></size></color> HP Regen: {metaMendingMasonry}%/s → <color=#008800>{metaMendingMasonry + 1}%/s</color>", true);
     }
 
     void UpdateMetaSlot(MetaSkillUI ui, int currentLevel, int baseCost, int costPerLevel, string lvlStr, string descStr, bool isUnlocked)
@@ -2400,9 +2367,15 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    // Динамічні ціни (кожен рівень додає +10-20 золота до вартості найму)
+    public int GetCurrentKnightCost() { return knightFixedCost + ((knightLevel - 1) * 10); }
+    public int GetCurrentArcherCost() { return archerFixedCost + ((archerLevel - 1) * 12); }
+    public int GetCurrentSpearmanCost() { return spearmanFixedCost + ((spearmanLevel - 1) * 10); }
+    public int GetCurrentCavalryCost() { return cavalryFixedCost + ((cavalryLevel - 1) * 20); }
+
     public void HireKnight()
     {
-        GameObject unit = TryHireUnit(knightPrefab, knightFixedCost);
+        GameObject unit = TryHireUnit(knightPrefab, GetCurrentKnightCost());
         if (unit != null)
         {
             activeKnights.Add(unit.GetComponent<Knight>());
@@ -2412,16 +2385,17 @@ public class GameManager : MonoBehaviour
 
     public void HireArcher()
     {
+        int cost = GetCurrentArcherCost();
         if (IsTutorialTarget(hireArcherButton))
         {
-            if (gold < archerFixedCost) 
+            if (gold < cost) 
             {
-                gold = archerFixedCost;
+                gold = cost;
                 UpdateUI(); 
             }
         }
 
-        GameObject unit = TryHireUnit(archerPrefab, archerFixedCost);
+        GameObject unit = TryHireUnit(archerPrefab, cost);
         if (unit != null)
         {
             activeArchers.Add(unit.GetComponent<Archer>());
@@ -2431,7 +2405,7 @@ public class GameManager : MonoBehaviour
 
     public void HireSpearman()
     {
-        GameObject unit = TryHireUnit(spearmanPrefab, spearmanFixedCost);
+        GameObject unit = TryHireUnit(spearmanPrefab, GetCurrentSpearmanCost());
         if (unit != null)
         {
             activeSpearmen.Add(unit.GetComponent<Spearman>());
@@ -2441,7 +2415,7 @@ public class GameManager : MonoBehaviour
 
     public void HireCavalry()
     {
-        GameObject unit = TryHireUnit(cavalryPrefab, cavalryFixedCost);
+        GameObject unit = TryHireUnit(cavalryPrefab, GetCurrentCavalryCost());
         if (unit != null)
         {
             activeCavalry.Add(unit.GetComponent<Cavalry>());
@@ -2758,6 +2732,7 @@ public class GameManager : MonoBehaviour
     public void SaveGame()
     {
         PlayerPrefs.SetInt("SavedGold", gold);
+        PlayerPrefs.SetInt("PlayerGlory", glory); // ДОДАНО: ЗБЕРЕЖЕННЯ СЛАВИ
         PlayerPrefs.SetInt("SavedWood", wood);
         PlayerPrefs.SetInt("SavedStone", stone);
         PlayerPrefs.SetInt("SavedWave", currentWave);
@@ -2858,6 +2833,7 @@ public class GameManager : MonoBehaviour
     public void LoadGame()
     {
         gold = PlayerPrefs.GetInt("SavedGold", 100); 
+        glory = PlayerPrefs.GetInt("PlayerGlory", 0); // ДОДАНО: ЗАВАНТАЖЕННЯ СЛАВИ
         wood = PlayerPrefs.GetInt("SavedWood", 0);
         stone = PlayerPrefs.GetInt("SavedStone", 0);
         currentWave = PlayerPrefs.GetInt("SavedWave", 1);
@@ -2919,8 +2895,6 @@ public class GameManager : MonoBehaviour
         spearmanFixedCost = 60;
         cavalryFixedCost = 120; 
 
-        // ФІКС: Юніти спавняться ТІЛЬКИ на основній базі
-        // ФІКС: Юніти спавняться ТІЛЬКИ на основній базі
         // ФІКС: Юніти спавняться ТІЛЬКИ на основній базі
         if (!isCampaignBattle)
         {
@@ -3016,6 +2990,7 @@ public class GameManager : MonoBehaviour
     {
         PlayerPrefs.DeleteAll();
         gold = 100; 
+        glory = 0; // ДОДАНО ОЧИЩЕННЯ СЛАВИ
         wood = 0;
         stone = 0;
         currentWave = 1;
@@ -3102,6 +3077,7 @@ public class GameManager : MonoBehaviour
         towerStoneCost = GetTowerStoneCost(towerLevel);
 
         if (goldText) goldText.text = gold.ToString();
+        if (gloryText) gloryText.text = glory.ToString(); // ДОДАНО ВІДОБРАЖЕННЯ СЛАВИ
         if (woodText) woodText.text = wood.ToString();
         if (stoneText) stoneText.text = stone.ToString();
         if (waveText) waveText.text = "Wave " + currentWave;
@@ -3110,9 +3086,9 @@ public class GameManager : MonoBehaviour
 
         if (hirePriceText)
         {
-            string spearPrice = isSpearmanUnlocked ? $"{spearmanFixedCost}G" : "LOCKED";
-            string cavPrice = isCavalryUnlocked ? $"{cavalryFixedCost}G" : "LOCKED"; 
-            hirePriceText.text = $"Knight: {knightFixedCost}G\nSpear: {spearPrice}\nArcher: {archerFixedCost}G\nCav: {cavPrice}";
+            string spearPrice = isSpearmanUnlocked ? $"{GetCurrentSpearmanCost()}G" : "LOCKED";
+            string cavPrice = isCavalryUnlocked ? $"{GetCurrentCavalryCost()}G" : "LOCKED"; 
+            hirePriceText.text = $"Knight: {GetCurrentKnightCost()}G\nSpear: {spearPrice}\nArcher: {GetCurrentArcherCost()}G\nCav: {cavPrice}";
         }
 
         UpdateCostUIGroup(towerCostUI, ResourceType.Wood, towerWoodCost, ResourceType.Stone, towerStoneCost);
@@ -3248,10 +3224,10 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        bool canHireKnight = (gold >= knightFixedCost) && (currentUnits < maxUnits);
-        bool canHireArcher = (gold >= archerFixedCost) && (currentUnits < maxUnits);
-        bool canHireSpearman = (gold >= spearmanFixedCost) && (currentUnits < maxUnits);
-        bool canHireCavalry = (gold >= cavalryFixedCost) && (currentUnits < maxUnits); 
+        bool canHireKnight = (gold >= GetCurrentKnightCost()) && (currentUnits < maxUnits);
+        bool canHireArcher = (gold >= GetCurrentArcherCost()) && (currentUnits < maxUnits);
+        bool canHireSpearman = (gold >= GetCurrentSpearmanCost()) && (currentUnits < maxUnits);
+        bool canHireCavalry = (gold >= GetCurrentCavalryCost()) && (currentUnits < maxUnits); 
 
         UpdateButtonState(hireKnightButton, canHireKnight);
         UpdateButtonState(hireArcherButton, canHireArcher);
@@ -3560,5 +3536,120 @@ public class GameManager : MonoBehaviour
         if (metaShopPanel != null && metaShopPanel.activeSelf) return true;
         
         return false;
+    }
+
+    // --- 1. ФІКС: Оновлення ресурсів та Слави ---
+    // --- ФІКС: Нарахування Слави ---
+    // Анімація вилітання Слави
+    private IEnumerator AnimateGloryPopup(int amount)
+    {
+        if (gloryPopupText == null) yield break;
+
+        gloryPopupText.gameObject.SetActive(true);
+        gloryPopupText.text = $"+{amount}";
+        
+        CanvasGroup cg = gloryPopupText.GetComponent<CanvasGroup>();
+        if (cg == null) cg = gloryPopupText.gameObject.AddComponent<CanvasGroup>();
+        
+        RectTransform rt = gloryPopupText.rectTransform;
+        rt.anchoredPosition = defaultGloryPopupPos; 
+        
+        float duration = 1.2f;
+        float elapsed = 0f;
+        
+        while (elapsed < duration)
+        {
+            elapsed += Time.unscaledDeltaTime;
+            float progress = elapsed / duration;
+            
+            rt.anchoredPosition = defaultGloryPopupPos + new Vector2(0, progress * 40f);
+            cg.alpha = 1f - progress;
+            
+            yield return null;
+        }
+        
+        gloryPopupText.gameObject.SetActive(false);
+        rt.anchoredPosition = defaultGloryPopupPos; 
+    }
+
+    public void AddGlory(int amount)
+    {
+        if (amount <= 0) return;
+        glory += amount;
+        PlayerPrefs.SetInt("PlayerGlory", glory);
+        UpdateResourcesUI();
+
+        // Запускаємо анімацію "+X"
+        if (gloryPopupText != null)
+        {
+            StopCoroutine("AnimateGloryPopup"); 
+            StartCoroutine("AnimateGloryPopup", amount);
+        }
+    }
+
+    // --- ФІКС: Оновлення ресурсів (замінено playerGoldText на goldText) ---
+    public void UpdateResourcesUI()
+    {
+        if (goldText) goldText.text = gold.ToString(); 
+        if (gloryText) gloryText.text = glory.ToString();
+        if (woodText) woodText.text = wood.ToString();
+        if (stoneText) stoneText.text = stone.ToString();
+    }
+
+    // --- ФІКС: Нарахування вбивств і конвертація у Славу ---
+    public void AddKillProgress(int amount)
+    {
+        currentKills += amount;
+        killsForGloryCounter += amount;
+
+        // Кожні 5 вбитих ворогів дають 1 Славу
+        if (killsForGloryCounter >= 5)
+        {
+            AddGlory(killsForGloryCounter / 5);
+            killsForGloryCounter %= 5;
+        }
+
+        while (currentKills >= killsToNextGem)
+        {
+            currentKills -= killsToNextGem;
+            gems++;
+            killsToNextGem = Mathf.RoundToInt(killsToNextGem * 1.15f); 
+        }
+
+        UpdateMetaUI();
+    }
+
+    // --- Оновлення вікна мета-навичок ---
+    public void UpdateMetaUI()
+    {
+        if (gemsText != null) gemsText.text = gems.ToString();
+        if (topGemsText != null) topGemsText.text = gems.ToString();
+        
+        if (gemProgressBar != null)
+        {
+            gemProgressBar.minValue = 0f; 
+            gemProgressBar.maxValue = killsToNextGem;
+            gemProgressBar.value = currentKills;
+        }
+        if (gemProgressText != null) gemProgressText.text = $"{currentKills} / {killsToNextGem}";
+
+        UpdateMetaSlot(uiFortifiedWalls, metaFortifiedWalls, 10, 5, "Lv " + metaFortifiedWalls, 
+            $"<color=#111111><size=150%><voffset=0.8em><sprite name=\"icon_heart\" tint=1></voffset></size></color> Max HP: +{metaFortifiedWalls * 200} → <color=#008800>+{(metaFortifiedWalls + 1) * 200}</color>", true);
+            
+        UpdateMetaSlot(uiPrecisionBows, metaPrecisionBows, 15, 10, "Lv " + metaPrecisionBows, 
+            $"<color=#111111><size=150%><voffset=0.8em><sprite name=\"icon_sword\" tint=1></voffset></size></color> Arrow DMG: +{metaPrecisionBows * 15}% → <color=#008800>+{(metaPrecisionBows + 1) * 15}%</color>", true);
+            
+        UpdateMetaSlot(uiVolleyBarrage, metaVolleyBarrage, 25, 15, "Lv " + metaVolleyBarrage, 
+            $"<color=#111111><size=150%><voffset=0.8em><sprite name=\"icon_arrows\" tint=1></voffset></size></color> Extra Arrows: +{metaVolleyBarrage} → <color=#008800>+{metaVolleyBarrage + 1}</color>", true);
+            
+        UpdateMetaSlot(uiTrophyBounty, metaTrophyBounty, 10, 5, "Lv " + metaTrophyBounty, 
+            $"<color=#111111><size=150%><voffset=0.8em><sprite name=\"icon_coin\" tint=1></voffset></size></color> Gold Drop: +{metaTrophyBounty * 5}% → <color=#008800>+{(metaTrophyBounty + 1) * 5}%</color>", true);
+            
+        bool isMineUnlocked = (mineLevel > 0 || isMineBuilt);
+        UpdateMetaSlot(uiEfficientCarts, metaEfficientCarts, 15, 10, "Lv " + metaEfficientCarts, 
+            $"<color=#111111><size=150%><voffset=0.8em><sprite name=\"icon_cart\" tint=1></voffset></size></color> Cart Ore: +{metaEfficientCarts * 10}% → <color=#008800>+{(metaEfficientCarts + 1) * 10}%</color>", isMineUnlocked);
+            
+        UpdateMetaSlot(uiMendingMasonry, metaMendingMasonry, 20, 15, "Lv " + metaMendingMasonry, 
+            $"<color=#111111><size=150%><voffset=0.8em><sprite name=\"icon_heart\" tint=1></voffset></size></color> HP Regen: {metaMendingMasonry}%/s → <color=#008800>{metaMendingMasonry + 1}%/s</color>", true);
     }
 }

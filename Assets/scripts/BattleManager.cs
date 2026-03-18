@@ -6,12 +6,27 @@ using System.Collections.Generic;
 using TMPro;
 using System.Linq;
 
+[System.Serializable]
+public class LegionData
+{
+    public int knights = 0;
+    public int archers = 0;
+    public int spearmen = 0;
+    public int cavalry = 0;
+
+    public int TotalUnits => knights + archers + spearmen + cavalry;
+}
+
 public class BattleManager : MonoBehaviour
 {
     public static BattleManager Instance { get; private set; }
 
     public enum BattleState { Intro, March, TacticalPause, Battle, Retreating, GameOver }
     public BattleState currentState = BattleState.Intro;
+
+    [Header("Параметри Підкріплень")]
+    public int maxLegions = 3; 
+    public int currentLegion = 0;
 
     [Header("UI Битви (HUD)")]
     public TMP_Text locationNameText;
@@ -25,7 +40,7 @@ public class BattleManager : MonoBehaviour
     public Button retreatButton;
     
     public Button[] tacticalUnitButtons; 
-    public TMP_Text[] rowAssignmentTexts; 
+    public Button[] rowButtons; 
 
     [Header("Навички Полководця")]
     public GameObject skillsPanel;
@@ -77,7 +92,6 @@ public class BattleManager : MonoBehaviour
     private int enemiesKilled;
 
     private string highlightedClass = "";
-    
     private List<string> activeClasses = new List<string>();
     private string[] rowAssignments = new string[4];
     private int activeLineCount = 0;
@@ -115,11 +129,8 @@ public class BattleManager : MonoBehaviour
         audioSrc = gameObject.AddComponent<AudioSource>();
         if (SoundManager.Instance != null) SoundManager.Instance.PlayBattleMusic();
 
-        if (GameManager.Instance != null)
-        {
-            isVolleyUnlocked = GameManager.Instance.metaVolleyBarrage > 0;
-            isWarCryUnlocked = GameManager.Instance.knightLevel >= 2 || GameManager.Instance.metaFortifiedWalls > 0; 
-        }
+        isVolleyUnlocked = PlayerPrefs.GetInt("Meta_VolleyBarrage", 0) > 0;
+        isWarCryUnlocked = PlayerPrefs.GetInt("KnightLevel", 1) >= 2 || PlayerPrefs.GetInt("Meta_FortifiedWalls", 0) > 0; 
 
         if (CrossSceneData.knightsCount > 0) activeClasses.Add("Knight");
         if (CrossSceneData.spearmenCount > 0) activeClasses.Add("Spearman");
@@ -131,18 +142,165 @@ public class BattleManager : MonoBehaviour
 
         SetupSkillUI();
         DisableEmptyTacticalButtons();
+
+        Vector3 offScreenStart = playerSpawnPoint.position + new Vector3(-18f, 0, 0);
+        Camera.main.transform.position = new Vector3(offScreenStart.x + 5f, Camera.main.transform.position.y, -10f);
+
+        // Спавн армії бойовими блоками
+        // Спавн ТІЛЬКИ ПЕРШОГО легіону (індекс 0)
+        SpawnLegion(currentLegion, offScreenStart);
         UpdateRowUI(); 
 
-        Vector3 offScreenStart = playerSpawnPoint.position + new Vector3(-15f, 0, 0);
-        Camera.main.transform.position = new Vector3(offScreenStart.x + 5f, Camera.main.transform.position.y, Camera.main.transform.position.z);
-
-        SpawnPlayerArmy(offScreenStart);
         CalculateEnemyPool();
         SpawnEnemyWave(true); 
         
         if (campDefenseProgressBarFill) campDefenseProgressBarFill.fillAmount = 1f;
 
         StartCoroutine(MarchCutscene(offScreenStart));
+    }
+
+    private void SetupSkillUI()
+    {
+        if (volleyButton)
+        {
+            volleyButton.onClick.RemoveAllListeners();
+            volleyButton.onClick.AddListener(OnVolleyClicked);
+            if (volleyLockIcon) volleyLockIcon.SetActive(!isVolleyUnlocked);
+        }
+
+        if (warCryButton)
+        {
+            warCryButton.onClick.RemoveAllListeners();
+            warCryButton.onClick.AddListener(OnWarCryClicked);
+            if (warCryLockIcon) warCryLockIcon.SetActive(!isWarCryUnlocked);
+        }
+    }
+
+    void SpawnLegion(int legionIndex, Vector3 startPos)
+    {
+        float squadSpacingY = 2.5f; // Відстань між загонами по вертикалі
+
+        // Вираховуємо, з якого по який слот читати (Легіон 0: слоти 0,1,2. Легіон 1: слоти 3,4,5)
+        int startIndex = legionIndex * 3;
+        
+        for (int i = startIndex; i < startIndex + 3; i++)
+        {
+            if (i >= 9) break;
+
+            int unitType = CrossSceneData.squadSlots[i];
+            if (unitType == -1) continue;
+
+            int slotInLegion = i % 3;
+
+            float yPos = 0;
+            if (slotInLegion == 0) yPos = 0f;             // ЦЕНТР
+            else if (slotInLegion == 1) yPos = squadSpacingY;  // ВЕРХ
+            else if (slotInLegion == 2) yPos = -squadSpacingY; // НИЗ
+
+            // Всі три загони з'являються на одній лінії (startPos.x)
+            Vector3 squadCenter = startPos + new Vector3(0, yPos, 0);
+            SpawnSquadInFormation(unitType, squadCenter);
+        }
+    }
+
+    void SpawnSquadInFormation(int type, Vector3 centerPos)
+    {
+        GameObject prefab = null;
+        string uClass = "";
+        bool isMerc = type >= 4;
+        bool flip = false;
+        int baseType = type % 4; // 0=Knight, 1=Archer, 2=Spear, 3=Cav
+
+        if (baseType == 0) { prefab = playerKnightPrefab; flip = flipPlayerKnight; uClass = "Knight"; }
+        else if (baseType == 1) { prefab = playerArcherPrefab; flip = flipPlayerArcher; uClass = "Archer"; }
+        else if (baseType == 2) { prefab = playerSpearmanPrefab; flip = flipPlayerSpearman; uClass = "Spearman"; }
+        else if (baseType == 3) { prefab = playerCavalryPrefab; flip = flipPlayerCavalry; uClass = "Cavalry"; }
+
+        if (prefab == null) return;
+
+        int hp = 100; int dmg = 10; bool isRanged = (uClass == "Archer");
+        float speed = 1.9f; 
+        if (uClass == "Spearman") speed = 1.6f; else if (uClass == "Archer") speed = 1.3f; else if (uClass == "Cavalry") speed = 3.2f;
+
+        if (isMerc)
+        {
+            hp = 200; dmg = 45;
+            if (uClass == "Spearman") { speed = 1.8f; hp = 150; dmg = 40; }
+            else if (uClass == "Archer") { speed = 1.5f; hp = 100; dmg = 35; }
+            else if (uClass == "Cavalry") { speed = 3.5f; hp = 250; dmg = 55; }
+        }
+        else
+        {
+            int k_lvl = PlayerPrefs.GetInt("SavedKnightLevel", 1);
+            int a_lvl = PlayerPrefs.GetInt("SavedArcherLevel", 1);
+            int s_lvl = PlayerPrefs.GetInt("SavedSpearmanLevel", 1);
+            int c_lvl = PlayerPrefs.GetInt("SavedCavalryLevel", 1);
+
+            if (uClass == "Knight") { hp = 120 + (k_lvl * 20); dmg = 35 + (k_lvl * 7); }
+            else if (uClass == "Archer") { hp = 60 + (a_lvl * 10); dmg = 25 + (a_lvl * 5); }
+            else if (uClass == "Spearman") { hp = 90 + (s_lvl * 15); dmg = 30 + (s_lvl * 6); }
+            else if (uClass == "Cavalry") { hp = 150 + (c_lvl * 25); dmg = 40 + (c_lvl * 8); }
+        }
+
+        // РОЗУМНИЙ БОЙОВИЙ СТРІЙ: Компактний блок "2 спереду, 3 ззаду" замість лінії
+        Vector3[] formationOffsets = new Vector3[5] {
+            new Vector3( 0.6f,  0.5f, 0), // Передній ряд (верхній)
+            new Vector3( 0.6f, -0.5f, 0), // Передній ряд (нижній)
+            new Vector3(-0.6f,  0.8f, 0), // Задній ряд (верхній)
+            new Vector3(-0.6f,  0.0f, 0), // Задній ряд (центр)
+            new Vector3(-0.6f, -0.8f, 0)  // Задній ряд (нижній)
+        };
+
+        for (int i = 0; i < 5; i++)
+        {
+            Vector3 spawnPos = centerPos + formationOffsets[i];
+            GameObject unitGO = Instantiate(prefab, spawnPos, Quaternion.identity);
+            unitGO.tag = "PlayerUnit"; 
+            
+            MonoBehaviour[] scripts = unitGO.GetComponents<MonoBehaviour>();
+            foreach (var script in scripts) {
+                if (script == null) continue; string sName = script.GetType().Name;
+                if (sName.Contains("Enemy") || sName.Contains("UnitStats") || sName.Contains("Selector") || sName.Contains("Knight") || sName.Contains("Archer") || sName.Contains("Spearman") || sName.Contains("Cavalry") || sName == "CampaignUnit") DestroyImmediate(script); 
+            }
+
+            CampaignUnit newAI = unitGO.AddComponent<CampaignUnit>();
+            newAI.Setup(false, uClass, hp, dmg, speed, isRanged, bloodHitPrefab, flip);
+            if (isMerc) newAI.transform.localScale *= 1.2f; 
+            
+            newAI.tacticalTargetPos = spawnPos; 
+            allUnitsOnField.Add(newAI);
+        }
+    }
+
+    public void SpawnNextLegion()
+    {
+        // Якщо ми вже викликали 3 легіони (індекси 0, 1, 2), то більше немає
+        if (currentLegion >= maxLegions - 1) return; 
+        
+        currentLegion++;
+        if (SoundManager.Instance && warHornSound) audioSrc.PlayOneShot(warHornSound, 1f);
+        
+        Vector3 spawnPos = new Vector3(Camera.main.transform.position.x - 14f, playerSpawnPoint.position.y, 0f);
+        
+        // Викликаємо наступний легіон
+        SpawnLegion(currentLegion, spawnPos);
+        
+        UpdateHUDText(); 
+    }
+
+    public void SpawnMercenaries()
+    {
+        if (SoundManager.Instance && warHornSound) audioSrc.PlayOneShot(warHornSound, 1f);
+
+        // Спавн найманців за екраном, щоб вони гарно виходили
+        Vector3 spawnPos = new Vector3(Camera.main.transform.position.x - 15f, playerSpawnPoint.position.y, 0f);
+
+        if (CrossSceneData.useMercKnights) SpawnSquadInFormation(4, spawnPos + new Vector3(0, 2.5f, 0));
+        if (CrossSceneData.useMercArchers) SpawnSquadInFormation(5, spawnPos);
+        if (CrossSceneData.useMercSpearmen) SpawnSquadInFormation(6, spawnPos + new Vector3(0, -2.5f, 0));
+        if (CrossSceneData.useMercCavalry) SpawnSquadInFormation(7, spawnPos + new Vector3(-3.0f, 0, 0));
+
+        UpdateHUDText();
     }
 
     void DisableEmptyTacticalButtons()
@@ -156,35 +314,50 @@ public class BattleManager : MonoBehaviour
 
     void UpdateRowUI()
     {
-        if (rowAssignmentTexts == null) return;
+        if (rowButtons == null || rowButtons.Length == 0) return;
+        
         for (int i = 0; i < 4; i++)
         {
-            if (rowAssignmentTexts[i] == null) continue;
-            Button rowBtn = rowAssignmentTexts[i].transform.parent.GetComponent<Button>();
-            if (rowBtn == null) continue;
+            if (i >= rowButtons.Length || rowButtons[i] == null) continue;
 
-            if (i >= activeLineCount) rowBtn.gameObject.SetActive(false); 
+            if (i >= activeLineCount) 
+            {
+                rowButtons[i].gameObject.SetActive(false); 
+            }
             else
             {
-                rowBtn.gameObject.SetActive(true);
-                rowAssignmentTexts[i].text = $"Line {i + 1}: {GetClassName(rowAssignments[i])}";
+                rowButtons[i].gameObject.SetActive(true);
+                
+                TMP_Text btnText = rowButtons[i].GetComponentInChildren<TMP_Text>();
+                if (btnText != null)
+                {
+                    btnText.text = $"Line {i + 1}\n{GetClassName(rowAssignments[i])}";
+                }
 
-                if (string.IsNullOrEmpty(highlightedClass)) rowBtn.interactable = false; 
-                else rowBtn.interactable = (rowAssignments[i] != highlightedClass);
+                Image btnImg = rowButtons[i].GetComponent<Image>();
+                if (btnImg != null)
+                {
+                    if (string.IsNullOrEmpty(highlightedClass)) 
+                    {
+                        rowButtons[i].interactable = false; 
+                        btnImg.color = Color.white; 
+                    }
+                    else 
+                    {
+                        if (rowAssignments[i] == highlightedClass)
+                        {
+                            rowButtons[i].interactable = false; 
+                            btnImg.color = new Color(0.3f, 0.3f, 0.3f, 1f); 
+                        }
+                        else
+                        {
+                            rowButtons[i].interactable = true; 
+                            btnImg.color = new Color(0.4f, 1f, 0.4f, 1f); 
+                        }
+                    }
+                }
             }
         }
-    }
-
-    void SetupSkillUI()
-    {
-        if (volleyLockIcon) volleyLockIcon.SetActive(!isVolleyUnlocked);
-        if (warCryLockIcon) warCryLockIcon.SetActive(!isWarCryUnlocked);
-
-        if (volleyButton) { volleyButton.interactable = isVolleyUnlocked; volleyButton.onClick.AddListener(OnVolleyClicked); }
-        if (warCryButton) { warCryButton.interactable = isWarCryUnlocked; warCryButton.onClick.AddListener(OnWarCryClicked); }
-
-        if (volleyCooldownFill) volleyCooldownFill.fillAmount = 0f;
-        if (warCryCooldownFill) warCryCooldownFill.fillAmount = 0f;
     }
 
     public bool IsBattleActive() { return currentState == BattleState.Battle; }
@@ -197,50 +370,27 @@ public class BattleManager : MonoBehaviour
         if (warHornSound && audioSrc) audioSrc.PlayOneShot(warHornSound, 1f);
         yield return new WaitForSeconds(1.0f);
 
-        if (marchingSound && audioSrc)
-        {
-            audioSrc.clip = marchingSound;
-            audioSrc.loop = true;
-            audioSrc.Play();
-        }
+        if (marchingSound && audioSrc) { audioSrc.clip = marchingSound; audioSrc.loop = true; audioSrc.Play(); }
 
         Camera mainCam = Camera.main;
-        Vector3 camStart = new Vector3(startOffset.x + 5f, mainCam.transform.position.y, mainCam.transform.position.z);
-        Vector3 camMid = new Vector3(playerSpawnPoint.position.x, mainCam.transform.position.y, mainCam.transform.position.z); 
-        Vector3 camEnemy = new Vector3(enemySpawnPoint.position.x - 2f, mainCam.transform.position.y, mainCam.transform.position.z); 
-        
-        mainCam.transform.position = camStart;
+        Vector3 camStart = new Vector3(startOffset.x + 5f, mainCam.transform.position.y, -10f);
+        Vector3 camMid = new Vector3(playerSpawnPoint.position.x, mainCam.transform.position.y, -10f); 
+        Vector3 camEnemy = new Vector3(enemySpawnPoint.position.x + 6f, mainCam.transform.position.y, -10f); 
 
         float elapsed = 0f;
-        while (elapsed < 3.0f)
-        {
-            elapsed += Time.deltaTime;
-            mainCam.transform.position = Vector3.Lerp(camStart, camMid, Mathf.SmoothStep(0f, 1f, elapsed / 3.0f));
-            yield return null;
-        }
-
-        elapsed = 0f;
-        while (elapsed < 1.5f)
-        {
-            elapsed += Time.deltaTime;
-            mainCam.transform.position = Vector3.Lerp(camMid, camEnemy, Mathf.SmoothStep(0f, 1f, elapsed / 1.5f));
-            yield return null;
-        }
+        while (elapsed < 3.0f) { elapsed += Time.deltaTime; mainCam.transform.position = Vector3.Lerp(camStart, camMid, Mathf.SmoothStep(0f, 1f, elapsed / 3.0f)); yield return null; }
         
-        yield return new WaitForSeconds(0.5f); 
+        elapsed = 0f;
+        while (elapsed < 1.5f) { elapsed += Time.deltaTime; mainCam.transform.position = Vector3.Lerp(camMid, camEnemy, Mathf.SmoothStep(0f, 1f, elapsed / 1.5f)); yield return null; }
+        
+        yield return new WaitForSeconds(0.8f); 
 
         elapsed = 0f;
-        while (elapsed < 1.5f)
-        {
-            elapsed += Time.deltaTime;
-            mainCam.transform.position = Vector3.Lerp(camEnemy, camMid, Mathf.SmoothStep(0f, 1f, elapsed / 1.5f));
-            yield return null;
-        }
+        while (elapsed < 1.5f) { elapsed += Time.deltaTime; mainCam.transform.position = Vector3.Lerp(camEnemy, camMid, Mathf.SmoothStep(0f, 1f, elapsed / 1.5f)); yield return null; }
 
         if (marchingSound && audioSrc) audioSrc.Stop();
         
         currentState = BattleState.TacticalPause;
-        
         if (tacticalPanel) tacticalPanel.SetActive(true);
         attackButton.gameObject.SetActive(true);
     }
@@ -254,12 +404,7 @@ public class BattleManager : MonoBehaviour
     {
         highlightedClass = uClass;
         if (SoundManager.Instance) SoundManager.Instance.PlaySFX(SoundManager.Instance.clickSound);
-
-        foreach (var u in allUnitsOnField)
-        {
-            if (!u.isEnemy) u.SetHighlight(u.unitClass == highlightedClass);
-        }
-        
+        foreach (var u in allUnitsOnField) if (!u.isEnemy) u.SetHighlight(u.unitClass == highlightedClass);
         UpdateRowUI(); 
     }
 
@@ -277,9 +422,11 @@ public class BattleManager : MonoBehaviour
 
         string classA = rowAssignments[currRow];
         string classB = rowAssignments[targetRow];
-
         rowAssignments[currRow] = classB;
         rowAssignments[targetRow] = classA;
+
+        highlightedClass = ""; 
+        foreach (var u in allUnitsOnField) if (!u.isEnemy) u.SetHighlight(false);
 
         UpdateRowUI(); 
         UpdateFormationPositions(playerSpawnPoint.position.x, false);
@@ -287,35 +434,30 @@ public class BattleManager : MonoBehaviour
 
     void UpdateFormationPositions(float baseX, bool snapInstantly)
     {
-        float currentXOffset = 0f;
-        int unitsPerCol = 5; 
-        float spacingX = 1.0f;
-        float spacingY = 0.8f;
+        float currentXOffset = 0f; 
+        int unitsPerCol = 3; // ФІКС: Тепер вони шикуються по 3 у висоту, а не по 5 (менш "парканно")
+        float spacingX = 1.2f; 
+        float spacingY = 0.9f; 
 
         for (int i = 0; i < activeLineCount; i++)
         {
             string uClass = rowAssignments[i];
-            
             List<CampaignUnit> classUnits = allUnitsOnField.Where(u => !u.isEnemy && !u.isDead && u.unitClass == uClass).ToList();
             if (classUnits.Count == 0) continue;
 
             for (int j = 0; j < classUnits.Count; j++)
             {
-                int col = j / unitsPerCol;
-                int row = j % unitsPerCol;
-
+                int col = j / unitsPerCol; int row = j % unitsPerCol;
                 float targetX = baseX - currentXOffset - (col * spacingX);
                 int currentRows = Mathf.Min(classUnits.Count - (col * unitsPerCol), unitsPerCol);
                 if (classUnits.Count > unitsPerCol) currentRows = unitsPerCol; 
                 
                 float targetY = playerSpawnPoint.position.y + (row * spacingY) - ((currentRows - 1) * spacingY / 2f);
-
                 classUnits[j].tacticalTargetPos = new Vector3(targetX, targetY, 0);
                 if (snapInstantly) classUnits[j].transform.position = classUnits[j].tacticalTargetPos;
             }
-
             int colsNeeded = Mathf.CeilToInt((float)classUnits.Count / unitsPerCol);
-            currentXOffset += (colsNeeded * spacingX) + 1.2f; 
+            currentXOffset += (colsNeeded * spacingX) + 1.5f; 
         }
     }
 
@@ -346,13 +488,26 @@ public class BattleManager : MonoBehaviour
     void Update()
     {
         if (currentState != BattleState.Battle) return;
-        
         UpdateHUDText();
         CheckEnemyWaves();
         UpdateSkillsCooldowns();
         HandleVolleyTargeting();
-
         if (Time.frameCount % 30 == 0 && !isTargetingVolley) CheckBattleVictoryCondition();
+    }
+
+    void CheckEnemyWaves()
+    {
+        int aliveEnemies = 0;
+        foreach (var u in allUnitsOnField) if (u != null && !u.isDead && u.isEnemy) aliveEnemies++;
+        
+        enemiesKilled = enemiesSpawned - aliveEnemies;
+        if (campDefenseProgressBarFill) campDefenseProgressBarFill.fillAmount = 1f - ((float)enemiesKilled / totalEnemies);
+
+        if (aliveEnemies <= 3 && enemiesSpawned < totalEnemies)
+        {
+            if (SoundManager.Instance && warHornSound) audioSrc.PlayOneShot(warHornSound, 0.7f);
+            SpawnEnemyWave(false);
+        }
     }
 
     void UpdateSkillsCooldowns()
@@ -378,44 +533,29 @@ public class BattleManager : MonoBehaviour
     {
         if (currentVolleyTimer > 0 || !isVolleyUnlocked) return;
         if (SoundManager.Instance) SoundManager.Instance.PlaySFX(SoundManager.Instance.clickSound);
-        isTargetingVolley = true;
-        Time.timeScale = 0.2f; 
+        isTargetingVolley = true; Time.timeScale = 0.2f; 
     }
 
     void HandleVolleyTargeting()
     {
         if (!isTargetingVolley) return;
-
         if (Input.GetMouseButtonDown(0) && !UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject())
         {
-            Vector3 targetPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-            targetPos.z = 0;
-
+            Vector3 targetPos = Camera.main.ScreenToWorldPoint(Input.mousePosition); targetPos.z = 0;
             if (volleyEffectPrefab) Instantiate(volleyEffectPrefab, targetPos, Quaternion.identity);
             StartCoroutine(VolleyDamageRoutine(targetPos));
-
-            Time.timeScale = 1f;
-            isTargetingVolley = false;
-            currentVolleyTimer = volleyCooldown; 
+            Time.timeScale = 1f; isTargetingVolley = false; currentVolleyTimer = volleyCooldown; 
         }
-        else if (Input.GetMouseButtonDown(1))
-        {
-            Time.timeScale = 1f;
-            isTargetingVolley = false;
-        }
+        else if (Input.GetMouseButtonDown(1)) { Time.timeScale = 1f; isTargetingVolley = false; }
     }
 
     IEnumerator VolleyDamageRoutine(Vector3 targetPos)
     {
         yield return new WaitForSeconds(0.6f);
-        int damageToDeal = 150 + (GameManager.Instance != null ? GameManager.Instance.metaVolleyBarrage * 50 : 0);
-
+        int damageToDeal = 150 + (PlayerPrefs.GetInt("Meta_VolleyBarrage", 0) * 50);
         foreach (var u in allUnitsOnField)
         {
-            if (u != null && !u.isDead && u.isEnemy)
-            {
-                if (Vector2.Distance(u.transform.position, targetPos) <= 3.5f) u.TakeDamage(damageToDeal);
-            }
+            if (u != null && !u.isDead && u.isEnemy && Vector2.Distance(u.transform.position, targetPos) <= 3.5f) u.TakeDamage(damageToDeal);
         }
     }
 
@@ -423,11 +563,7 @@ public class BattleManager : MonoBehaviour
     {
         if (currentWarCryTimer > 0 || !isWarCryUnlocked) return;
         if (SoundManager.Instance && warHornSound) audioSrc.PlayOneShot(warHornSound, 1f);
-        
-        foreach (var u in allUnitsOnField)
-        {
-            if (u != null && !u.isDead && !u.isEnemy) u.ApplyWarCry(5f);
-        }
+        foreach (var u in allUnitsOnField) if (u != null && !u.isDead && !u.isEnemy) u.ApplyWarCry(5f);
         currentWarCryTimer = warCryCooldown; 
     }
 
@@ -435,21 +571,15 @@ public class BattleManager : MonoBehaviour
     {
         int campLvl = CrossSceneData.campLevel > 0 ? CrossSceneData.campLevel : 1;
         totalEnemies = (8 + (campLvl * 5)) + (campLvl * 3) + (campLvl * 2); 
-        enemiesSpawned = 0;
-        enemiesKilled = 0;
+        enemiesSpawned = 0; enemiesKilled = 0;
     }
 
-    // --- ФІКС: ІДЕАЛЬНА ВОРОЖА СІТКА ---
     void SpawnEnemyWave(bool isVanguard)
     {
         int campLvl = CrossSceneData.campLevel > 0 ? CrossSceneData.campLevel : 1;
-        
-        int totalGuards = 4 + (campLvl * 3);
-        int totalSpears = campLvl >= 2 ? 2 + (campLvl * 2) : 0;
-        int totalArchers = campLvl >= 3 ? 1 + (campLvl * 2) : 0;
-        int totalCavs = campLvl >= 4 ? (campLvl * 1) : 0;
+        int totalGuards = 4 + (campLvl * 3); int totalSpears = campLvl >= 2 ? 2 + (campLvl * 2) : 0;
+        int totalArchers = campLvl >= 3 ? 1 + (campLvl * 2) : 0; int totalCavs = campLvl >= 4 ? (campLvl * 1) : 0;
 
-        // Авангард це 60% армії (щоб вони виглядали епічно), решта - підкріплення
         int eGuards = isVanguard ? Mathf.CeilToInt(totalGuards * 0.6f) : totalGuards - Mathf.CeilToInt(totalGuards * 0.6f);
         int eSpearmen = isVanguard ? Mathf.CeilToInt(totalSpears * 0.6f) : totalSpears - Mathf.CeilToInt(totalSpears * 0.6f);
         int eArchers = isVanguard ? Mathf.CeilToInt(totalArchers * 0.6f) : totalArchers - Mathf.CeilToInt(totalArchers * 0.6f);
@@ -470,12 +600,9 @@ public class BattleManager : MonoBehaviour
     {
         if (prefab == null || count <= 0) return startXOffset;
 
-        int hp = 100; int dmg = 10;
-        bool isRanged = (unitClass == "Archer");
-        float speed = 1.6f;
-        if (unitClass == "Spearman") speed = 1.4f; 
-        else if (unitClass == "Archer") speed = 1.1f;
-        else if (unitClass == "Cavalry") speed = 2.5f;
+        int hp = 100; int dmg = 10; bool isRanged = (unitClass == "Archer");
+        float speed = 1.9f; 
+        if (unitClass == "Spearman") speed = 1.6f; else if (unitClass == "Archer") speed = 1.3f; else if (unitClass == "Cavalry") speed = 3.2f;
 
         int campLvl = CrossSceneData.campLevel > 0 ? CrossSceneData.campLevel : 1;
         if (unitClass == "Knight") { hp = 100 + (campLvl * 40); dmg = 15 + (campLvl * 8); }
@@ -483,122 +610,34 @@ public class BattleManager : MonoBehaviour
         else if (unitClass == "Spearman") { hp = 90 + (campLvl * 35); dmg = 12 + (campLvl * 7); }
         else if (unitClass == "Cavalry") { hp = 150 + (campLvl * 50); dmg = 25 + (campLvl * 10); }
 
-        int rows = 5; 
-        float spacingX = 1.0f; 
-        float spacingY = 0.8f; 
-        int colsUsed = Mathf.CeilToInt((float)count / rows);
+        int rows = 3; // ФІКС: Вороги теж шикуються по 3 у висоту
+        float spacingX = 1.2f; float spacingY = 0.9f; int colsUsed = Mathf.CeilToInt((float)count / rows);
 
         for (int i = 0; i < count; i++)
         {
-            int col = i / rows;
-            int row = i % rows;
-
-            // Вороги будуються вправо від базової точки
+            int col = i / rows; int row = i % rows;
             float targetX = basePos.x + startXOffset + (col * spacingX);
             int currentRows = Mathf.Min(count - (col * rows), rows);
             if (count > rows) currentRows = rows; 
             
             float targetY = basePos.y + (row * spacingY) - ((currentRows - 1) * spacingY / 2f);
-
             Vector3 spawnPos = new Vector3(targetX, targetY, 0);
             
             GameObject unitGO = Instantiate(prefab, spawnPos, Quaternion.identity);
             unitGO.tag = "Enemy"; 
             
             MonoBehaviour[] scripts = unitGO.GetComponents<MonoBehaviour>();
-            foreach (var script in scripts)
-            {
-                if (script == null) continue;
-                string sName = script.GetType().Name;
-                if (sName.Contains("Enemy") || sName.Contains("UnitStats") || sName.Contains("Selector") || sName == "CampaignUnit") 
-                {
-                    DestroyImmediate(script); 
-                }
+            foreach (var script in scripts) {
+                if (script == null) continue; string sName = script.GetType().Name;
+                if (sName.Contains("Enemy") || sName.Contains("UnitStats") || sName.Contains("Selector") || sName == "CampaignUnit") DestroyImmediate(script); 
             }
 
             CampaignUnit newAI = unitGO.AddComponent<CampaignUnit>();
             newAI.Setup(true, unitClass, hp, dmg, speed, isRanged, bloodHitPrefab, applyFlip);
-            
-            newAI.tacticalTargetPos = spawnPos;
-            newAI.transform.position = spawnPos;
+            newAI.tacticalTargetPos = spawnPos; newAI.transform.position = spawnPos;
             allUnitsOnField.Add(newAI);
         }
-
-        return startXOffset + (colsUsed * spacingX) + 1.2f;
-    }
-
-    void CheckEnemyWaves()
-    {
-        int aliveEnemies = allUnitsOnField.Count(u => u != null && !u.isDead && u.isEnemy);
-        
-        int totalKilledOrDead = totalEnemies - (enemiesSpawned - aliveEnemies) - (totalEnemies - enemiesSpawned);
-        if (campDefenseProgressBarFill) campDefenseProgressBarFill.fillAmount = (float)(totalEnemies - enemiesKilled) / totalEnemies;
-
-        if (aliveEnemies <= 3 && enemiesSpawned < totalEnemies)
-        {
-            if (SoundManager.Instance && warHornSound) audioSrc.PlayOneShot(warHornSound, 0.7f);
-            SpawnEnemyWave(false);
-        }
-    }
-
-    void SpawnPlayerArmy(Vector3 startPos)
-    {
-        for (int i = 0; i < activeLineCount; i++)
-        {
-            string uClass = rowAssignments[i];
-            int count = 0; bool flip = false; GameObject prefab = null;
-
-            if (uClass == "Knight") { count = CrossSceneData.knightsCount; prefab = playerKnightPrefab; flip = flipPlayerKnight; }
-            else if (uClass == "Spearman") { count = CrossSceneData.spearmenCount; prefab = playerSpearmanPrefab; flip = flipPlayerSpearman; }
-            else if (uClass == "Archer") { count = CrossSceneData.archersCount; prefab = playerArcherPrefab; flip = flipPlayerArcher; }
-            else if (uClass == "Cavalry") { count = CrossSceneData.cavalryCount; prefab = playerCavalryPrefab; flip = flipPlayerCavalry; }
-
-            SpawnGroup(prefab, count, startPos, uClass, flip, false);
-        }
-        
-        UpdateFormationPositions(startPos.x, true); 
-    }
-
-    void SpawnGroup(GameObject prefab, int count, Vector3 startPos, string unitClass, bool applyFlip, bool isEnemy)
-    {
-        if (prefab == null || count <= 0) return;
-
-        int hp = 100; int dmg = 10;
-        bool isRanged = (unitClass == "Archer");
-        float speed = 1.6f;
-        if (unitClass == "Spearman") speed = 1.4f; 
-        else if (unitClass == "Archer") speed = 1.1f;
-        else if (unitClass == "Cavalry") speed = 2.5f;
-
-        if (!isEnemy && GameManager.Instance != null)
-        {
-            if (unitClass == "Knight") { hp = 120 + (GameManager.Instance.knightLevel * 20); dmg = GameManager.Instance.GetKnightDamage(); }
-            else if (unitClass == "Archer") { hp = 60 + (GameManager.Instance.archerLevel * 10); dmg = GameManager.Instance.GetArcherDamage(); }
-            else if (unitClass == "Spearman") { hp = 90 + (GameManager.Instance.spearmanLevel * 15); dmg = GameManager.Instance.GetSpearmanDamage(); }
-            else if (unitClass == "Cavalry") { hp = 150 + (GameManager.Instance.cavalryLevel * 25); dmg = GameManager.Instance.GetCavalryDamage(); }
-        }
-
-        for (int i = 0; i < count; i++)
-        {
-            GameObject unitGO = Instantiate(prefab, startPos, Quaternion.identity);
-            unitGO.tag = "PlayerUnit"; 
-            
-            MonoBehaviour[] scripts = unitGO.GetComponents<MonoBehaviour>();
-            foreach (var script in scripts)
-            {
-                if (script == null) continue;
-                string sName = script.GetType().Name;
-                if (sName.Contains("Enemy") || sName.Contains("UnitStats") || sName.Contains("Selector") || sName.Contains("Knight") || sName.Contains("Archer") || sName.Contains("Spearman") || sName.Contains("Cavalry") || sName == "CampaignUnit") 
-                {
-                    DestroyImmediate(script); 
-                }
-            }
-
-            CampaignUnit newAI = unitGO.AddComponent<CampaignUnit>();
-            newAI.Setup(false, unitClass, hp, dmg, speed, isRanged, bloodHitPrefab, applyFlip);
-            
-            allUnitsOnField.Add(newAI);
-        }
+        return startXOffset + (colsUsed * spacingX) + 1.5f;
     }
 
     public void ShowDamagePopup(Vector3 pos, int dmg)
@@ -615,52 +654,19 @@ public class BattleManager : MonoBehaviour
 
     void UpdateHUDText()
     {
-        int playerAlive = 0;
-        int enemyAlive = 0;
-        foreach (var u in allUnitsOnField)
-        {
-            if (u != null && !u.isDead)
-            {
-                if (u.isEnemy) enemyAlive++;
-                else playerAlive++;
-            }
-        }
+        int playerAlive = 0; int enemyAlive = 0;
+        foreach (var u in allUnitsOnField) { if (u != null && !u.isDead) { if (u.isEnemy) enemyAlive++; else playerAlive++; } }
         if (enemyCountText) enemyCountText.text = $"Enemies: {enemyAlive} (Wave)";
         if (armyCountText) armyCountText.text = $"Your Army: {playerAlive}";
     }
 
     void CheckBattleVictoryCondition()
     {
-        int playerAlive = 0;
-        int enemyAlive = 0;
-        foreach (var u in allUnitsOnField)
-        {
-            if (u != null && !u.isDead)
-            {
-                if (u.isEnemy) enemyAlive++;
-                else playerAlive++;
-            }
-        }
+        int playerAlive = 0; int enemyAlive = 0;
+        foreach (var u in allUnitsOnField) { if (u != null && !u.isDead) { if (u.isEnemy) enemyAlive++; else playerAlive++; } }
 
-        // ПЕРЕМОГА
-        if (enemyAlive == 0 && enemiesSpawned >= totalEnemies) 
-        {
-            StartCoroutine(VictorySlowMotion());
-        }
-        // ПОРАЗКА
-        else if (playerAlive == 0 && currentState == BattleState.Battle) 
-        {
-            StartCoroutine(DefeatSequence()); // Викликаємо нову послідовність поразки
-        }
-    }
-
-    IEnumerator DefeatSequence()
-    {
-        currentState = BattleState.GameOver;
-        if (retreatButton) retreatButton.gameObject.SetActive(false);
-        
-        yield return new WaitForSeconds(1.5f); // Пауза, щоб усвідомити поразку
-        EndBattle(false);
+        if (enemyAlive == 0 && enemiesSpawned >= totalEnemies) StartCoroutine(VictorySlowMotion());
+        else if (playerAlive == 0 && currentState == BattleState.Battle) StartCoroutine(DefeatSequence());
     }
 
     IEnumerator VictorySlowMotion()
@@ -668,11 +674,18 @@ public class BattleManager : MonoBehaviour
         currentState = BattleState.GameOver;
         if (retreatButton) retreatButton.gameObject.SetActive(false); 
         Time.timeScale = 0.3f;
-        if (SoundManager.Instance != null && SoundManager.Instance.victoryMusicStinger != null) 
-            SoundManager.Instance.PlaySFX(SoundManager.Instance.victoryMusicStinger);
+        if (SoundManager.Instance != null && SoundManager.Instance.victoryMusicStinger != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.victoryMusicStinger);
         yield return new WaitForSecondsRealtime(1.8f);
         Time.timeScale = 1f; 
         EndBattle(true);
+    }
+
+    IEnumerator DefeatSequence()
+    {
+        currentState = BattleState.GameOver;
+        if (retreatButton) retreatButton.gameObject.SetActive(false);
+        yield return new WaitForSeconds(1.5f);
+        EndBattle(false);
     }
 
     void Retreat()
@@ -686,18 +699,28 @@ public class BattleManager : MonoBehaviour
     {
         currentState = BattleState.Retreating;
         if (SoundManager.Instance && warHornSound) audioSrc.PlayOneShot(warHornSound, 0.8f);
-        
-        // Даємо солдатам час втекти
         yield return new WaitForSeconds(5.0f);
-        
-        // Відступ — це завжди НЕ перемога (false)
-        EndBattle(false); 
+        EndBattle(false);
     }
 
     void EndBattle(bool isVictory)
     {
-        // 1. Рахуємо тих, хто вижив для резерву
+        if (currentState == BattleState.GameOver && Time.timeScale == 0) return; 
+        currentState = BattleState.GameOver;
+
+        if (CrossSceneData.useMercKnights) DecreaseMercenaryContracts("Knight");
+        if (CrossSceneData.useMercArchers) DecreaseMercenaryContracts("Archer");
+        if (CrossSceneData.useMercSpearmen) DecreaseMercenaryContracts("Spearman");
+        if (CrossSceneData.useMercCavalry) DecreaseMercenaryContracts("Cavalry");
+
+        CrossSceneData.useMercKnights = false;
+        CrossSceneData.useMercArchers = false;
+        CrossSceneData.useMercSpearmen = false;
+        CrossSceneData.useMercCavalry = false;
+
         int k_left = 0, a_left = 0, s_left = 0, c_left = 0;
+        
+        // 1. Рахуємо тих, хто вижив на полі бою
         foreach (var u in allUnitsOnField)
         {
             if (u != null && !u.isDead && !u.isEnemy)
@@ -709,7 +732,34 @@ public class BattleManager : MonoBehaviour
             }
         }
 
-        // 2. Записуємо результат у крос-сценні дані
+        // 2. Рахуємо тих, хто сидів у резерві і навіть не був викликаний (економимо війська гравця!)
+        int nextUncalledSlot = (currentLegion + 1) * 3;
+        for (int i = nextUncalledSlot; i < 9; i++)
+        {
+            int uType = CrossSceneData.squadSlots[i];
+            // Повертаємо базові війська (0-3). Найманці (4-7) просто не витрачаються з поля бою.
+            if (uType == 0) k_left += 5;
+            else if (uType == 1) a_left += 5;
+            else if (uType == 2) s_left += 5;
+            else if (uType == 3) c_left += 5;
+        }
+        
+        // Записуємо всіх збережених юнітів у "Безкоштовний пул"
+        PlayerPrefs.SetInt("FreeKnights", PlayerPrefs.GetInt("FreeKnights", 0) + k_left);
+        PlayerPrefs.SetInt("FreeArchers", PlayerPrefs.GetInt("FreeArchers", 0) + a_left);
+        PlayerPrefs.SetInt("FreeSpearmen", PlayerPrefs.GetInt("FreeSpearmen", 0) + s_left);
+        PlayerPrefs.SetInt("FreeCavalry", PlayerPrefs.GetInt("FreeCavalry", 0) + c_left);
+        
+        if (isVictory)
+        {
+            PlayerPrefs.SetInt("SavedGold", PlayerPrefs.GetInt("SavedGold", 100) + CrossSceneData.rewardGold);
+            PlayerPrefs.SetInt("SavedWood", PlayerPrefs.GetInt("SavedWood", 0) + CrossSceneData.rewardWood);
+            PlayerPrefs.SetInt("SavedStone", PlayerPrefs.GetInt("SavedStone", 0) + CrossSceneData.rewardStone);
+            PlayerPrefs.SetInt("Camp_" + CrossSceneData.campId + "_Conquered", 1);
+            PlayerPrefs.SetInt("PlayerGlory", PlayerPrefs.GetInt("PlayerGlory", 0) + (CrossSceneData.campLevel * 50));
+        }
+        PlayerPrefs.Save();
+
         CrossSceneData.knightsCount = k_left;
         CrossSceneData.archersCount = a_left;
         CrossSceneData.spearmenCount = s_left;
@@ -717,57 +767,56 @@ public class BattleManager : MonoBehaviour
         CrossSceneData.isReturningFromBattle = true;
         CrossSceneData.lastBattleWon = isVictory;
 
-        // Якщо це поразка або відступ, нагорода = 0
-        if (!isVictory)
-        {
-            CrossSceneData.rewardGold = 0;
-            CrossSceneData.rewardWood = 0;
-            CrossSceneData.rewardStone = 0;
-        }
+        StartCoroutine(ShowResultAndLeave(isVictory));
+    }
 
-        // 3. Якщо перемога — нараховуємо ресурси в PlayerPrefs
-        if (isVictory)
+    void DecreaseMercenaryContracts(string mClass)
+    {
+        int battlesLeft = PlayerPrefs.GetInt("Merc_" + mClass + "_Battles", 0);
+        if (battlesLeft > 0)
         {
-            int newGold = PlayerPrefs.GetInt("SavedGold", 100) + CrossSceneData.rewardGold;
-            int newWood = PlayerPrefs.GetInt("SavedWood", 0) + CrossSceneData.rewardWood;
-            int newStone = PlayerPrefs.GetInt("SavedStone", 0) + CrossSceneData.rewardStone;
-            PlayerPrefs.SetInt("SavedGold", newGold);
-            PlayerPrefs.SetInt("SavedWood", newWood);
-            PlayerPrefs.SetInt("SavedStone", newStone);
-            PlayerPrefs.SetInt("Camp_" + CrossSceneData.campId + "_Conquered", 1);
-            PlayerPrefs.Save();
+            PlayerPrefs.SetInt("Merc_" + mClass + "_Battles", battlesLeft - 1);
         }
-
-        // 4. Миттєво йдемо в завантаження (результат покажемо вже ТАМ)
-        if (SoundManager.Instance != null) SoundManager.Instance.PlayIdleMusic();
-        
-        LoadingManager lm = LoadingManager.Instance;
-        if (lm != null) lm.LoadScene("Main");
-        else SceneManager.LoadScene("Main");
     }
 
     IEnumerator ShowResultAndLeave(bool isVictory)
     {
-        // 1. Викликаємо твою анімовану панель
-        // Переконайся, що скрипт AnimatedBattleResult є на сцені!
-        if (AnimatedBattleResult.Instance != null)
+        AnimatedBattleResult resultPanel = AnimatedBattleResult.Instance;
+        if (resultPanel == null)
         {
-            AnimatedBattleResult.Instance.ShowResult(
-                isVictory, 
-                CrossSceneData.rewardGold, 
-                CrossSceneData.rewardWood, 
-                CrossSceneData.rewardStone
-            );
+            AnimatedBattleResult[] allPanels = Resources.FindObjectsOfTypeAll<AnimatedBattleResult>();
+            foreach (var p in allPanels) { if (p.gameObject.scene.name != null) { resultPanel = p; break; } }
         }
 
-        // 2. Чекаємо, поки гравець подивиться на результат (наприклад, 4 секунди)
-        yield return new WaitForSecondsRealtime(4.0f);
+        if (resultPanel != null)
+        {
+            resultPanel.gameObject.SetActive(true);
+            resultPanel.ShowResult(isVictory, CrossSceneData.rewardGold, CrossSceneData.rewardWood, CrossSceneData.rewardStone);
+        }
+        else
+        {
+            yield return new WaitForSecondsRealtime(2f);
+            LoadMainScene();
+            yield break;
+        }
 
-        // 3. Тільки тепер запускаємо екран завантаження
+        if (!isVictory)
+        {
+            yield return new WaitForSecondsRealtime(3.5f);
+            if (resultPanel != null) resultPanel.gameObject.SetActive(false); 
+            LoadMainScene();
+        }
+    }
+
+    public void LoadMainScene()
+    {
+        Time.timeScale = 1f; 
         if (SoundManager.Instance != null) SoundManager.Instance.PlayIdleMusic();
         
-        LoadingManager lm = LoadingManager.Instance;
-        if (lm != null) lm.LoadScene("Main");
+        LoadingManager lm = Object.FindFirstObjectByType<LoadingManager>(FindObjectsInactive.Include);
+        if (lm != null) { lm.gameObject.SetActive(true); lm.LoadScene("Main"); }
         else SceneManager.LoadScene("Main");
     }
+
+    
 }

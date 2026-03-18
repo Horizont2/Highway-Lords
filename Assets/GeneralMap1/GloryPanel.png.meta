@@ -1,0 +1,1012 @@
+fileFormatVersion: 2
+guid: 917c655fc0652dd41958e32745eab263
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -3241475552830983290
+    second: GloryPanel_0
+  - first:
+      213: -33008829340506384
+    second: GloryPanel_1
+  - first:
+      213: -804886453502718839
+    second: GloryPanel_2
+  - first:
+      213: 6328779566776558487
+    second: GloryPanel_3
+  - first:
+      213: 2864032738285108923
+    second: GloryPanel_4
+  - first:
+      213: 8323089237642664485
+    second: GloryPanel_5
+  - first:
+      213: 4943980006929403779
+    second: GloryPanel_6
+  - first:
+      213: -8394339586518525136
+    second: GloryPanel_7
+  - first:
+      213: 4242197886328459053
+    second: GloryPanel_8
+  - first:
+      213: 4246822705756089990
+    second: GloryPanel_9
+  - first:
+      213: 5560259440135527673
+    second: GloryPanel_10
+  - first:
+      213: 2929686928849046315
+    second: GloryPanel_11
+  - first:
+      213: -8590741979803921579
+    second: GloryPanel_12
+  - first:
+      213: 1156883844731890932
+    second: GloryPanel_13
+  - first:
+      213: 2725364533576178370
+    second: GloryPanel_14
+  - first:
+      213: -468866079211642583
+    second: GloryPanel_15
+  - first:
+      213: 3815438934777951769
+    second: GloryPanel_16
+  - first:
+      213: 328279126304243193
+    second: GloryPanel_17
+  - first:
+      213: 8689499081566499259
+    second: GloryPanel_18
+  - first:
+      213: -6531840242151219875
+    second: GloryPanel_19
+  - first:
+      213: 4013186659140867465
+    second: GloryPanel_20
+  - first:
+      213: -7335309408978262391
+    second: GloryPanel_21
+  - first:
+      213: -461794878029997045
+    second: GloryPanel_22
+  - first:
+      213: -6104875430038425224
+    second: GloryPanel_23
+  - first:
+      213: -8356180213746245071
+    second: GloryPanel_24
+  - first:
+      213: -6175712650043887389
+    second: GloryPanel_25
+  - first:
+      213: 5285701423606608777
+    second: GloryPanel_26
+  - first:
+      213: -80234159294860973
+    second: GloryPanel_27
+  - first:
+      213: -7218895306665526791
+    second: GloryPanel_28
+  - first:
+      213: 2923423161915867846
+    second: GloryPanel_29
+  - first:
+      213: -7410053591808267498
+    second: GloryPanel_30
+  - first:
+      213: 598166627826726970
+    second: GloryPanel_31
+  - first:
+      213: -3070549017110359870
+    second: GloryPanel_32
+  - first:
+      213: 7934155733650728025
+    second: GloryPanel_33
+  - first:
+      213: 7590029808036981503
+    second: GloryPanel_34
+  - first:
+      213: -7925068748024641000
+    second: GloryPanel_35
+  - first:
+      213: 8822574056185051140
+    second: GloryPanel_36
+  - first:
+      213: 1654408673074617273
+    second: GloryPanel_37
+  - first:
+      213: -5080781566447718483
+    second: GloryPanel_38
+  - first:
+      213: 8616423592617528795
+    second: GloryPanel_39
+  - first:
+      213: -6277473140201873627
+    second: GloryPanel_40
+  - first:
+      213: -2507559268891913082
+    second: GloryPanel_41
+  - first:
+      213: 2167423792563093204
+    second: GloryPanel_42
+  - first:
+      213: -7143839019477047286
+    second: GloryPanel_43
+  - first:
+      213: -5174708022656439446
+    second: GloryPanel_44
+  - first:
+      213: -7943878074234864619
+    second: GloryPanel_45
+  - first:
+      213: 4335839780807385247
+    second: GloryPanel_46
+  - first:
+      213: 4984109745834654336
+    second: GloryPanel_47
+  - first:
+      213: -349703256972885399
+    second: GloryPanel_48
+  - first:
+      213: 3043136516712017735
+    second: GloryPanel_49
+  - first:
+      213: -7775486877136043956
+    second: GloryPanel_50
+  - first:
+      213: 2820433254372188866
+    second: GloryPanel_51
+  - first:
+      213: -4434962836982302700
+    second: GloryPanel_52
+  - first:
+      213: 6643651401575841061
+    second: GloryPanel_53
+  - first:
+      213: 7067504718063088285
+    second: GloryPanel_54
+  - first:
+      213: -7224360210481513122
+    second: GloryPanel_55
+  - first:
+      213: 4986181076738345788
+    second: GloryPanel_56
+  - first:
+      213: 3785521503723933009
+    second: GloryPanel_57
+  - first:
+      213: 4984046217279159920
+    second: GloryPanel_58
+  - first:
+      213: -6639808577853193218
+    second: GloryPanel_59
+  - first:
+      213: -2572694824796129457
+    second: GloryPanel_60
+  - first:
+      213: 1696653361441973043
+    second: GloryPanel_61
+  - first:
+      213: 5914608125632810066
+    second: GloryPanel_62
+  - first:
+      213: -1862106124120574432
+    second: GloryPanel_63
+  - first:
+      213: -4512116328974943497
+    second: GloryPanel_64
+  - first:
+      213: 2684867292700441439
+    second: GloryPanel_65
+  - first:
+      213: -2123995115483123401
+    second: GloryPanel_66
+  - first:
+      213: -7823585030027136168
+    second: GloryPanel_67
+  - first:
+      213: -1727086002436442871
+    second: GloryPanel_68
+  - first:
+      213: 1451823703351330750
+    second: GloryPanel_69
+  - first:
+      213: 5396507543383173958
+    second: GloryPanel_70
+  - first:
+      213: -1870177841107319290
+    second: GloryPanel_71
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: GloryPanel_0
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 2851
+        width: 5
+        height: 5
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6837565a827f303d0800000000000000
+      internalID: -3241475552830983290
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GloryPanel_1
+      rect:
+        serializedVersion: 2
+        x: 5115
+        y: 2851
+        width: 5
+        height: 5
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0f625b405aaba8ff0800000000000000
+      internalID: -33008829340506384
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GloryPanel_2
+      rect:
+        serializedVersion: 2
+        x: 125
+        y: 2073
+        width: 1034
+        height: 734
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 98c4276f80874d4f0800000000000000
+      internalID: -804886453502718839
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GloryPanel_3
+      rect:
+        serializedVersion: 2
+        x: 1405
+        y: 2073
+        width: 1034
+        height: 734
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 793a7731c7754d750800000000000000
+      internalID: 6328779566776558487
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GloryPanel_4
+      rect:
+        serializedVersion: 2
+        x: 2681
+        y: 2109
+        width: 1038
+        height: 668
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bbeb296e9961fb720800000000000000
+      internalID: 2864032738285108923
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GloryPanel_5
+      rect:
+        serializedVersion: 2
+        x: 3973
+        y: 2117
+        width: 1042
+        height: 662
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 52a5193609d818370800000000000000
+      internalID: 8323089237642664485
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GloryPanel_44
+      rect:
+        serializedVersion: 2
+        x: 73
+        y: 1489
+        width: 2359
+        height: 314
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a6be23d587ebf28b0800000000000000
+      internalID: -5174708022656439446
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GloryPanel_45
+      rect:
+        serializedVersion: 2
+        x: 2516
+        y: 1493
+        width: 283
+        height: 286
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 51c773edafca1c190800000000000000
+      internalID: -7943878074234864619
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GloryPanel_46
+      rect:
+        serializedVersion: 2
+        x: 2868
+        y: 1536
+        width: 827
+        height: 199
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f902802fe4ffb2c30800000000000000
+      internalID: 4335839780807385247
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GloryPanel_47
+      rect:
+        serializedVersion: 2
+        x: 3773
+        y: 1489
+        width: 295
+        height: 294
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 08a790a286d1b2540800000000000000
+      internalID: 4984109745834654336
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GloryPanel_48
+      rect:
+        serializedVersion: 2
+        x: 4137
+        y: 1425
+        width: 270
+        height: 367
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 96285579dba952bf0800000000000000
+      internalID: -349703256972885399
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GloryPanel_49
+      rect:
+        serializedVersion: 2
+        x: 4481
+        y: 1556
+        width: 226
+        height: 227
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 74fa3a9e9846b3a20800000000000000
+      internalID: 3043136516712017735
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GloryPanel_50
+      rect:
+        serializedVersion: 2
+        x: 4813
+        y: 1549
+        width: 171
+        height: 234
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c40489ca1ebe71490800000000000000
+      internalID: -7775486877136043956
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GloryPanel_51
+      rect:
+        serializedVersion: 2
+        x: 2577
+        y: 461
+        width: 1854
+        height: 966
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2c2ad8ff911342720800000000000000
+      internalID: 2820433254372188866
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GloryPanel_54
+      rect:
+        serializedVersion: 2
+        x: 49
+        y: 181
+        width: 1234
+        height: 1247
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 333, y: 0, z: 331, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d923c888812d41260800000000000000
+      internalID: 7067504718063088285
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GloryPanel_55
+      rect:
+        serializedVersion: 2
+        x: 1417
+        y: 556
+        width: 1106
+        height: 863
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e5d78c43aaaedbb90800000000000000
+      internalID: -7224360210481513122
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GloryPanel_56
+      rect:
+        serializedVersion: 2
+        x: 4513
+        y: 685
+        width: 166
+        height: 170
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c3b83c87549723540800000000000000
+      internalID: 4986181076738345788
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GloryPanel_57
+      rect:
+        serializedVersion: 2
+        x: 4897
+        y: 688
+        width: 162
+        height: 165
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 15d411740cfd88430800000000000000
+      internalID: 3785521503723933009
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GloryPanel_63
+      rect:
+        serializedVersion: 2
+        x: 1340
+        y: 20
+        width: 1115
+        height: 360
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 026b6b198587826e0800000000000000
+      internalID: -1862106124120574432
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GloryPanel_64
+      rect:
+        serializedVersion: 2
+        x: 2656
+        y: 29
+        width: 1115
+        height: 350
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7fa7532ea1eb161c0800000000000000
+      internalID: -4512116328974943497
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GloryPanel_65
+      rect:
+        serializedVersion: 2
+        x: 3833
+        y: 225
+        width: 475
+        height: 159
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f5b7972e390924520800000000000000
+      internalID: 2684867292700441439
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GloryPanel_66
+      rect:
+        serializedVersion: 2
+        x: 4405
+        y: 212
+        width: 194
+        height: 180
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 731b6f422bd0682e0800000000000000
+      internalID: -2123995115483123401
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GloryPanel_67
+      rect:
+        serializedVersion: 2
+        x: 4696
+        y: 244
+        width: 151
+        height: 151
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8533b27cdda0d6390800000000000000
+      internalID: -7823585030027136168
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GloryPanel_68
+      rect:
+        serializedVersion: 2
+        x: 4909
+        y: 244
+        width: 150
+        height: 151
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 905f9386e682808e0800000000000000
+      internalID: -1727086002436442871
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GloryPanel_69
+      rect:
+        serializedVersion: 2
+        x: 3836
+        y: 29
+        width: 472
+        height: 159
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: eb78fb257f9e52410800000000000000
+      internalID: 1451823703351330750
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GloryPanel_70
+      rect:
+        serializedVersion: 2
+        x: 4696
+        y: 41
+        width: 151
+        height: 154
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 64be11fc40f34ea40800000000000000
+      internalID: 5396507543383173958
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GloryPanel_71
+      rect:
+        serializedVersion: 2
+        x: 4917
+        y: 49
+        width: 135
+        height: 138
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 606cdf1892bcb06e0800000000000000
+      internalID: -1870177841107319290
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 859d1a32d8dce5643b51fc9baff8975f
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      GloryPanel_0: -3241475552830983290
+      GloryPanel_1: -33008829340506384
+      GloryPanel_10: 5560259440135527673
+      GloryPanel_11: 2929686928849046315
+      GloryPanel_12: -8590741979803921579
+      GloryPanel_13: 1156883844731890932
+      GloryPanel_14: 2725364533576178370
+      GloryPanel_15: -468866079211642583
+      GloryPanel_16: 3815438934777951769
+      GloryPanel_17: 328279126304243193
+      GloryPanel_18: 8689499081566499259
+      GloryPanel_19: -6531840242151219875
+      GloryPanel_2: -804886453502718839
+      GloryPanel_20: 4013186659140867465
+      GloryPanel_21: -7335309408978262391
+      GloryPanel_22: -461794878029997045
+      GloryPanel_23: -6104875430038425224
+      GloryPanel_24: -8356180213746245071
+      GloryPanel_25: -6175712650043887389
+      GloryPanel_26: 5285701423606608777
+      GloryPanel_27: -80234159294860973
+      GloryPanel_28: -7218895306665526791
+      GloryPanel_29: 2923423161915867846
+      GloryPanel_3: 6328779566776558487
+      GloryPanel_30: -7410053591808267498
+      GloryPanel_31: 598166627826726970
+      GloryPanel_32: -3070549017110359870
+      GloryPanel_33: 7934155733650728025
+      GloryPanel_34: 7590029808036981503
+      GloryPanel_35: -7925068748024641000
+      GloryPanel_36: 8822574056185051140
+      GloryPanel_37: 1654408673074617273
+      GloryPanel_38: -5080781566447718483
+      GloryPanel_39: 8616423592617528795
+      GloryPanel_4: 2864032738285108923
+      GloryPanel_40: -6277473140201873627
+      GloryPanel_41: -2507559268891913082
+      GloryPanel_42: 2167423792563093204
+      GloryPanel_43: -7143839019477047286
+      GloryPanel_44: -5174708022656439446
+      GloryPanel_45: -7943878074234864619
+      GloryPanel_46: 4335839780807385247
+      GloryPanel_47: 4984109745834654336
+      GloryPanel_48: -349703256972885399
+      GloryPanel_49: 3043136516712017735
+      GloryPanel_5: 8323089237642664485
+      GloryPanel_50: -7775486877136043956
+      GloryPanel_51: 2820433254372188866
+      GloryPanel_52: -4434962836982302700
+      GloryPanel_53: 6643651401575841061
+      GloryPanel_54: 7067504718063088285
+      GloryPanel_55: -7224360210481513122
+      GloryPanel_56: 4986181076738345788
+      GloryPanel_57: 3785521503723933009
+      GloryPanel_58: 4984046217279159920
+      GloryPanel_59: -6639808577853193218
+      GloryPanel_6: 4943980006929403779
+      GloryPanel_60: -2572694824796129457
+      GloryPanel_61: 1696653361441973043
+      GloryPanel_62: 5914608125632810066
+      GloryPanel_63: -1862106124120574432
+      GloryPanel_64: -4512116328974943497
+      GloryPanel_65: 2684867292700441439
+      GloryPanel_66: -2123995115483123401
+      GloryPanel_67: -7823585030027136168
+      GloryPanel_68: -1727086002436442871
+      GloryPanel_69: 1451823703351330750
+      GloryPanel_7: -8394339586518525136
+      GloryPanel_70: 5396507543383173958
+      GloryPanel_71: -1870177841107319290
+      GloryPanel_8: 4242197886328459053
+      GloryPanel_9: 4246822705756089990
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
