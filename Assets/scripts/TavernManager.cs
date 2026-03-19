@@ -18,6 +18,7 @@ public class TavernManager : MonoBehaviour
         [Header("Налаштування Загону")]
         public string mercName;       
         public string unitClass;      
+        [Tooltip("Більше не використовується. Сила розраховується динамічно!")]
         public int unitPower;         
         public int costGlory;         
         public int maxBattles;        
@@ -70,13 +71,13 @@ public class TavernManager : MonoBehaviour
         
         if (tavernPanel) 
         {
-            tavernPanel.SetActive(true); // ФІКС: Панель стає активною ДО запуску корутини
+            tavernPanel.SetActive(true); 
             Transform targetPanel = tavernContentPanel != null ? tavernContentPanel : tavernPanel.transform;
             
             if (gameObject.activeInHierarchy) {
                 StartCoroutine(AnimatePanel(targetPanel, true)); 
             } else {
-                targetPanel.localScale = Vector3.one; // Запасний план, якщо корутина неможлива
+                targetPanel.localScale = Vector3.one; 
             }
         }
     }
@@ -140,11 +141,17 @@ public class TavernManager : MonoBehaviour
     {
         if (playerGloryText) playerGloryText.text = currentGlory.ToString();
 
+        // ФІКС: Отримуємо рівень міста (замку) гравця
+        int cityLevel = PlayerPrefs.GetInt("SavedCastleLevel", 1);
+        // ФІКС: Розраховуємо силу за "розумною" формулою
+        int dynamicPower = 120 + (cityLevel * 15);
+
         for (int i = 0; i < mercSlots.Length; i++)
         {
             MercenarySlot slot = mercSlots[i];
             
-            if (slot.powerText) slot.powerText.text = $"Power: {slot.unitPower}";
+            // Встановлюємо правильну динамічну силу (замість 500)
+            if (slot.powerText) slot.powerText.text = $"Power: {dynamicPower}";
 
             int battlesLeft = PlayerPrefs.GetInt("Merc_" + slot.unitClass + "_Battles", 0);
 
