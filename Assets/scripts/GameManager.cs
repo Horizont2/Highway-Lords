@@ -402,6 +402,23 @@ public class GameManager : MonoBehaviour
     public int spearmanFixedCost = 60;
     public int cavalryFixedCost = 120; 
 
+    [Header("=== БАЗОВІ СТАТИ (Для Кодексу і Гри) ===")]
+    public int knightBaseHp = 120;
+    public int knightBaseDmg = 12;
+
+    public int archerBaseHp = 60;
+    public int archerBaseDmg = 8;
+
+    public int spearmanBaseHp = 90;
+    public int spearmanBaseDmg = 15;
+
+    public int cavalryBaseHp = 150;
+    public int cavalryBaseDmg = 25;
+
+    [Header("Базові стати Будівель")]
+    public int wallBaseHp = 150;
+    public int towerBaseHp = 0;
+
     [Header("Рівні Технологій")]
     public int knightLevel = 1;
     public int archerLevel = 1;
@@ -467,13 +484,32 @@ public class GameManager : MonoBehaviour
             gloryPopupText.gameObject.SetActive(false);
         }
 
-        if (isCampaignBattle) return; 
+        // === ФІКС: СПАВН АРМІЇ У РЕЖИМІ НАПАДУ ===
+        // === ФІКС: СПАВН АРМІЇ У РЕЖИМІ НАПАДУ ===
+        if (isCampaignBattle) 
+        {
+            // ВКАЖИ ТУТ: Скільки фізичних юнітів має бути в одному загоні?
+            int unitsPerSquad = 5; 
 
+            // Множимо вибір (1 або 0) на кількість юнітів у загоні (5)
+            SpawnReturningUnits(knightPrefab, CrossSceneData.knightsCount * unitsPerSquad, "Knight");
+            SpawnReturningUnits(archerPrefab, CrossSceneData.archersCount * unitsPerSquad, "Archer");
+            SpawnReturningUnits(spearmanPrefab, CrossSceneData.spearmenCount * unitsPerSquad, "Spearman");
+            SpawnReturningUnits(cavalryPrefab, CrossSceneData.cavalryCount * unitsPerSquad, "Cavalry");
+            
+            // Оновлюємо формацію, щоб вони гарно вишикувалися
+            StartCoroutine(RecalculateUnitsNextFrame());
+            return; 
+        }
+
+        // --- ДАЛІ ЙДЕ ТВІЙ СТАРИЙ КОД ---
         if (goldText != null)
         {
             goldText.gameObject.SetActive(true);
             if (goldText.transform.parent != null) goldText.transform.parent.gameObject.SetActive(true);
         }
+        
+        // ... решта коду Start() залишається без змін ...
 
         ResolveUIRefs();
         ResolveUnitLockUI(); 
@@ -1510,7 +1546,7 @@ public class GameManager : MonoBehaviour
         if (ui.statsText != null)
         {
             ui.statsText.text = $"<color=#3E2723><size=140%><b>{unitName} LV {level}</b></size></color>\n" +
-                                $"<color=#4A2E1B><size=95%><color=#111111><size=150%><voffset=0.8em><sprite name=\"icon_sword\" tint=1></voffset></size></color> DMG: {curDmg} → </color><color=#4CAF50>{nextDmg}</color></size>\n" +
+                                $"<color=#4A2E1B><size=95%><color=#111111><size=150%><voffset=1.0em><sprite name=\"icon_sword\" tint=1></voffset></size></color> DMG: {curDmg} → </color><color=#4CAF50>{nextDmg}</color></size>\n" +
                                 $"<size=80%>{tactics}</size>";
         }
 
@@ -1843,26 +1879,26 @@ public class GameManager : MonoBehaviour
     {
         if (barracksInfoText != null)
         {
-            if (barracksLevel <= 0) barracksInfoText.text = "<color=#111111><size=150%><voffset=0.8em><sprite name=\"icon_helmet\" tint=1></voffset></size></color> +Unlock units / +cap";
+            if (barracksLevel <= 0) barracksInfoText.text = "<color=#111111><size=150%><voffset=1.0em><sprite name=\"icon_helmet\" tint=1></voffset></size></color> +Unlock units / +cap";
             else
             {
                 int minCap = barracksBaseCap;
                 int maxCap = GetBarracksCapLimit();
-                barracksInfoText.text = $"<color=#111111><size=150%><voffset=0.8em><sprite name=\"icon_helmet\" tint=1></voffset></size></color> Units cap: {minCap} → {maxCap}";
+                barracksInfoText.text = $"<color=#111111><size=150%><voffset=1.0em><sprite name=\"icon_helmet\" tint=1></voffset></size></color> Units cap: {minCap} → {maxCap}";
             }
         }
 
         if (mineInfoText != null)
         {
-            if (!isMineBuilt || mineLevel <= 0) mineInfoText.text = "<color=#111111><size=150%><voffset=0.8em><sprite name=\"icon_coin\" tint=1></voffset></size></color> +Gold income";
-            else mineInfoText.text = $"<color=#111111><size=150%><voffset=0.8em><sprite name=\"icon_coin\" tint=1></voffset></size></color> Gold income: Lvl {mineLevel}";
+            if (!isMineBuilt || mineLevel <= 0) mineInfoText.text = "<color=#111111><size=150%><voffset=1.0em><sprite name=\"icon_coin\" tint=1></voffset></size></color> +Gold income";
+            else mineInfoText.text = $"<color=#111111><size=150%><voffset=1.0em><sprite name=\"icon_coin\" tint=1></voffset></size></color> Gold income: Lvl {mineLevel}";
         }
 
         if (castleInfoText != null && castle != null)
         {
             int currentHp = castle.maxHealth;
             int nextHp = currentHp + castle.hpBonusPerUpgrade;
-            castleInfoText.text = $"<color=#111111><size=150%><voffset=0.8em><sprite name=\"icon_heart\" tint=1></voffset></size></color> HP: {currentHp} → {nextHp}";
+            castleInfoText.text = $"<color=#111111><size=150%><voffset=1.0em><sprite name=\"icon_heart\" tint=1></voffset></size></color> HP: {currentHp} → {nextHp}";
         }
     }
     
@@ -2060,7 +2096,7 @@ public class GameManager : MonoBehaviour
             if (upgradeLimitInfoText != null)
             {
                 upgradeLimitInfoText.text =
-                    $"<color=#111111><size=150%><voffset=0.8em><sprite name=\"icon_helmet\" tint=1></voffset></size></color> Units cap: {maxUnits} (MAX)\n" +
+                    $"<color=#111111><size=150%><voffset=1.0em><sprite name=\"icon_helmet\" tint=1></voffset></size></color> Units cap: {maxUnits} (MAX)\n" +
                     "Upgrade Barracks to unlock more unit slots";
             }
         }
@@ -2071,7 +2107,7 @@ public class GameManager : MonoBehaviour
             if (upgradeLimitInfoText != null)
             {
                 int nextLimit = maxUnits + 1;
-                upgradeLimitInfoText.text = $"<color=#111111><size=150%><voffset=0.8em><sprite name=\"icon_helmet\" tint=1></voffset></size></color> Units cap: {maxUnits} → {nextLimit}";
+                upgradeLimitInfoText.text = $"<color=#111111><size=150%><voffset=1.0em><sprite name=\"icon_helmet\" tint=1></voffset></size></color> Units cap: {maxUnits} → {nextLimit}";
             }
         }
 
@@ -3097,7 +3133,7 @@ public class GameManager : MonoBehaviour
         {
             int currentTowerDmg = GetTowerDamageAtLevel(towerLevel);
             int nextTowerDmg    = GetTowerDamageAtLevel(towerLevel + 1);
-            towerLevelText.text = $"Tower Lvl {towerLevel}\n<color=#111111><size=150%><voffset=0.8em><sprite name=\"icon_sword\" tint=1></voffset></size></color> DMG: {currentTowerDmg} → <color=#008800>{nextTowerDmg}</color>\n{towerWoodCost} W / {towerStoneCost} S";
+            towerLevelText.text = $"Tower Lvl {towerLevel}\n<color=#111111><size=150%><voffset=1.0em><sprite name=\"icon_sword\" tint=1></voffset></size></color> DMG: {currentTowerDmg} → <color=#008800>{nextTowerDmg}</color>\n{towerWoodCost} W / {towerStoneCost} S";
         }
         
         if (crossbowDamageText != null)
@@ -3116,7 +3152,7 @@ public class GameManager : MonoBehaviour
                 extraInfo = "<color=#008800>Max Towers Reached!</color>";
 
             crossbowDamageText.text = 
-                $"<color=#111111><size=150%><voffset=0.8em><sprite name=\"icon_sword\" tint=1></voffset></size></color> DMG: {curDmg} → <color=#008800>{nextDmg}</color>\n" +
+                $"<color=#111111><size=150%><voffset=1.0em><sprite name=\"icon_sword\" tint=1></voffset></size></color> DMG: {curDmg} → <color=#008800>{nextDmg}</color>\n" +
                 $"<size=80%>+{percentDmg}% damage</size>\n" +
                 $"<size=70%>{extraInfo}</size>";
         }
@@ -3131,13 +3167,13 @@ public class GameManager : MonoBehaviour
             if (curRel <= 1.201f)
             {
                 crossbowReloadText.text = 
-                    $"<color=#111111><size=150%><voffset=0.8em><sprite name=\"icon_time\" tint=1></voffset></size></color> Reload: {curRel:F2}s (MAX)\n" +
+                    $"<color=#111111><size=150%><voffset=1.0em><sprite name=\"icon_time\" tint=1></voffset></size></color> Reload: {curRel:F2}s (MAX)\n" +
                     $"<size=80%>Max Speed Reached</size>";
             }
             else
             {
                 crossbowReloadText.text = 
-                    $"<color=#111111><size=150%><voffset=0.8em><sprite name=\"icon_time\" tint=1></voffset></size></color> Reload: {curRel:F2}s → <color=#008800>{nextRel:F2}s</color>\n" +
+                    $"<color=#111111><size=150%><voffset=1.0em><sprite name=\"icon_time\" tint=1></voffset></size></color> Reload: {curRel:F2}s → <color=#008800>{nextRel:F2}s</color>\n" +
                     $"<size=80%>-{percentRel}% reload time</size>";
             }
         }
@@ -3175,7 +3211,7 @@ public class GameManager : MonoBehaviour
 
             wallArcherLevelText.text =
                 $"Wall Archers Lvl {wallArcherLevel}\n" +
-                $"<color=#111111><size=150%><voffset=0.8em><sprite name=\"icon_sword\" tint=1></voffset></size></color> DMG: {currentDmg} → <color=#008800>{nextDmg}</color>\n" +
+                $"<color=#111111><size=150%><voffset=1.0em><sprite name=\"icon_sword\" tint=1></voffset></size></color> DMG: {currentDmg} → <color=#008800>{nextDmg}</color>\n" +
                 $"<size=70%><color=#FFCC00>New Skin in {levelsUntilSkin} level(s)!</color></size>";
         }
 
@@ -3372,7 +3408,7 @@ public class GameManager : MonoBehaviour
             int enemiesGold = spawner.GetEstimatedGoldFromEnemies();
             int waveBonus = GetGoldReward();
             int totalEst = enemiesGold + waveBonus;
-            estimatedIncomeText.text = $"<color=#111111><size=150%><voffset=0.8em><sprite name=\"icon_coin\" tint=1></voffset></size></color> +{totalEst} G";
+            estimatedIncomeText.text = $"<color=#111111><size=150%><voffset=1.0em><sprite name=\"icon_coin\" tint=1></voffset></size></color> +{totalEst} G";
         }
 
         UpdateUnitLockUI();
@@ -3634,22 +3670,22 @@ public class GameManager : MonoBehaviour
         if (gemProgressText != null) gemProgressText.text = $"{currentKills} / {killsToNextGem}";
 
         UpdateMetaSlot(uiFortifiedWalls, metaFortifiedWalls, 10, 5, "Lv " + metaFortifiedWalls, 
-            $"<color=#111111><size=150%><voffset=0.8em><sprite name=\"icon_heart\" tint=1></voffset></size></color> Max HP: +{metaFortifiedWalls * 200} → <color=#008800>+{(metaFortifiedWalls + 1) * 200}</color>", true);
+            $"<color=#111111><size=150%><voffset=1.0em><sprite name=\"icon_heart\" tint=1></voffset></size></color> Max HP: +{metaFortifiedWalls * 200} → <color=#008800>+{(metaFortifiedWalls + 1) * 200}</color>", true);
             
         UpdateMetaSlot(uiPrecisionBows, metaPrecisionBows, 15, 10, "Lv " + metaPrecisionBows, 
-            $"<color=#111111><size=150%><voffset=0.8em><sprite name=\"icon_sword\" tint=1></voffset></size></color> Arrow DMG: +{metaPrecisionBows * 15}% → <color=#008800>+{(metaPrecisionBows + 1) * 15}%</color>", true);
+            $"<color=#111111><size=150%><voffset=1.0em><sprite name=\"icon_sword\" tint=1></voffset></size></color> Arrow DMG: +{metaPrecisionBows * 15}% → <color=#008800>+{(metaPrecisionBows + 1) * 15}%</color>", true);
             
         UpdateMetaSlot(uiVolleyBarrage, metaVolleyBarrage, 25, 15, "Lv " + metaVolleyBarrage, 
-            $"<color=#111111><size=150%><voffset=0.8em><sprite name=\"icon_arrows\" tint=1></voffset></size></color> Extra Arrows: +{metaVolleyBarrage} → <color=#008800>+{metaVolleyBarrage + 1}</color>", true);
+            $"<color=#111111><size=150%><voffset=1.0em><sprite name=\"icon_arrows\" tint=1></voffset></size></color> Extra Arrows: +{metaVolleyBarrage} → <color=#008800>+{metaVolleyBarrage + 1}</color>", true);
             
         UpdateMetaSlot(uiTrophyBounty, metaTrophyBounty, 10, 5, "Lv " + metaTrophyBounty, 
-            $"<color=#111111><size=150%><voffset=0.8em><sprite name=\"icon_coin\" tint=1></voffset></size></color> Gold Drop: +{metaTrophyBounty * 5}% → <color=#008800>+{(metaTrophyBounty + 1) * 5}%</color>", true);
+            $"<color=#111111><size=150%><voffset=1.0em><sprite name=\"icon_coin\" tint=1></voffset></size></color> Gold Drop: +{metaTrophyBounty * 5}% → <color=#008800>+{(metaTrophyBounty + 1) * 5}%</color>", true);
             
         bool isMineUnlocked = (mineLevel > 0 || isMineBuilt);
         UpdateMetaSlot(uiEfficientCarts, metaEfficientCarts, 15, 10, "Lv " + metaEfficientCarts, 
-            $"<color=#111111><size=150%><voffset=0.8em><sprite name=\"icon_cart\" tint=1></voffset></size></color> Cart Ore: +{metaEfficientCarts * 10}% → <color=#008800>+{(metaEfficientCarts + 1) * 10}%</color>", isMineUnlocked);
+            $"<color=#111111><size=150%><voffset=1.0em><sprite name=\"icon_cart\" tint=1></voffset></size></color> Cart Ore: +{metaEfficientCarts * 10}% → <color=#008800>+{(metaEfficientCarts + 1) * 10}%</color>", isMineUnlocked);
             
         UpdateMetaSlot(uiMendingMasonry, metaMendingMasonry, 20, 15, "Lv " + metaMendingMasonry, 
-            $"<color=#111111><size=150%><voffset=0.8em><sprite name=\"icon_heart\" tint=1></voffset></size></color> HP Regen: {metaMendingMasonry}%/s → <color=#008800>{metaMendingMasonry + 1}%/s</color>", true);
+            $"<color=#111111><size=150%><voffset=1.0em><sprite name=\"icon_heart\" tint=1></voffset></size></color> HP Regen: {metaMendingMasonry}%/s → <color=#008800>{metaMendingMasonry + 1}%/s</color>", true);
     }
 }

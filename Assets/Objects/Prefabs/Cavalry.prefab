@@ -16,6 +16,7 @@ GameObject:
   - component: {fileID: 7359581780059921194}
   - component: {fileID: 8632016758923576015}
   - component: {fileID: 8892544686393915888}
+  - component: {fileID: 5159568216655288606}
   m_Layer: 6
   m_Name: Cavalry
   m_TagString: Player
@@ -138,7 +139,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Cavalry
   healthBarFill: {fileID: 7771449921690717256}
-  hitParticlePrefab: {fileID: 0}
+  hitParticlePrefab: {fileID: 2978876853960275596, guid: 938b59e62d459cf4085a4c92fc89aeaa, type: 3}
   speed: 2.5
   attackRange: 1.8
   attackRate: 1.2
@@ -246,6 +247,21 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MovementVFX
   dustParticles: {fileID: 9116828386731008478, guid: 22689fd2b2dce1b41a968494fa9eb847, type: 3}
+  anim: {fileID: 8632016758923576015}
+--- !u!114 &5159568216655288606
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1610073691329693500}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 467e0d67c81909c43a4c964b3f058901, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::YSorter
+  sortingOrderBase: 5000
+  isStatic: 0
 --- !u!1 &8326742334733895086
 GameObject:
   m_ObjectHideFlags: 0

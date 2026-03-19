@@ -1,0 +1,366 @@
+fileFormatVersion: 2
+guid: 87ea5c6f66258c04ea518f95b37c4947
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -4148103505052209946
+    second: codexplagues_0
+  - first:
+      213: -8825607059811405481
+    second: codexplagues_1
+  - first:
+      213: -6061725855539726101
+    second: codexplagues_2
+  - first:
+      213: -2073413661490846341
+    second: codexplagues_3
+  - first:
+      213: 606544801950111518
+    second: codexplagues_4
+  - first:
+      213: 6510672824583239738
+    second: codexplagues_5
+  - first:
+      213: 1558945955578755992
+    second: codexplagues_6
+  - first:
+      213: 4379326863037377086
+    second: codexplagues_7
+  - first:
+      213: -6782506993861841551
+    second: codexplagues_8
+  - first:
+      213: 3294523359860430331
+    second: codexplagues_9
+  - first:
+      213: -9018552499373660736
+    second: codexplagues_10
+  - first:
+      213: 599401173037901606
+    second: codexplagues_11
+  - first:
+      213: 9193531233797870044
+    second: codexplagues_12
+  - first:
+      213: 5817758899651364251
+    second: codexplagues_13
+  - first:
+      213: 5463433391013446096
+    second: codexplagues_14
+  - first:
+      213: -6887475503241928771
+    second: codexplagues_15
+  - first:
+      213: 3394056961649810105
+    second: codexplagues_16
+  - first:
+      213: -3341170614994477226
+    second: codexplagues_17
+  - first:
+      213: 1836369843188598692
+    second: codexplagues_18
+  - first:
+      213: -1174508637465916403
+    second: codexplagues_19
+  - first:
+      213: -7251929018081557804
+    second: codexplagues_20
+  - first:
+      213: 7231939841423907353
+    second: codexplagues_21
+  - first:
+      213: -2706146719971750770
+    second: codexplagues_22
+  - first:
+      213: 8438302946355972901
+    second: codexplagues_23
+  - first:
+      213: 7637233452500796157
+    second: codexplagues_24
+  - first:
+      213: 2196530000115332441
+    second: codexplagues_25
+  - first:
+      213: -4757910777542949257
+    second: codexplagues_26
+  - first:
+      213: -2153871304611094024
+    second: codexplagues_27
+  - first:
+      213: 4725439559190898647
+    second: codexplagues_28
+  - first:
+      213: 8312584653142192524
+    second: codexplagues_29
+  - first:
+      213: 3014884584651946282
+    second: codexplagues_30
+  - first:
+      213: -3800848046283480368
+    second: codexplagues_31
+  - first:
+      213: 6726202908105222837
+    second: codexplagues_32
+  - first:
+      213: -133320899984171729
+    second: codexplagues_33
+  - first:
+      213: -6734129040431555265
+    second: codexplagues_34
+  - first:
+      213: 6811298056269934318
+    second: codexplagues_35
+  - first:
+      213: -5396997689481236207
+    second: codexplagues_36
+  - first:
+      213: -7886572949144267184
+    second: codexplagues_37
+  - first:
+      213: 5272634657917124661
+    second: codexplagues_38
+  - first:
+      213: -4514365356467154489
+    second: codexplagues_39
+  - first:
+      213: -1964199073162620324
+    second: codexplagues_40
+  - first:
+      213: -5227355639482006810
+    second: codexplagues_41
+  - first:
+      213: 1874601845454362584
+    second: codexplagues_42
+  - first:
+      213: -7381725504585214388
+    second: codexplagues_43
+  - first:
+      213: 3315344652327518205
+    second: codexplagues_44
+  - first:
+      213: -7750096325978496004
+    second: codexplagues_45
+  - first:
+      213: 3138451109271990054
+    second: codexplagues_46
+  - first:
+      213: -2267868150854494676
+    second: codexplagues_47
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: codexplagues_0
+      rect:
+        serializedVersion: 2
+        x: 95
+        y: 1066
+        width: 657
+        height: 144
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6ec6fc9f6d9fe66c0800000000000000
+      internalID: -4148103505052209946
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: codexplagues_1
+      rect:
+        serializedVersion: 2
+        x: 798
+        y: 1030
+        width: 598
+        height: 216
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 751f2c0a325258580800000000000000
+      internalID: -8825607059811405481
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: d93c004be7c59ec4db46ba3759aeb863
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      codexplagues_0: -4148103505052209946
+      codexplagues_1: -8825607059811405481
+      codexplagues_10: -9018552499373660736
+      codexplagues_11: 599401173037901606
+      codexplagues_12: 9193531233797870044
+      codexplagues_13: 5817758899651364251
+      codexplagues_14: 5463433391013446096
+      codexplagues_15: -6887475503241928771
+      codexplagues_16: 3394056961649810105
+      codexplagues_17: -3341170614994477226
+      codexplagues_18: 1836369843188598692
+      codexplagues_19: -1174508637465916403
+      codexplagues_2: -6061725855539726101
+      codexplagues_20: -7251929018081557804
+      codexplagues_21: 7231939841423907353
+      codexplagues_22: -2706146719971750770
+      codexplagues_23: 8438302946355972901
+      codexplagues_24: 7637233452500796157
+      codexplagues_25: 2196530000115332441
+      codexplagues_26: -4757910777542949257
+      codexplagues_27: -2153871304611094024
+      codexplagues_28: 4725439559190898647
+      codexplagues_29: 8312584653142192524
+      codexplagues_3: -2073413661490846341
+      codexplagues_30: 3014884584651946282
+      codexplagues_31: -3800848046283480368
+      codexplagues_32: 6726202908105222837
+      codexplagues_33: -133320899984171729
+      codexplagues_34: -6734129040431555265
+      codexplagues_35: 6811298056269934318
+      codexplagues_36: -5396997689481236207
+      codexplagues_37: -7886572949144267184
+      codexplagues_38: 5272634657917124661
+      codexplagues_39: -4514365356467154489
+      codexplagues_4: 606544801950111518
+      codexplagues_40: -1964199073162620324
+      codexplagues_41: -5227355639482006810
+      codexplagues_42: 1874601845454362584
+      codexplagues_43: -7381725504585214388
+      codexplagues_44: 3315344652327518205
+      codexplagues_45: -7750096325978496004
+      codexplagues_46: 3138451109271990054
+      codexplagues_47: -2267868150854494676
+      codexplagues_5: 6510672824583239738
+      codexplagues_6: 1558945955578755992
+      codexplagues_7: 4379326863037377086
+      codexplagues_8: -6782506993861841551
+      codexplagues_9: 3294523359860430331
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

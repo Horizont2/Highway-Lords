@@ -16,10 +16,16 @@ public class EnemyConfig
     public bool isBatteringRam = false; 
     [Range(1, 100)] public int spawnWeight = 50; 
     public int baseGoldReward = 15; 
+    
+    [Header("Базові стати (Для Кодексу і гри)")]
+    public int baseHp = 100;
+    public int baseDamage = 15;
 }
 
 public class EnemySpawner : MonoBehaviour
 {
+    public static EnemySpawner Instance;
+
     [Header("Налаштування Всіх Ворогів")]
     public List<EnemyConfig> allEnemies = new List<EnemyConfig>();
 
@@ -28,13 +34,9 @@ public class EnemySpawner : MonoBehaviour
     public int bossEscortMax = 5;
 
     [Header("Масштабування розміру загону (Армія)")]
-    [Tooltip("Мінімальна кількість ворогів на початку гри")]
     public int baseSquadMin = 3;
-    [Tooltip("Максимальна кількість ворогів на початку гри")]
     public int baseSquadMax = 6;
-    [Tooltip("На скільки збільшується загін кожну хвилю. 0.5 означає +1 ворог кожні 2 хвилі")]
     public float squadGrowthPerWave = 0.5f; 
-    [Tooltip("Максимальний ліміт ворогів у одному загоні, щоб не було лагів")]
     public int absoluteMaxSquadSize = 18; 
 
     [Header("Налаштування Хвилі")]
@@ -45,6 +47,9 @@ public class EnemySpawner : MonoBehaviour
     public WaveInfoPanel waveInfoPanel;  
 
     private List<EnemyConfig> currentWavePool = new List<EnemyConfig>(); 
+    // ДОДАНО: Список тих, хто ОБОВ'ЯЗКОВО має вийти
+    private List<EnemyConfig> guaranteedSpawns = new List<EnemyConfig>(); 
+
     private EnemyConfig bossConfig;
     private EnemyConfig cartConfig; 
     private EnemyConfig elephantConfig; 
@@ -59,6 +64,17 @@ public class EnemySpawner : MonoBehaviour
     private bool hasSpawnedCartThisWave = false; 
     private bool hasSpawnedRamThisWave = false; 
     private bool hasSpawnedElephantThisWave = false; 
+
+    void Awake()
+    {
+        if (Instance == null) Instance = this;
+        else Destroy(gameObject);
+    }
+
+    public int GetCurrentWave()
+    {
+        return currentWaveNumber > 0 ? currentWaveNumber : 1;
+    }
 
     public void PrepareForWave(int waveNumber)
     {
@@ -122,29 +138,33 @@ public class EnemySpawner : MonoBehaviour
         
         if (isBossMoment && (isBossWave || isElephantWave || isRamWave)) 
         {
-            // Боси зазвичай мають свій фіксований ескорт, але ти теж можеш його масштабувати за бажанням
             escortCount = Random.Range(bossEscortMin, bossEscortMax + 1);
         }
         else if (squadToSpawn.Count == 0) 
         {
-            // Рахуємо максимально можливий розмір армії для поточної хвилі
             int currentWaveMax = baseSquadMax + Mathf.FloorToInt(currentWaveNumber * squadGrowthPerWave);
             currentWaveMax = Mathf.Min(currentWaveMax, absoluteMaxSquadSize);
 
-            // ШАНС 35% НА ВЕЛИЧЕЗНУ АРМІЮ (починає працювати після 4-ї хвилі)
             bool isMassiveHorde = (Random.value < 0.35f) && (currentWaveNumber > 4);
 
             if (isMassiveHorde)
             {
-                // Виходить ОРДА: кількість від (максимум - 3) до максимуму
                 int hordeMin = Mathf.Max(baseSquadMax, currentWaveMax - 3);
                 escortCount = Random.Range(hordeMin, currentWaveMax + 1);
             }
             else
             {
-                // Виходить ЗВИЧАЙНИЙ ЗАГІН: кількість від базового мінімуму до половини можливої армії
                 int normalMax = Mathf.Max(baseSquadMin + 2, currentWaveMax / 2);
-                escortCount = Random.Range(baseSquadMin, normalMax + 1);
+                int minRange = Mathf.Min(baseSquadMin, normalMax);
+                
+                // ФІКС: Якщо у нас є гарантовані вороги, збільшуємо загін, щоб вони всі помістилися
+                if (guaranteedSpawns.Count > minRange) 
+                {
+                    minRange = guaranteedSpawns.Count;
+                    if (normalMax < minRange) normalMax = minRange;
+                }
+
+                escortCount = Random.Range(minRange, normalMax + 1);
             }
         }
 
@@ -154,24 +174,28 @@ public class EnemySpawner : MonoBehaviour
             if (randomUnit != null) squadToSpawn.Add(randomUnit);
         }
 
-        Transform sp = (spawnPoints != null && spawnPoints.Length > 0) 
-            ? spawnPoints[Random.Range(0, spawnPoints.Length)] 
-            : transform;
+        if (squadToSpawn.Count == 0) yield break;
+
+        Vector3 spawnPos = transform.position;
+        if (spawnPoints != null && spawnPoints.Length > 0)
+        {
+            Transform validSp = spawnPoints[Random.Range(0, spawnPoints.Length)];
+            if (validSp != null) spawnPos = validSp.position;
+        }
 
         CameraController cam = Camera.main != null ? Camera.main.GetComponent<CameraController>() : null;
 
         foreach (var unitConfig in squadToSpawn)
         {
-            // Стій! Чекаємо, доки закінчиться катсцена
-            while (cam != null && cam.isCinematicPlaying)
+            float timeout = 2.0f; 
+            while (cam != null && cam.isCinematicPlaying && timeout > 0)
             {
+                timeout -= Time.deltaTime;
                 yield return null;
             }
 
-            SpawnEnemy(unitConfig, sp.position);
+            SpawnEnemy(unitConfig, spawnPos);
             
-            // Якщо армія дуже велика, можна трохи зменшити затримку між спавнами, 
-            // щоб вони вибігали щільнішим натовпом
             float actualDelay = squadToSpawn.Count > 10 ? fastSpawnDelay * 0.7f : fastSpawnDelay;
             yield return new WaitForSeconds(actualDelay);
         }
@@ -218,12 +242,40 @@ public class EnemySpawner : MonoBehaviour
         if (cartConfig != null) currentWavePool.Add(cartConfig);
         if (elephantConfig != null) currentWavePool.Add(elephantConfig);
         if (ramConfig != null) currentWavePool.Add(ramConfig); 
+
+        // ДОДАНО: Копіюємо пул у список гарантованого спавну
+        guaranteedSpawns.Clear();
+        foreach (var enemy in currentWavePool)
+        {
+            // Беремо тільки стандартних ворогів (боси/вози спавняться окремо)
+            if (!enemy.isBoss && !enemy.isCart && !enemy.isElephant && !enemy.isBatteringRam)
+            {
+                guaranteedSpawns.Add(enemy);
+            }
+        }
     }
 
     EnemyConfig GetWeightedRandomEnemy(bool allowCarts)
     {
         if (currentWavePool.Count == 0) return null;
 
+        // --- НОВА СИСТЕМА: Спочатку випускаємо тих, кого пообіцяли в UI ---
+        if (guaranteedSpawns.Count > 0)
+        {
+            var validGuaranteed = allowCarts 
+                ? guaranteedSpawns 
+                : guaranteedSpawns.Where(e => !e.isCart && !e.isElephant && !e.isBoss && !e.isBatteringRam).ToList();
+            
+            if (validGuaranteed.Count > 0)
+            {
+                // Беремо випадкового з "гарантованих", щоб вони не виходили завжди в одному порядку
+                EnemyConfig forcedEnemy = validGuaranteed[Random.Range(0, validGuaranteed.Count)];
+                guaranteedSpawns.Remove(forcedEnemy);
+                return forcedEnemy;
+            }
+        }
+
+        // --- Коли гарантовані закінчилися - вмикається звичайний рандом ---
         var pool = allowCarts 
             ? currentWavePool 
             : currentWavePool.Where(e => !e.isCart && !e.isElephant && !e.isBoss && !e.isBatteringRam).ToList();
@@ -258,12 +310,19 @@ public class EnemySpawner : MonoBehaviour
     public int GetEstimatedGoldFromEnemies()
     {
         if (currentWavePool.Count == 0) return 0;
-        float waveMultiplier = 1.0f + (currentWaveNumber * 0.1f);
-        float avgGold = (float)currentWavePool.Average(e => e.baseGoldReward) * waveMultiplier;
-        return Mathf.RoundToInt(avgGold * 15);
+        
+        int avgBaseGold = Mathf.RoundToInt((float)currentWavePool.Average(e => e.baseGoldReward));
+        int realGoldPerEnemy = EconomyConfig.GetEnemyGoldDrop(avgBaseGold, currentWaveNumber);
+        
+        int expectedSquads = 2 + (currentWaveNumber / 5) + 1; 
+        int expectedEnemiesPerSquad = baseSquadMin + 2; 
+        int totalExpectedEnemies = expectedSquads * expectedEnemiesPerSquad;
+        
+        return realGoldPerEnemy * totalExpectedEnemies;
     }
 
     public void StopSpawning() { StopAllCoroutines(); }
+    
     public void ClearEnemies()
     {
         GameObject[] enemies = GameObject.FindGameObjectsWithTag("Enemy");

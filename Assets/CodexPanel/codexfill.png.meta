@@ -1,0 +1,1086 @@
+fileFormatVersion: 2
+guid: a93df3bfcb064a84884ded9044530003
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 6838588884694156952
+    second: codexfill_0
+  - first:
+      213: 6325060304779155747
+    second: codexfill_1
+  - first:
+      213: 3358955754400819783
+    second: codexfill_2
+  - first:
+      213: 5134546468363431487
+    second: codexfill_3
+  - first:
+      213: 1270989827675897224
+    second: codexfill_4
+  - first:
+      213: 2489252017261099435
+    second: codexfill_5
+  - first:
+      213: 8582185999559748138
+    second: codexfill_6
+  - first:
+      213: 5879701227123981281
+    second: codexfill_7
+  - first:
+      213: -6331796879021734576
+    second: codexfill_8
+  - first:
+      213: 5551105408703599256
+    second: codexfill_9
+  - first:
+      213: -7173405759649639940
+    second: codexfill_10
+  - first:
+      213: 2411053969465588815
+    second: codexfill_11
+  - first:
+      213: -6930156764923181173
+    second: codexfill_12
+  - first:
+      213: 6009133767242538320
+    second: codexfill_13
+  - first:
+      213: -3908631462330091214
+    second: codexfill_14
+  - first:
+      213: -672232066311372305
+    second: codexfill_15
+  - first:
+      213: 6783094939893283800
+    second: codexfill_16
+  - first:
+      213: -809215636223300667
+    second: codexfill_17
+  - first:
+      213: -6625970600328248550
+    second: codexfill_18
+  - first:
+      213: -2716014220403336570
+    second: codexfill_19
+  - first:
+      213: -8316799852515816931
+    second: codexfill_20
+  - first:
+      213: 4187760212851500831
+    second: codexfill_21
+  - first:
+      213: -5605622848064129160
+    second: codexfill_22
+  - first:
+      213: -8869202208322533792
+    second: codexfill_23
+  - first:
+      213: -2122846687638238567
+    second: codexfill_24
+  - first:
+      213: 956999501064570393
+    second: codexfill_25
+  - first:
+      213: -6394169103732673187
+    second: codexfill_26
+  - first:
+      213: 7474516952299348194
+    second: codexfill_27
+  - first:
+      213: -2179630281628790614
+    second: codexfill_28
+  - first:
+      213: -8337846503751080861
+    second: codexfill_29
+  - first:
+      213: 8250576930370400769
+    second: codexfill_30
+  - first:
+      213: -8604913918192478007
+    second: codexfill_31
+  - first:
+      213: -5664037863395917778
+    second: codexfill_32
+  - first:
+      213: -3852786772456860163
+    second: codexfill_33
+  - first:
+      213: -4181468007009188267
+    second: codexfill_34
+  - first:
+      213: 3195050868624632721
+    second: codexfill_35
+  - first:
+      213: 3826564763716815143
+    second: codexfill_36
+  - first:
+      213: -7177946876699300134
+    second: codexfill_37
+  - first:
+      213: 2541117875380852005
+    second: codexfill_38
+  - first:
+      213: -476091281491448373
+    second: codexfill_39
+  - first:
+      213: -7896824422924144482
+    second: codexfill_40
+  - first:
+      213: 3401953820547224000
+    second: codexfill_41
+  - first:
+      213: 8730224581780875678
+    second: codexfill_42
+  - first:
+      213: -2051364954500722278
+    second: codexfill_43
+  - first:
+      213: 6904826931204933761
+    second: codexfill_44
+  - first:
+      213: -574567249502811207
+    second: codexfill_45
+  - first:
+      213: -8242028318784984292
+    second: codexfill_46
+  - first:
+      213: -8325112503286779701
+    second: codexfill_47
+  - first:
+      213: 8917843577813156728
+    second: codexfill_48
+  - first:
+      213: -4357175266644541394
+    second: codexfill_49
+  - first:
+      213: 1422638001096922730
+    second: codexfill_50
+  - first:
+      213: 7671245916748581421
+    second: codexfill_51
+  - first:
+      213: -3388966168280371276
+    second: codexfill_52
+  - first:
+      213: -2422813051633208753
+    second: codexfill_53
+  - first:
+      213: -8745189875534248982
+    second: codexfill_54
+  - first:
+      213: 3539318719074251870
+    second: codexfill_55
+  - first:
+      213: 1891480192755260409
+    second: codexfill_56
+  - first:
+      213: 7572743384611624557
+    second: codexfill_57
+  - first:
+      213: 4331645563674380158
+    second: codexfill_58
+  - first:
+      213: -5734526245587410181
+    second: codexfill_59
+  - first:
+      213: -5095874735247460480
+    second: codexfill_60
+  - first:
+      213: 3697267442336478235
+    second: codexfill_61
+  - first:
+      213: 2587820283239641408
+    second: codexfill_62
+  - first:
+      213: -3857918372226125515
+    second: codexfill_63
+  - first:
+      213: -425769047873358803
+    second: codexfill_64
+  - first:
+      213: -527032858394903346
+    second: codexfill_65
+  - first:
+      213: -1446827376027048662
+    second: codexfill_66
+  - first:
+      213: -3696058328603235075
+    second: codexfill_67
+  - first:
+      213: -3222617278520477461
+    second: codexfill_68
+  - first:
+      213: -1931157264813286551
+    second: codexfill_69
+  - first:
+      213: 6926266857789318263
+    second: codexfill_70
+  - first:
+      213: -8187362772299411788
+    second: codexfill_71
+  - first:
+      213: -6994525952926038407
+    second: codexfill_72
+  - first:
+      213: -8139021050478268578
+    second: codexfill_73
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: codexfill_0
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 2787
+        width: 5
+        height: 5
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8964125bb5c87ee50800000000000000
+      internalID: 6838588884694156952
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: codexfill_1
+      rect:
+        serializedVersion: 2
+        x: 5115
+        y: 2787
+        width: 5
+        height: 5
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3291949e5d027c750800000000000000
+      internalID: 6325060304779155747
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: codexfill_2
+      rect:
+        serializedVersion: 2
+        x: 1973
+        y: 2489
+        width: 1186
+        height: 263
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 74aa05d46786d9e20800000000000000
+      internalID: 3358955754400819783
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: codexfill_4
+      rect:
+        serializedVersion: 2
+        x: 3893
+        y: 2533
+        width: 78
+        height: 78
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 88db1c7a38673a110800000000000000
+      internalID: 1270989827675897224
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: codexfill_5
+      rect:
+        serializedVersion: 2
+        x: 4005
+        y: 2540
+        width: 62
+        height: 67
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ba9b54565899b8220800000000000000
+      internalID: 2489252017261099435
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: codexfill_6
+      rect:
+        serializedVersion: 2
+        x: 4105
+        y: 2545
+        width: 55
+        height: 58
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a2ae61c32bc0a1770800000000000000
+      internalID: 8582185999559748138
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: codexfill_7
+      rect:
+        serializedVersion: 2
+        x: 4257
+        y: 2433
+        width: 270
+        height: 283
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1eb37243d15e89150800000000000000
+      internalID: 5879701227123981281
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: codexfill_8
+      rect:
+        serializedVersion: 2
+        x: 4665
+        y: 2411
+        width: 294
+        height: 304
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0558bfb2940f028a0800000000000000
+      internalID: -6331796879021734576
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: codexfill_9
+      rect:
+        serializedVersion: 2
+        x: 573
+        y: 2104
+        width: 619
+        height: 275
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 892178c45fc790d40800000000000000
+      internalID: 5551105408703599256
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: codexfill_10
+      rect:
+        serializedVersion: 2
+        x: 1209
+        y: 2141
+        width: 622
+        height: 238
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cf1975ac771f27c90800000000000000
+      internalID: -7173405759649639940
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: codexfill_13
+      rect:
+        serializedVersion: 2
+        x: 4637
+        y: 1985
+        width: 338
+        height: 372
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 05ddb44d25bb46350800000000000000
+      internalID: 6009133767242538320
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: codexfill_14
+      rect:
+        serializedVersion: 2
+        x: 172
+        y: 1685
+        width: 348
+        height: 371
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 23936e1d460c1c9c0800000000000000
+      internalID: -3908631462330091214
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: codexfill_18
+      rect:
+        serializedVersion: 2
+        x: 4645
+        y: 1524
+        width: 326
+        height: 359
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a13c04b48d2db04a0800000000000000
+      internalID: -6625970600328248550
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: codexfill_19
+      rect:
+        serializedVersion: 2
+        x: 172
+        y: 1293
+        width: 348
+        height: 374
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 68a13f3e477ce4ad0800000000000000
+      internalID: -2716014220403336570
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: codexfill_23
+      rect:
+        serializedVersion: 2
+        x: 176
+        y: 901
+        width: 348
+        height: 374
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 06643d325934ae480800000000000000
+      internalID: -8869202208322533792
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: codexfill_25
+      rect:
+        serializedVersion: 2
+        x: 4705
+        y: 1073
+        width: 243
+        height: 219
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9160e2fc9f1f74d00800000000000000
+      internalID: 956999501064570393
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: codexfill_26
+      rect:
+        serializedVersion: 2
+        x: 177
+        y: 512
+        width: 350
+        height: 375
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d557c32f3195347a0800000000000000
+      internalID: -6394169103732673187
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: codexfill_28
+      rect:
+        serializedVersion: 2
+        x: 2832
+        y: 772
+        width: 611
+        height: 33
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: aa0d4d99ec560c1e0800000000000000
+      internalID: -2179630281628790614
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: codexfill_29
+      rect:
+        serializedVersion: 2
+        x: 3909
+        y: 771
+        width: 609
+        height: 33
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3642f28d7c40a4c80800000000000000
+      internalID: -8337846503751080861
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: codexfill_30
+      rect:
+        serializedVersion: 2
+        x: 4697
+        y: 740
+        width: 258
+        height: 247
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 102b2c63100ff7270800000000000000
+      internalID: 8250576930370400769
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: codexfill_50
+      rect:
+        serializedVersion: 2
+        x: 4727
+        y: 485
+        width: 204
+        height: 227
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a669a5b79b93eb310800000000000000
+      internalID: 1422638001096922730
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: codexfill_64
+      rect:
+        serializedVersion: 2
+        x: 4725
+        y: 201
+        width: 208
+        height: 230
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d24f6298e4d571af0800000000000000
+      internalID: -425769047873358803
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: codexfill_66
+      rect:
+        serializedVersion: 2
+        x: 740
+        y: 185
+        width: 123
+        height: 174
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a25e898ca26dbebe0800000000000000
+      internalID: -1446827376027048662
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: codexfill_67
+      rect:
+        serializedVersion: 2
+        x: 1260
+        y: 233
+        width: 75
+        height: 79
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dfcea7e5886f4bcc0800000000000000
+      internalID: -3696058328603235075
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: codexfill_68
+      rect:
+        serializedVersion: 2
+        x: 1377
+        y: 241
+        width: 62
+        height: 62
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: be830cac8a6f643d0800000000000000
+      internalID: -3222617278520477461
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: codexfill_69
+      rect:
+        serializedVersion: 2
+        x: 1488
+        y: 241
+        width: 59
+        height: 62
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 96b936903b62335e0800000000000000
+      internalID: -1931157264813286551
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: codexfill_70
+      rect:
+        serializedVersion: 2
+        x: 1593
+        y: 241
+        width: 63
+        height: 62
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 774e71e920b0f1060800000000000000
+      internalID: 6926266857789318263
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: codexfill_71
+      rect:
+        serializedVersion: 2
+        x: 1704
+        y: 240
+        width: 59
+        height: 63
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4be06d5efe4a06e80800000000000000
+      internalID: -8187362772299411788
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: codexfill_72
+      rect:
+        serializedVersion: 2
+        x: 1815
+        y: 244
+        width: 57
+        height: 58
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 976c79354b37eee90800000000000000
+      internalID: -6994525952926038407
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: codexfill_73
+      rect:
+        serializedVersion: 2
+        x: 2273
+        y: 185
+        width: 126
+        height: 174
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e5fe0da1a736c0f80800000000000000
+      internalID: -8139021050478268578
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: e5b2b39006eee754b911a1d32862fec4
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      codexfill_0: 6838588884694156952
+      codexfill_1: 6325060304779155747
+      codexfill_10: -7173405759649639940
+      codexfill_11: 2411053969465588815
+      codexfill_12: -6930156764923181173
+      codexfill_13: 6009133767242538320
+      codexfill_14: -3908631462330091214
+      codexfill_15: -672232066311372305
+      codexfill_16: 6783094939893283800
+      codexfill_17: -809215636223300667
+      codexfill_18: -6625970600328248550
+      codexfill_19: -2716014220403336570
+      codexfill_2: 3358955754400819783
+      codexfill_20: -8316799852515816931
+      codexfill_21: 4187760212851500831
+      codexfill_22: -5605622848064129160
+      codexfill_23: -8869202208322533792
+      codexfill_24: -2122846687638238567
+      codexfill_25: 956999501064570393
+      codexfill_26: -6394169103732673187
+      codexfill_27: 7474516952299348194
+      codexfill_28: -2179630281628790614
+      codexfill_29: -8337846503751080861
+      codexfill_3: 5134546468363431487
+      codexfill_30: 8250576930370400769
+      codexfill_31: -8604913918192478007
+      codexfill_32: -5664037863395917778
+      codexfill_33: -3852786772456860163
+      codexfill_34: -4181468007009188267
+      codexfill_35: 3195050868624632721
+      codexfill_36: 3826564763716815143
+      codexfill_37: -7177946876699300134
+      codexfill_38: 2541117875380852005
+      codexfill_39: -476091281491448373
+      codexfill_4: 1270989827675897224
+      codexfill_40: -7896824422924144482
+      codexfill_41: 3401953820547224000
+      codexfill_42: 8730224581780875678
+      codexfill_43: -2051364954500722278
+      codexfill_44: 6904826931204933761
+      codexfill_45: -574567249502811207
+      codexfill_46: -8242028318784984292
+      codexfill_47: -8325112503286779701
+      codexfill_48: 8917843577813156728
+      codexfill_49: -4357175266644541394
+      codexfill_5: 2489252017261099435
+      codexfill_50: 1422638001096922730
+      codexfill_51: 7671245916748581421
+      codexfill_52: -3388966168280371276
+      codexfill_53: -2422813051633208753
+      codexfill_54: -8745189875534248982
+      codexfill_55: 3539318719074251870
+      codexfill_56: 1891480192755260409
+      codexfill_57: 7572743384611624557
+      codexfill_58: 4331645563674380158
+      codexfill_59: -5734526245587410181
+      codexfill_6: 8582185999559748138
+      codexfill_60: -5095874735247460480
+      codexfill_61: 3697267442336478235
+      codexfill_62: 2587820283239641408
+      codexfill_63: -3857918372226125515
+      codexfill_64: -425769047873358803
+      codexfill_65: -527032858394903346
+      codexfill_66: -1446827376027048662
+      codexfill_67: -3696058328603235075
+      codexfill_68: -3222617278520477461
+      codexfill_69: -1931157264813286551
+      codexfill_7: 5879701227123981281
+      codexfill_70: 6926266857789318263
+      codexfill_71: -8187362772299411788
+      codexfill_72: -6994525952926038407
+      codexfill_73: -8139021050478268578
+      codexfill_8: -6331796879021734576
+      codexfill_9: 5551105408703599256
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

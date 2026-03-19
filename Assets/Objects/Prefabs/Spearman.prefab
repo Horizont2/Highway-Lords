@@ -208,6 +208,7 @@ GameObject:
   - component: {fileID: 7679368517120710939}
   - component: {fileID: 8848170959403996306}
   - component: {fileID: 2104100698628703857}
+  - component: {fileID: -1484663365101810832}
   m_Layer: 6
   m_Name: Spearman
   m_TagString: Player
@@ -429,3 +430,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MovementVFX
   dustParticles: {fileID: 9116828386731008478, guid: 22689fd2b2dce1b41a968494fa9eb847, type: 3}
+  anim: {fileID: 748861169845927127}
+--- !u!114 &-1484663365101810832
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8626055746089502767}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 467e0d67c81909c43a4c964b3f058901, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::YSorter
+  sortingOrderBase: 5000
+  isStatic: 0

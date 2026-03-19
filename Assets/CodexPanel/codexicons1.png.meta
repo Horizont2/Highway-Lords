@@ -1,0 +1,836 @@
+fileFormatVersion: 2
+guid: c1f09e49e49a5034f9e3e21822710ef9
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 5568328091471688129
+    second: codexicons1_0
+  - first:
+      213: -7479052323106958558
+    second: codexicons1_1
+  - first:
+      213: -4117215701155512679
+    second: codexicons1_2
+  - first:
+      213: -677740506035586415
+    second: codexicons1_3
+  - first:
+      213: 3137400173339902696
+    second: codexicons1_4
+  - first:
+      213: 172551816747897281
+    second: codexicons1_5
+  - first:
+      213: -5254412799970848662
+    second: codexicons1_6
+  - first:
+      213: 3741783236342557345
+    second: codexicons1_7
+  - first:
+      213: 5502397902212045034
+    second: codexicons1_8
+  - first:
+      213: -9178859075203185010
+    second: codexicons1_9
+  - first:
+      213: 4938255797615336824
+    second: codexicons1_10
+  - first:
+      213: 2298287544378618093
+    second: codexicons1_11
+  - first:
+      213: 8847245725041641274
+    second: codexicons1_12
+  - first:
+      213: -5229370492355480244
+    second: codexicons1_13
+  - first:
+      213: -1944913653420517772
+    second: codexicons1_14
+  - first:
+      213: 6437710066903027510
+    second: codexicons1_15
+  - first:
+      213: -7326117626791956293
+    second: codexicons1_16
+  - first:
+      213: -5707297607946448599
+    second: codexicons1_17
+  - first:
+      213: 2680247280802348256
+    second: codexicons1_18
+  - first:
+      213: 4630561506433543871
+    second: codexicons1_19
+  - first:
+      213: 6690280961582654814
+    second: codexicons1_20
+  - first:
+      213: 1595526921232702597
+    second: codexicons1_21
+  - first:
+      213: -2780462798491763219
+    second: codexicons1_22
+  - first:
+      213: 9172914422298965874
+    second: codexicons1_23
+  - first:
+      213: 6137802555232981544
+    second: codexicons1_24
+  - first:
+      213: -3620669009916480754
+    second: codexicons1_25
+  - first:
+      213: 4107589026503633092
+    second: codexicons1_26
+  - first:
+      213: 1680515897284924549
+    second: codexicons1_27
+  - first:
+      213: 4808315786091967104
+    second: codexicons1_28
+  - first:
+      213: 6716382672427398730
+    second: codexicons1_29
+  - first:
+      213: 8857978064336265982
+    second: codexicons1_30
+  - first:
+      213: 474690509015168394
+    second: codexicons1_31
+  - first:
+      213: 4190273488758894078
+    second: codexicons1_32
+  - first:
+      213: -2965463181989941456
+    second: codexicons1_33
+  - first:
+      213: 3732516297842117746
+    second: codexicons1_34
+  - first:
+      213: 8046546714160052699
+    second: codexicons1_35
+  - first:
+      213: -3429321628386182382
+    second: codexicons1_36
+  - first:
+      213: 7524705548856459114
+    second: codexicons1_37
+  - first:
+      213: 3398350822729784859
+    second: codexicons1_38
+  - first:
+      213: 4656180807828913009
+    second: codexicons1_39
+  - first:
+      213: -8433268078814502504
+    second: codexicons1_40
+  - first:
+      213: 6840660576547467460
+    second: codexicons1_41
+  - first:
+      213: 5289170612134362051
+    second: codexicons1_42
+  - first:
+      213: -1953870318653463329
+    second: codexicons1_43
+  - first:
+      213: -6821739565718576746
+    second: codexicons1_44
+  - first:
+      213: 8897901802313268490
+    second: codexicons1_45
+  - first:
+      213: -8382458240049452449
+    second: codexicons1_46
+  - first:
+      213: 8073645054605133377
+    second: codexicons1_47
+  - first:
+      213: -5635939676302285604
+    second: codexicons1_48
+  - first:
+      213: 871806787262523939
+    second: codexicons1_49
+  - first:
+      213: 3631500248689896109
+    second: codexicons1_50
+  - first:
+      213: 6046480497877741544
+    second: codexicons1_51
+  - first:
+      213: -3371659287190237428
+    second: codexicons1_52
+  - first:
+      213: -5208720516522551832
+    second: codexicons1_53
+  - first:
+      213: -3845044905022872736
+    second: codexicons1_54
+  - first:
+      213: 2139728576452951313
+    second: codexicons1_55
+  - first:
+      213: -1952310845647593619
+    second: codexicons1_56
+  - first:
+      213: 774169000600824779
+    second: codexicons1_57
+  - first:
+      213: 3998805283510838147
+    second: codexicons1_58
+  - first:
+      213: -2271126175403313565
+    second: codexicons1_59
+  - first:
+      213: 4674902734771277310
+    second: codexicons1_60
+  - first:
+      213: -1131560025144733313
+    second: codexicons1_61
+  - first:
+      213: 1153753497818843348
+    second: codexicons1_62
+  - first:
+      213: 2725013173216712320
+    second: codexicons1_63
+  - first:
+      213: 2640090225455424501
+    second: codexicons1_64
+  - first:
+      213: -6090832311914135429
+    second: codexicons1_65
+  - first:
+      213: -179421283685114031
+    second: codexicons1_66
+  - first:
+      213: 8974816068335233343
+    second: codexicons1_67
+  - first:
+      213: -512747799056769538
+    second: codexicons1_68
+  - first:
+      213: 8647528453575580232
+    second: codexicons1_69
+  - first:
+      213: 8169906288436885232
+    second: codexicons1_70
+  - first:
+      213: -2784482306110864667
+    second: codexicons1_71
+  - first:
+      213: -5656093300977019431
+    second: codexicons1_72
+  - first:
+      213: 4845972394355559947
+    second: codexicons1_73
+  - first:
+      213: -486945365979475808
+    second: codexicons1_74
+  - first:
+      213: -6083866004471513607
+    second: codexicons1_75
+  - first:
+      213: 2778447211604160958
+    second: codexicons1_76
+  - first:
+      213: -7393640476578793510
+    second: codexicons1_77
+  - first:
+      213: -8591084177119539444
+    second: codexicons1_78
+  - first:
+      213: 4790657611744319317
+    second: codexicons1_79
+  - first:
+      213: -1006431658933533428
+    second: codexicons1_80
+  - first:
+      213: 6723362864529738250
+    second: codexicons1_81
+  - first:
+      213: 942796074088446612
+    second: codexicons1_82
+  - first:
+      213: 428231803781876165
+    second: codexicons1_83
+  - first:
+      213: -756548140303664452
+    second: codexicons1_84
+  - first:
+      213: 3976041142884779198
+    second: codexicons1_85
+  - first:
+      213: 6847949675248095648
+    second: codexicons1_86
+  - first:
+      213: 3683476185408177499
+    second: codexicons1_87
+  - first:
+      213: 2490791775716300456
+    second: codexicons1_88
+  - first:
+      213: -6684468018385402824
+    second: codexicons1_89
+  - first:
+      213: 8898839003988559274
+    second: codexicons1_90
+  - first:
+      213: 839028979536562134
+    second: codexicons1_91
+  - first:
+      213: -5316881864425970085
+    second: codexicons1_92
+  - first:
+      213: -8216962399490049439
+    second: codexicons1_93
+  - first:
+      213: 9156757285358005129
+    second: codexicons1_94
+  - first:
+      213: -2038377584094683450
+    second: codexicons1_95
+  - first:
+      213: -203674584079138838
+    second: codexicons1_96
+  - first:
+      213: -4912759718169011308
+    second: codexicons1_97
+  - first:
+      213: 8258595121245743565
+    second: codexicons1_98
+  - first:
+      213: -5190046108389707411
+    second: codexicons1_99
+  - first:
+      213: -572444235476454402
+    second: codexicons1_100
+  - first:
+      213: 2029759406967437051
+    second: codexicons1_101
+  - first:
+      213: -8258532522319622552
+    second: codexicons1_102
+  - first:
+      213: -3904181435257423841
+    second: codexicons1_103
+  - first:
+      213: 3715394893588065382
+    second: codexicons1_104
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: codexicons1_0
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 2787
+        width: 5
+        height: 5
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1c1bffc95eca64d40800000000000000
+      internalID: 5568328091471688129
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: codexicons1_1
+      rect:
+        serializedVersion: 2
+        x: 5115
+        y: 2787
+        width: 5
+        height: 5
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 22356a0b981153890800000000000000
+      internalID: -7479052323106958558
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: codexicons1_36
+      rect:
+        serializedVersion: 2
+        x: 1021
+        y: 1788
+        width: 662
+        height: 731
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 21b3a77f52a9860d0800000000000000
+      internalID: -3429321628386182382
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: codexicons1_37
+      rect:
+        serializedVersion: 2
+        x: 1873
+        y: 1789
+        width: 650
+        height: 651
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a6ffffe34df1d6860800000000000000
+      internalID: 7524705548856459114
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: codexicons1_38
+      rect:
+        serializedVersion: 2
+        x: 2737
+        y: 1789
+        width: 638
+        height: 671
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b1e17fa611e592f20800000000000000
+      internalID: 3398350822729784859
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: codexicons1_39
+      rect:
+        serializedVersion: 2
+        x: 3521
+        y: 1789
+        width: 638
+        height: 638
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 17b32a476c31e9040800000000000000
+      internalID: 4656180807828913009
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: codexicons1_40
+      rect:
+        serializedVersion: 2
+        x: 4293
+        y: 1789
+        width: 642
+        height: 646
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 891ee9a1d5307fa80800000000000000
+      internalID: -8433268078814502504
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: codexicons1_61
+      rect:
+        serializedVersion: 2
+        x: 1881
+        y: 1029
+        width: 638
+        height: 638
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f7157330724eb40f0800000000000000
+      internalID: -1131560025144733313
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: codexicons1_62
+      rect:
+        serializedVersion: 2
+        x: 2737
+        y: 1029
+        width: 639
+        height: 638
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4d84bd381b4f20010800000000000000
+      internalID: 1153753497818843348
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: codexicons1_81
+      rect:
+        serializedVersion: 2
+        x: 965
+        y: 264
+        width: 738
+        height: 627
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a0a095447ee2e4d50800000000000000
+      internalID: 6723362864529738250
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: codexicons1_82
+      rect:
+        serializedVersion: 2
+        x: 1888
+        y: 264
+        width: 627
+        height: 627
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 49abca3c80c751d00800000000000000
+      internalID: 942796074088446612
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: codexicons1_83
+      rect:
+        serializedVersion: 2
+        x: 2745
+        y: 264
+        width: 627
+        height: 655
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5c981f18e8261f500800000000000000
+      internalID: 428231803781876165
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: codexicons1_84
+      rect:
+        serializedVersion: 2
+        x: 3541
+        y: 264
+        width: 630
+        height: 627
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cbab7b989733085f0800000000000000
+      internalID: -756548140303664452
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 244cb136a50fe4749a619e826adf439c
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      codexicons1_0: 5568328091471688129
+      codexicons1_1: -7479052323106958558
+      codexicons1_10: 4938255797615336824
+      codexicons1_100: -572444235476454402
+      codexicons1_101: 2029759406967437051
+      codexicons1_102: -8258532522319622552
+      codexicons1_103: -3904181435257423841
+      codexicons1_104: 3715394893588065382
+      codexicons1_11: 2298287544378618093
+      codexicons1_12: 8847245725041641274
+      codexicons1_13: -5229370492355480244
+      codexicons1_14: -1944913653420517772
+      codexicons1_15: 6437710066903027510
+      codexicons1_16: -7326117626791956293
+      codexicons1_17: -5707297607946448599
+      codexicons1_18: 2680247280802348256
+      codexicons1_19: 4630561506433543871
+      codexicons1_2: -4117215701155512679
+      codexicons1_20: 6690280961582654814
+      codexicons1_21: 1595526921232702597
+      codexicons1_22: -2780462798491763219
+      codexicons1_23: 9172914422298965874
+      codexicons1_24: 6137802555232981544
+      codexicons1_25: -3620669009916480754
+      codexicons1_26: 4107589026503633092
+      codexicons1_27: 1680515897284924549
+      codexicons1_28: 4808315786091967104
+      codexicons1_29: 6716382672427398730
+      codexicons1_3: -677740506035586415
+      codexicons1_30: 8857978064336265982
+      codexicons1_31: 474690509015168394
+      codexicons1_32: 4190273488758894078
+      codexicons1_33: -2965463181989941456
+      codexicons1_34: 3732516297842117746
+      codexicons1_35: 8046546714160052699
+      codexicons1_36: -3429321628386182382
+      codexicons1_37: 7524705548856459114
+      codexicons1_38: 3398350822729784859
+      codexicons1_39: 4656180807828913009
+      codexicons1_4: 3137400173339902696
+      codexicons1_40: -8433268078814502504
+      codexicons1_41: 6840660576547467460
+      codexicons1_42: 5289170612134362051
+      codexicons1_43: -1953870318653463329
+      codexicons1_44: -6821739565718576746
+      codexicons1_45: 8897901802313268490
+      codexicons1_46: -8382458240049452449
+      codexicons1_47: 8073645054605133377
+      codexicons1_48: -5635939676302285604
+      codexicons1_49: 871806787262523939
+      codexicons1_5: 172551816747897281
+      codexicons1_50: 3631500248689896109
+      codexicons1_51: 6046480497877741544
+      codexicons1_52: -3371659287190237428
+      codexicons1_53: -5208720516522551832
+      codexicons1_54: -3845044905022872736
+      codexicons1_55: 2139728576452951313
+      codexicons1_56: -1952310845647593619
+      codexicons1_57: 774169000600824779
+      codexicons1_58: 3998805283510838147
+      codexicons1_59: -2271126175403313565
+      codexicons1_6: -5254412799970848662
+      codexicons1_60: 4674902734771277310
+      codexicons1_61: -1131560025144733313
+      codexicons1_62: 1153753497818843348
+      codexicons1_63: 2725013173216712320
+      codexicons1_64: 2640090225455424501
+      codexicons1_65: -6090832311914135429
+      codexicons1_66: -179421283685114031
+      codexicons1_67: 8974816068335233343
+      codexicons1_68: -512747799056769538
+      codexicons1_69: 8647528453575580232
+      codexicons1_7: 3741783236342557345
+      codexicons1_70: 8169906288436885232
+      codexicons1_71: -2784482306110864667
+      codexicons1_72: -5656093300977019431
+      codexicons1_73: 4845972394355559947
+      codexicons1_74: -486945365979475808
+      codexicons1_75: -6083866004471513607
+      codexicons1_76: 2778447211604160958
+      codexicons1_77: -7393640476578793510
+      codexicons1_78: -8591084177119539444
+      codexicons1_79: 4790657611744319317
+      codexicons1_8: 5502397902212045034
+      codexicons1_80: -1006431658933533428
+      codexicons1_81: 6723362864529738250
+      codexicons1_82: 942796074088446612
+      codexicons1_83: 428231803781876165
+      codexicons1_84: -756548140303664452
+      codexicons1_85: 3976041142884779198
+      codexicons1_86: 6847949675248095648
+      codexicons1_87: 3683476185408177499
+      codexicons1_88: 2490791775716300456
+      codexicons1_89: -6684468018385402824
+      codexicons1_9: -9178859075203185010
+      codexicons1_90: 8898839003988559274
+      codexicons1_91: 839028979536562134
+      codexicons1_92: -5316881864425970085
+      codexicons1_93: -8216962399490049439
+      codexicons1_94: 9156757285358005129
+      codexicons1_95: -2038377584094683450
+      codexicons1_96: -203674584079138838
+      codexicons1_97: -4912759718169011308
+      codexicons1_98: 8258595121245743565
+      codexicons1_99: -5190046108389707411
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

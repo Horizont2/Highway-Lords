@@ -17,6 +17,7 @@ GameObject:
   - component: {fileID: 2710966085519959593}
   - component: {fileID: 1929767374024655216}
   - component: {fileID: 4112671866892517680}
+  - component: {fileID: 6243110897565159157}
   m_Layer: 7
   m_Name: EnemySpearman
   m_TagString: Enemy
@@ -262,6 +263,21 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MovementVFX
   dustParticles: {fileID: 9116828386731008478, guid: 22689fd2b2dce1b41a968494fa9eb847, type: 3}
+  anim: {fileID: 266199521031315932}
+--- !u!114 &6243110897565159157
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6982164197780148359}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 467e0d67c81909c43a4c964b3f058901, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::YSorter
+  sortingOrderBase: 5000
+  isStatic: 0
 --- !u!1 &7370234385630690009
 GameObject:
   m_ObjectHideFlags: 0
@@ -504,6 +520,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7894804957194867853, guid: 22689fd2b2dce1b41a968494fa9eb847, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9116828386731008478, guid: 22689fd2b2dce1b41a968494fa9eb847, type: 3}
+      propertyPath: EmissionModule.enabled
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []

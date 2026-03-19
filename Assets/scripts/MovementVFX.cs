@@ -3,12 +3,18 @@ using UnityEngine;
 public class MovementVFX : MonoBehaviour
 {
     public ParticleSystem dustParticles;
-    private Animator anim;
+    public Animator anim; 
 
     void Start()
     {
-        anim = GetComponent<Animator>();
         if (anim == null) anim = GetComponentInParent<Animator>(); 
+
+        // БРОНЕБІЙНИЙ ФІКС: Примусово запускаємо "насос" частинок, 
+        // інакше модуль Emission не зможе випускати пил!
+        if (dustParticles != null && !dustParticles.isPlaying)
+        {
+            dustParticles.Play();
+        }
     }
 
     void Update()
@@ -17,7 +23,6 @@ public class MovementVFX : MonoBehaviour
         {
             bool isMoving = anim.GetBool("IsMoving");
             
-            // ЄДИНИЙ безпечний спосіб вмикати частинки
             var emission = dustParticles.emission;
             emission.enabled = isMoving;
         }

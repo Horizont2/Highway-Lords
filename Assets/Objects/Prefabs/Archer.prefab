@@ -91,6 +91,7 @@ GameObject:
   - component: {fileID: -3494268141185776747}
   - component: {fileID: 3571507987319045550}
   - component: {fileID: 4994638943985929644}
+  - component: {fileID: 3049094252610292049}
   m_Layer: 6
   m_Name: Archer
   m_TagString: Player
@@ -303,6 +304,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MovementVFX
   dustParticles: {fileID: 9116828386731008478, guid: 22689fd2b2dce1b41a968494fa9eb847, type: 3}
+  anim: {fileID: 5080988190488031030}
 --- !u!114 &4994638943985929644
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -316,6 +318,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UnitStats
   category: 1
+--- !u!114 &3049094252610292049
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 366371821858485913}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 467e0d67c81909c43a4c964b3f058901, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::YSorter
+  sortingOrderBase: 5000
+  isStatic: 0
 --- !u!1 &3819205139818351308
 GameObject:
   m_ObjectHideFlags: 0
@@ -514,6 +530,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7894804957194867853, guid: 22689fd2b2dce1b41a968494fa9eb847, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9116828386731008478, guid: 22689fd2b2dce1b41a968494fa9eb847, type: 3}
+      propertyPath: EmissionModule.enabled
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []

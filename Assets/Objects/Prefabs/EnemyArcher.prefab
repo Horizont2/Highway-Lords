@@ -93,6 +93,7 @@ GameObject:
   - component: {fileID: 7326346444222445680}
   - component: {fileID: 4450659837202409039}
   - component: {fileID: 4537718769101409549}
+  - component: {fileID: -3058477403529774307}
   m_Layer: 7
   m_Name: EnemyArcher
   m_TagString: Enemy
@@ -217,7 +218,7 @@ MonoBehaviour:
   attackRange: 6
   timeBetweenShots: 2
   damage: 10
-  maxHealth: 40
+  maxHealth: 45
   obstacleLayer:
     serializedVersion: 2
     m_Bits: 256
@@ -329,7 +330,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemyStats
   baseGoldReward: 15
   currentGoldReward: 0
-  maxHealth: 40
+  maxHealth: 45
   currentHealth: 0
 --- !u!114 &4537718769101409549
 MonoBehaviour:
@@ -344,6 +345,21 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MovementVFX
   dustParticles: {fileID: 9116828386731008478, guid: 22689fd2b2dce1b41a968494fa9eb847, type: 3}
+  anim: {fileID: 8763033090520882457}
+--- !u!114 &-3058477403529774307
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8319572253659754456}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 467e0d67c81909c43a4c964b3f058901, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::YSorter
+  sortingOrderBase: 5000
+  isStatic: 0
 --- !u!1 &8816072622313337729
 GameObject:
   m_ObjectHideFlags: 0
@@ -542,6 +558,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7894804957194867853, guid: 22689fd2b2dce1b41a968494fa9eb847, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9116828386731008478, guid: 22689fd2b2dce1b41a968494fa9eb847, type: 3}
+      propertyPath: EmissionModule.enabled
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
