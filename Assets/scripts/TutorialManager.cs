@@ -4,7 +4,8 @@ using TMPro;
 using System.Collections;
 using System.Collections.Generic;
 
-public enum TutorialTrigger { ClickButton, WaitForWaveEnd, WaitTime, WaitForCart, WaitForSpearman, InfoOnly }
+// Додано нові тригери: WaitForGold, WaitForPanel
+public enum TutorialTrigger { ClickButton, WaitForWaveEnd, WaitTime, WaitForCart, WaitForSpearman, InfoOnly, WaitForGold, WaitForPanel }
 
 [System.Serializable]
 public class TutorialStep
@@ -22,7 +23,7 @@ public class TutorialManager : MonoBehaviour
 
     [Header("UI Гайду")]
     public GameObject tutorialCanvas;
-    public GameObject darkOverlay; // Raycast Target = true
+    public GameObject darkOverlay; 
     public TMP_Text dialogText;
     public RectTransform pointerHand;
     public GameObject dialogPanel;
@@ -49,7 +50,7 @@ public class TutorialManager : MonoBehaviour
         if (Instance == null) Instance = this;
         else Destroy(gameObject);
         
-        if (tutorialCanvas != null) tutorialCanvas.SetActive(true);
+        // Видалено примусове увімкнення на старті, щоб уникнути "блимання"
     }
 
     void Start()
@@ -77,12 +78,14 @@ public class TutorialManager : MonoBehaviour
         currentStepIndex = index;
         TutorialStep step = steps[index];
 
+        // Вмикаємо канвас тільки тоді, коли реально показуємо крок
+        if (tutorialCanvas != null) tutorialCanvas.SetActive(true);
+
         if (dialogText != null) dialogText.text = step.dialogText;
         if (dialogPanel != null) dialogPanel.SetActive(!string.IsNullOrEmpty(step.dialogText));
 
         RestorePreviousTarget();
 
-        // ПРИМУСОВО повертаємо час, якщо крок не вимагає паузи
         Time.timeScale = step.pauseGame ? 0f : 1f;
 
         if (tutorialCanvas != null)
@@ -127,6 +130,14 @@ public class TutorialManager : MonoBehaviour
                 HideTutorialVisuals();
                 StartCoroutine(WaitForSpearmanRoutine());
                 break;
+            case TutorialTrigger.WaitForGold:
+                HideTutorialVisuals();
+                StartCoroutine(WaitForGoldRoutine((int)step.waitDuration)); 
+                break;
+            case TutorialTrigger.WaitForPanel:
+                HideTutorialVisuals();
+                StartCoroutine(WaitForPanelRoutine(step.targetUI));
+                break;
             case TutorialTrigger.InfoOnly:
                 if (pointerHand != null) pointerHand.gameObject.SetActive(false);
                 SetupClickToContinue();
@@ -142,7 +153,7 @@ public class TutorialManager : MonoBehaviour
         {
             foreach (var b in activeButtons)
             {
-                if (b != null) // Перевірка на null
+                if (b != null) 
                 {
                     b.interactable = true;
                     
@@ -173,7 +184,7 @@ public class TutorialManager : MonoBehaviour
 
     void HighlightTarget(RectTransform target)
     {
-        if (target == null) return; // Захист
+        if (target == null) return; 
 
         Button actualButton = target.GetComponentInChildren<Button>();
         if (actualButton != null && actualButton.transform != target)
@@ -316,7 +327,7 @@ public class TutorialManager : MonoBehaviour
     {
         if (!isTutorialActive) return;
 
-        Time.timeScale = 1f; // ПРИМУСОВЕ ВІДНОВЛЕННЯ ЧАСУ ПЕРЕД ПЕРЕХОДОМ
+        Time.timeScale = 1f; 
         RestorePreviousTarget();
 
         if (darkOverlay != null)
@@ -335,7 +346,7 @@ public class TutorialManager : MonoBehaviour
     public void EndTutorial()
     {
         isTutorialActive = false;
-        Time.timeScale = 1f; // ПРИМУСОВО
+        Time.timeScale = 1f; 
         RestorePreviousTarget();
         HideTutorialVisuals();
         if (tutorialCanvas != null) tutorialCanvas.SetActive(false);
@@ -392,6 +403,28 @@ public class TutorialManager : MonoBehaviour
             yield return new WaitForSeconds(0.5f);
         }
         yield return new WaitForSeconds(1.5f);
+        NextStep();
+    }
+
+    // НОВЕ: Очікування золота
+    IEnumerator WaitForGoldRoutine(int targetGold)
+    {
+        while (GameManager.Instance == null || GameManager.Instance.gold < targetGold)
+        {
+            yield return new WaitForSeconds(1f);
+        }
+        yield return new WaitForSeconds(0.5f);
+        NextStep();
+    }
+
+    // НОВЕ: Очікування відкриття вікна
+    IEnumerator WaitForPanelRoutine(RectTransform panel)
+    {
+        while (panel == null || !panel.gameObject.activeInHierarchy)
+        {
+            yield return new WaitForSeconds(0.5f);
+        }
+        yield return new WaitForSeconds(0.5f);
         NextStep();
     }
 

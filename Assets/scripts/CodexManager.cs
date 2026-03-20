@@ -94,6 +94,26 @@ public class CodexManager : MonoBehaviour
         if (enemiesTabBtn) enemiesTabBtn.onClick.AddListener(() => OpenCategory(CodexCategory.Enemies));
     }
 
+    void OnEnable()
+    {
+        // Запускаємо корутину, щоб дати UI один кадр на завантаження
+        StartCoroutine(InitCodexNextFrame());
+    }
+
+    private System.Collections.IEnumerator InitCodexNextFrame()
+    {
+        yield return null; 
+
+        // Якщо у тебе база даних називається database (або enemyDatabase, unitDatabase)
+        // Замість ShowCategory просто виклич функцію, яка показує деталі!
+        // Перевір як називається твій список (наприклад database) і функція показу (ShowEntryDetails)
+        
+        if (database != null && database.Count > 0)
+        {
+            ShowEntryDetails(database[0]);
+        }
+    }
+
     public void OpenCodex()
     {
         if (SoundManager.Instance) SoundManager.Instance.PlaySFX(SoundManager.Instance.clickSound);

@@ -70,7 +70,6 @@ public class CampaignManager : MonoBehaviour
         if (mainCampaignPanel) mainCampaignPanel.SetActive(false);
         if (scoutPanel) scoutPanel.SetActive(false);
 
-        // Прив'язка кнопок слотів (для прибирання загону)
         if (legionSlotButtons != null && legionSlotButtons.Length > 0)
         {
             for (int i = 0; i < 9; i++)
@@ -87,7 +86,6 @@ public class CampaignManager : MonoBehaviour
             }
         }
 
-        // Прив'язка кнопок магазину
         if (shopAddButtons != null && shopAddButtons.Length > 0)
         {
             for (int i = 0; i < shopAddButtons.Length; i++)
@@ -237,8 +235,6 @@ public class CampaignManager : MonoBehaviour
         shouldBeVisible[6] = PlayerPrefs.GetInt("Merc_Spearman_Battles", 0) > 0;
         shouldBeVisible[7] = PlayerPrefs.GetInt("Merc_Cavalry_Battles", 0) > 0;
 
-        // ФІКС: Якщо юніт вже є в БУДЬ-ЯКОМУ слоті, ми ховаємо його з магазину!
-        // Більше неможливо взяти 9 загонів однакового типу.
         for (int i = 0; i < 9; i++)
         {
             if (currentSquadSlots[i] != -1 && currentSquadSlots[i] < 8)
@@ -419,7 +415,18 @@ public class CampaignManager : MonoBehaviour
         if (totalCostText) totalCostText.text = "TOTAL COST: " + totalCost.ToString() + "G";
         if (yourPowerText) yourPowerText.text = "Your Power: " + totalPower.ToString();
 
-        float enemyPowerAdjusted = (currentNode != null) ? currentNode.enemyPowerScore : 1f;
+        // ФІКС ПРЕДІКТУ: Множимо силу ворога на 2.5, щоб врахувати кількість хвиль
+        // === ФІКС: Динамічний множник хвиль ===
+        int wavesCount = (currentNode != null) ? currentNode.campLevel : 1; // 1 лвл = 1 хвиля
+        
+        // Якщо 1 хвиля (множник 1.0). Кожна наступна хвиля додає 50% загальної сили (1.5, 2.0, 2.5, 3.0)
+        float waveMultiplier = 1f + ((wavesCount - 1) * 0.5f);
+        float enemyPowerAdjusted = (currentNode != null) ? (currentNode.enemyPowerScore * waveMultiplier) : 1f;
+
+        // ПОКАЗУЄМО ГРАВЦЮ ЧЕСНУ ЦИФРУ:
+        if (enemyPowerText) enemyPowerText.text = "ENEMY POWER: " + Mathf.RoundToInt(enemyPowerAdjusted);
+
+        // ... (вище код з enemyPowerAdjusted) ...
         float ratio = (float)totalPower / Mathf.Max(1f, enemyPowerAdjusted);
 
         if (winChanceSlider)
@@ -432,8 +439,8 @@ public class CampaignManager : MonoBehaviour
         if (winChanceLabel)
         {
             string prefix = "WIN CHANCE: ";
-            if (ratio < 0.7f) { winChanceLabel.text = prefix + "<color=#FF4444>LOW</color>"; }
-            else if (ratio < 1.3f) { winChanceLabel.text = prefix + "<color=#FFDD44>MEDIUM</color>"; }
+            if (ratio < 0.6f) { winChanceLabel.text = prefix + "<color=#FF4444>LOW</color>"; }
+            else if (ratio < 1.1f) { winChanceLabel.text = prefix + "<color=#FFDD44>MEDIUM</color>"; }
             else { winChanceLabel.text = prefix + "<color=#44FF44>HIGH</color>"; }
         }
 
@@ -441,7 +448,7 @@ public class CampaignManager : MonoBehaviour
         if (attackButton) attackButton.interactable = canAfford && totalSquads > 0 && !isAnimating;
 
         UpdateButtonStates(totalCost);
-    }
+    } // <-- Це кінець функції UpdateUI
 
     void UpdateButtonStates(int totalCost)
     {

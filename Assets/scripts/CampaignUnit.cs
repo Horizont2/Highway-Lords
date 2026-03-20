@@ -166,25 +166,21 @@ public class CampaignUnit : MonoBehaviour
             if (currentTarget != null && currentTarget.isDead) SetTarget(null);
 
             FindTarget();
-            ApplySeparation(); 
 
             if (currentTarget != null)
             {
                 float dist = Vector2.Distance(transform.position, currentTarget.transform.position);
-                
-                if (dist <= attackRange + 0.5f && Mathf.Abs(transform.position.y - currentTarget.transform.position.y) > 0.2f)
-                {
-                     Vector3 alignPos = transform.position;
-                     alignPos.y = Mathf.MoveTowards(alignPos.y, currentTarget.transform.position.y, moveSpeed * 0.5f * Time.deltaTime);
-                     transform.position = alignPos;
-                }
 
+                // Якщо ми ДАЛЕКО - йдемо і відштовхуємось від своїх (щоб не злипатися)
                 if (dist > attackRange)
                 {
+                    ApplySeparation(); 
                     transform.position = Vector3.MoveTowards(transform.position, currentTarget.transform.position, moveSpeed * Time.deltaTime);
+                    
                     if (anim) anim.SetBool("IsMoving", true);
                     FlipTowards(currentTarget.transform.position);
                 }
+                // Якщо ми БЛИЗЬКО - ЖОРСТКО СТОЇМО і б'ємо (ніякого сковзання)
                 else
                 {
                     if (anim) anim.SetBool("IsMoving", false);
@@ -200,6 +196,7 @@ public class CampaignUnit : MonoBehaviour
             else
             {
                 if (anim) anim.SetBool("IsMoving", false);
+                ApplySeparation(); // Трохи розходимось, якщо немає ворогів
             }
         }
     }
