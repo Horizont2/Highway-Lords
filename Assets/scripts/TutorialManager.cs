@@ -4,8 +4,8 @@ using TMPro;
 using System.Collections;
 using System.Collections.Generic;
 
-// Додано нові тригери: WaitForGold, WaitForPanel
-public enum TutorialTrigger { ClickButton, WaitForWaveEnd, WaitTime, WaitForCart, WaitForSpearman, InfoOnly, WaitForGold, WaitForPanel }
+// НОВИЙ ТРИГЕР: GiveGold (Дає золото і чекає кліку для продовження)
+public enum TutorialTrigger { ClickButton, WaitForWaveEnd, WaitTime, WaitForCart, WaitForSpearman, InfoOnly, WaitForGold, WaitForPanel, GiveGold, CheckCityVictory }
 
 [System.Serializable]
 public class TutorialStep
@@ -50,7 +50,7 @@ public class TutorialManager : MonoBehaviour
         if (Instance == null) Instance = this;
         else Destroy(gameObject);
         
-        // Видалено примусове увімкнення на старті, щоб уникнути "блимання"
+        // Видалено примусове увімкнення на старті, щоб уникнути "блимання" нульового кадру
     }
 
     void Start()
@@ -140,6 +140,31 @@ public class TutorialManager : MonoBehaviour
                 break;
             case TutorialTrigger.InfoOnly:
                 if (pointerHand != null) pointerHand.gameObject.SetActive(false);
+                SetupClickToContinue();
+                break;
+            case TutorialTrigger.CheckCityVictory:
+                HideTutorialVisuals();
+                if (pointerHand != null) pointerHand.gameObject.SetActive(false);
+                
+                // Перевіряємо, чи є в записі хоча б одна перемога
+                if (PlayerPrefs.GetInt("CitiesConquered", 0) > 0)
+                {
+                    Debug.Log("Гравець вже сам захопив місто. Гайд скасовується!");
+                    EndTutorial(); 
+                }
+                else
+                {
+                    NextStep(); 
+                }
+                break;
+            case TutorialTrigger.GiveGold:
+                if (pointerHand != null) pointerHand.gameObject.SetActive(false);
+                if (GameManager.Instance != null)
+                {
+                    // Нараховуємо золото і оновлюємо UI
+                    GameManager.Instance.gold += (int)step.waitDuration;
+                    GameManager.Instance.UpdateUI();
+                }
                 SetupClickToContinue();
                 break;
         }
@@ -406,7 +431,6 @@ public class TutorialManager : MonoBehaviour
         NextStep();
     }
 
-    // НОВЕ: Очікування золота
     IEnumerator WaitForGoldRoutine(int targetGold)
     {
         while (GameManager.Instance == null || GameManager.Instance.gold < targetGold)
@@ -417,7 +441,6 @@ public class TutorialManager : MonoBehaviour
         NextStep();
     }
 
-    // НОВЕ: Очікування відкриття вікна
     IEnumerator WaitForPanelRoutine(RectTransform panel)
     {
         while (panel == null || !panel.gameObject.activeInHierarchy)

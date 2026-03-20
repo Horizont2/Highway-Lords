@@ -209,14 +209,23 @@ public class SoundManager : MonoBehaviour
     {
         if (sfxSource != null && clip != null)
         {
+            // ФІКС: Якщо гравець викликає звук горну, штучно підвищуємо йому гучність!
+            if (clip == waveStart) 
+            {
+                volumeScale *= 2.5f; // Робить горн у 2.5 рази гучнішим (можеш змінити на 2f або 3f)
+            }
+
             sfxSource.PlayOneShot(clip, volumeScale * sfxVolume);
         }
     }
 
+    // Для надійності додамо те саме і сюди:
     public void PlaySFXRandomPitch(AudioClip clip, float volumeScale = 1.0f)
     {
         if (sfxSource != null && clip != null)
         {
+            if (clip == waveStart) volumeScale *= 2.5f; // Також підвищуємо гучність
+
             sfxSource.pitch = Random.Range(0.85f, 1.15f); 
             sfxSource.PlayOneShot(clip, volumeScale * sfxVolume);
             sfxSource.pitch = 1.0f; 

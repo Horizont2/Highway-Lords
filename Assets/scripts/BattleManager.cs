@@ -534,7 +534,7 @@ public class BattleManager : MonoBehaviour
         // Якщо ворогів лишилось мало, і ще є не випущені хвилі - випускаємо наступну
         if (aliveEnemies <= 3 && currentWave < maxWaves)
         {
-            if (SoundManager.Instance && warHornSound) audioSrc.PlayOneShot(warHornSound, 0.7f);
+            if (SoundManager.Instance && warHornSound) audioSrc.PlayOneShot(warHornSound, 2f);
             SpawnEnemyWave();
         }
     }
@@ -800,7 +800,11 @@ public class BattleManager : MonoBehaviour
             PlayerPrefs.SetInt("SavedStone", PlayerPrefs.GetInt("SavedStone", 0) + CrossSceneData.rewardStone);
             PlayerPrefs.SetInt("Camp_" + CrossSceneData.campId + "_Conquered", 1);
             PlayerPrefs.SetInt("PlayerGlory", PlayerPrefs.GetInt("PlayerGlory", 0) + (CrossSceneData.campLevel * 50));
+            
+            // === ФІКС ДЛЯ ТУТОРІАЛУ: Запам'ятовуємо, що гравець вже перемагав ===
+            PlayerPrefs.SetInt("CitiesConquered", 1);
         }
+        PlayerPrefs.Save(); // Цей рядок у тебе вже є трохи нижче, він збереже і наші нові дані
         PlayerPrefs.Save();
 
         CrossSceneData.knightsCount = k_left;

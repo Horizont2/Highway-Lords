@@ -4488,8 +4488,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BattleCameraScroll
   panSpeed: 20
-  minX: -25
-  maxX: 25
+  minX: -20
+  maxX: 20
 --- !u!1 &414140533
 GameObject:
   m_ObjectHideFlags: 0

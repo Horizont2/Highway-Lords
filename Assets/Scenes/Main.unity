@@ -12449,7 +12449,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &351459170
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -12536,6 +12536,76 @@ MonoBehaviour:
   - dialogText: '"Click here to hire a squad of Archers!"'
     targetUI: {fileID: 145825452}
     trigger: 0
+    waitDuration: 3
+    pauseGame: 0
+  - dialogText: 
+    targetUI: {fileID: 0}
+    trigger: 1
+    waitDuration: 3
+    pauseGame: 0
+  - dialogText: '"Commander, basic weapons are no longer enough! The Emperor has
+      sent 500 Gold to upgrade your troops."'
+    targetUI: {fileID: 0}
+    trigger: 8
+    waitDuration: 500
+    pauseGame: 1
+  - dialogText: '"Open the Forge menu to improve your army."'
+    targetUI: {fileID: 581305697}
+    trigger: 0
+    waitDuration: 3
+    pauseGame: 1
+  - dialogText: '"Upgrade the Knights'' equipment! This will increase their damage
+      and health."'
+    targetUI: {fileID: 1843171668}
+    trigger: 0
+    waitDuration: 3
+    pauseGame: 1
+  - dialogText: 
+    targetUI: {fileID: 0}
+    trigger: 1
+    waitDuration: 3
+    pauseGame: 0
+  - dialogText: 
+    targetUI: {fileID: 2028497864}
+    trigger: 5
+    waitDuration: 3
+    pauseGame: 0
+  - dialogText: '"We must strike back! It''s time to destroy the nearest barbarian
+      camp. Open the Map."'
+    targetUI: {fileID: 1095237823}
+    trigger: 0
+    waitDuration: 3
+    pauseGame: 1
+  - dialogText: 
+    targetUI: {fileID: 583503655}
+    trigger: 7
+    waitDuration: 3
+    pauseGame: 0
+  - dialogText: '"To launch a siege, you need a Legion. Here is 700 Gold to fund
+      your first campaign!"'
+    targetUI: {fileID: 0}
+    trigger: 8
+    waitDuration: 700
+    pauseGame: 1
+  - dialogText: '"This is the Legion screen. Note: units that survive a siege or
+      retreat safely will return to camp and join your next march for FREE!"'
+    targetUI: {fileID: 0}
+    trigger: 5
+    waitDuration: 3
+    pauseGame: 1
+  - dialogText: '"First, hire a squad of Knights for your Vanguard."'
+    targetUI: {fileID: 2028497864}
+    trigger: 0
+    waitDuration: 3
+    pauseGame: 0
+  - dialogText: '"Next, hire a squad of Archers for your Vanguard."'
+    targetUI: {fileID: 2028497864}
+    trigger: 5
+    waitDuration: 3
+    pauseGame: 0
+  - dialogText: '"Excellent! Now give the order to attack the camp!"'
+    targetUI: {fileID: 2028497864}
+    trigger: 5
     waitDuration: 3
     pauseGame: 0
   currentStepIndex: 0
@@ -13537,7 +13607,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: '50 G
+  m_text: '60 G
 
 '
   m_isRightToLeft: 0
@@ -14946,7 +15016,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &442249806
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -37306,7 +37376,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1240660488
 RectTransform:
   m_ObjectHideFlags: 0
@@ -38197,7 +38267,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1262052744
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -58780,6 +58850,11 @@ CanvasGroup:
   m_Interactable: 0
   m_BlocksRaycasts: 0
   m_IgnoreParentGroups: 0
+--- !u!224 &1843171668 stripped
+RectTransform:
+  m_CorrespondingSourceObject: {fileID: 8240616871376219626, guid: 001c29e515293c54fa89d2d559eda11d, type: 3}
+  m_PrefabInstance: {fileID: 401011260}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1851787302
 GameObject:
   m_ObjectHideFlags: 0
@@ -61495,7 +61570,7 @@ MonoBehaviour:
   unitUpgradeSound: {fileID: 8300000, guid: bb50395a2382fa644bdc7eb6c8c2843b, type: 3}
   constructionSound: {fileID: 8300000, guid: 95230e55298f6a544886e4d97c28f421, type: 3}
   constructionComplete: {fileID: 8300000, guid: 95230e55298f6a544886e4d97c28f421, type: 3}
-  waveStart: {fileID: 8300000, guid: 3dcf796be9d1e3145bb3cac2f1d3e414, type: 3}
+  waveStart: {fileID: 8300000, guid: b8b152bf5964fb343906491f61fb6987, type: 3}
   victory: {fileID: 8300000, guid: dfee728ec2e7c4145bf018b5362ac2b5, type: 3}
   victoryMusicStinger: {fileID: 8300000, guid: dfee728ec2e7c4145bf018b5362ac2b5, type: 3}
   victoryCries: {fileID: 0}
@@ -66131,10 +66206,10 @@ MonoBehaviour:
     isCart: 0
     isElephant: 0
     isBatteringRam: 0
-    spawnWeight: 65
+    spawnWeight: 60
     baseGoldReward: 15
     baseHp: 60
-    baseDamage: 15
+    baseDamage: 13
   - name: Barbarian Archer
     prefab: {fileID: 8319572253659754456, guid: 19a5b69956756cd4599acb491e57117a, type: 3}
     icon: {fileID: -6947561533663139408, guid: 8de87864523c7934798f4736ed920fab, type: 3}
@@ -66146,7 +66221,7 @@ MonoBehaviour:
     spawnWeight: 60
     baseGoldReward: 15
     baseHp: 45
-    baseDamage: 15
+    baseDamage: 10
   - name: Barbarian Spearman
     prefab: {fileID: 6982164197780148359, guid: 75b4699d5b50c244f97cb830e5249c51, type: 3}
     icon: {fileID: 2794304934983843434, guid: 8de87864523c7934798f4736ed920fab, type: 3}
@@ -66211,7 +66286,7 @@ MonoBehaviour:
   bossEscortMax: 5
   baseSquadMin: 2
   baseSquadMax: 5
-  squadGrowthPerWave: 0.5
+  squadGrowthPerWave: 0.4
   absoluteMaxSquadSize: 9
   spawnPoints:
   - {fileID: 1613524197}

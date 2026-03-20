@@ -3497,7 +3497,14 @@ public class GameManager : MonoBehaviour
                 RectTransform futureTarget = TutorialManager.Instance.steps[i].targetUI;
                 if (futureTarget != null && (btn.transform == futureTarget || btn.transform.IsChildOf(futureTarget) || futureTarget.IsChildOf(btn.transform)))
                 {
-                    isFutureTutorialTarget = true;
+                    // === ФІКС: Додаємо кнопки прокачки до списку "вільних", щоб гравець міг качатись сам ===
+                    if (btn != hireArcherButton && btn != hireKnightButton && 
+                        btn != openShopButton && btn != openMapButton &&
+                        btn != knightEvoUI.upgradeBtn && btn != archerEvoUI.upgradeBtn && 
+                        btn != spearmanEvoUI.upgradeBtn && btn != cavalryEvoUI.upgradeBtn)
+                    {
+                        isFutureTutorialTarget = true;
+                    }
                     break;
                 }
             }
