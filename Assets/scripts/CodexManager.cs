@@ -72,11 +72,11 @@ public class CodexManager : MonoBehaviour
     [Header("Об'єкти Статистики (ВАЖЛИВО)")]
     public GameObject statsContainer;    
     public TMP_Text hpText;
-    public GameObject hpIcon;    // Перетягни іконку серця
-    public GameObject hpShadow;  // Перетягни тінь серця
+    public GameObject hpIcon;    
+    public GameObject hpShadow;  
     public TMP_Text dmgText;
-    public GameObject dmgIcon;   // Перетягни іконку мечів
-    public GameObject dmgShadow; // Перетягни тінь мечів
+    public GameObject dmgIcon;   
+    public GameObject dmgShadow; 
 
     [Header("База Даних")]
     public List<CodexEntry> database = new List<CodexEntry>();
@@ -94,52 +94,13 @@ public class CodexManager : MonoBehaviour
         if (enemiesTabBtn) enemiesTabBtn.onClick.AddListener(() => OpenCategory(CodexCategory.Enemies));
     }
 
+    // === ФІКС: Єдине правильне налаштування при відкритті вікна ===
     void OnEnable()
     {
-        // Запускаємо корутину, щоб дати UI один кадр на завантаження
-        StartCoroutine(InitCodexNextFrame());
-    }
-
-    private System.Collections.IEnumerator InitCodexNextFrame()
-    {
-        yield return null; 
-
-        // Якщо у тебе база даних називається database (або enemyDatabase, unitDatabase)
-        // Замість ShowCategory просто виклич функцію, яка показує деталі!
-        // Перевір як називається твій список (наприклад database) і функція показу (ShowEntryDetails)
+        // Ми ПОВНІСТЮ прибрали зміну localScale. 
+        // Тепер панель завжди буде такого розміру, як ти налаштував у сцені!
         
-        if (database != null && database.Count > 0)
-        {
-            ShowEntryDetails(database[0]);
-        }
-    }
-
-    public void OpenCodex()
-    {
-        if (SoundManager.Instance) SoundManager.Instance.PlaySFX(SoundManager.Instance.clickSound);
-        if (codexPanel)
-        {
-            codexPanel.SetActive(true);
-            Transform targetPanel = codexContentPanel != null ? codexContentPanel : codexPanel.transform;
-            targetPanel.localScale = new Vector3(0.8f, 0.8f, 1f);
-            StartCoroutine(ScaleAnim(targetPanel, Vector3.one));
-            Time.timeScale = 0f; 
-            OpenCategory(CodexCategory.Units); 
-        }
-    }
-
-    public void CloseCodex()
-    {
-        if (SoundManager.Instance) SoundManager.Instance.PlaySFX(SoundManager.Instance.clickSound);
-        if (codexPanel) codexPanel.SetActive(false);
-        Time.timeScale = 1f; 
-    }
-
-    IEnumerator ScaleAnim(Transform t, Vector3 target)
-    {
-        float time = 0; Vector3 start = t.localScale;
-        while(time < 0.2f) { time += Time.unscaledDeltaTime; t.localScale = Vector3.Lerp(start, target, time / 0.2f); yield return null; }
-        t.localScale = target;
+        OpenCategory(CodexCategory.Units);    // Автоматично відкриваємо Юнітів
     }
 
     public void OpenCategory(CodexCategory category)
@@ -173,8 +134,7 @@ public class CodexManager : MonoBehaviour
                 }
             }
         }
-        // --- РЕМОНТ АВТОВИБОРУ ---
-        // Викликаємо функції напряму, щоб уникнути багів при Time.timeScale = 0
+        
         if (spawnedButtons.Count > 0)
         {
             CodexEntry firstEntry = database.Find(e => e.category == category);
@@ -211,7 +171,6 @@ public class CodexManager : MonoBehaviour
 
         if (GameManager.Instance != null && !string.IsNullOrEmpty(entry.unitId))
         {
-            // --- ТВОЇ ВІЙСЬКА ---
             if (entry.category == CodexCategory.Units)
             {
                 int level = 1;
@@ -223,7 +182,6 @@ public class CodexManager : MonoBehaviour
                 hp = EconomyConfig.GetUnitMaxHealth(entry.manualHp, level);
                 dmg = EconomyConfig.GetUnitDamage(entry.manualDmg, level);
             }
-            // --- БУДІВЛІ ---
             else if (entry.category == CodexCategory.Buildings)
             {
                 if (entry.unitId == "Wall") {
@@ -241,7 +199,6 @@ public class CodexManager : MonoBehaviour
             }
         }
         
-        // --- ВОРОГИ (З ФІКСОМ ДЛЯ 1 ХВІЛІ) ---
         if (entry.category == CodexCategory.Enemies && EnemySpawner.Instance != null && !string.IsNullOrEmpty(entry.unitId))
         {
             EnemyConfig enemyData = EnemySpawner.Instance.allEnemies.Find(e => e.name.Trim().Equals(entry.unitId.Trim(), System.StringComparison.OrdinalIgnoreCase));
@@ -249,14 +206,11 @@ public class CodexManager : MonoBehaviour
             {
                 int wave = EnemySpawner.Instance.GetCurrentWave();
                 hp = EconomyConfig.GetEnemyHealth(enemyData.baseHp, wave);
-                // ФІКС: Синхронізація з GameManager (ділення на 5 для першої хвилі)
                 if (wave <= 1) hp = Mathf.Max(10, hp / 5); 
-                
                 dmg = EconomyConfig.GetEnemyDamage(enemyData.baseDamage, wave);
             }
         }
 
-        // --- ПОВНЕ ПРИХОВУВАННЯ ІКОНОК ТА ТІНЕЙ ---
         bool hasHp = hp > 0;
         bool hasDmg = dmg > 0;
 

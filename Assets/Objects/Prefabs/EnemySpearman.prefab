@@ -16,8 +16,8 @@ GameObject:
   - component: {fileID: 266199521031315932}
   - component: {fileID: 2710966085519959593}
   - component: {fileID: 1929767374024655216}
-  - component: {fileID: 4112671866892517680}
   - component: {fileID: 6243110897565159157}
+  - component: {fileID: -3725725046627122917}
   m_Layer: 7
   m_Name: EnemySpearman
   m_TagString: Enemy
@@ -250,20 +250,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UnitStats
   category: 3
---- !u!114 &4112671866892517680
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6982164197780148359}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8463ee9254fdefa408fc6c5d4056b18b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MovementVFX
-  dustParticles: {fileID: 9116828386731008478, guid: 22689fd2b2dce1b41a968494fa9eb847, type: 3}
-  anim: {fileID: 266199521031315932}
 --- !u!114 &6243110897565159157
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -278,6 +264,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::YSorter
   sortingOrderBase: 5000
   isStatic: 0
+--- !u!114 &-3725725046627122917
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6982164197780148359}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7f3ac2a643f928147b6702bdf2462f9e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UniversalDust
+  dustSystem: {fileID: 1388760577258591908}
 --- !u!1 &7370234385630690009
 GameObject:
   m_ObjectHideFlags: 0
@@ -315,7 +314,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0.075, y: 0.169}
+  m_AnchoredPosition: {x: 0.075, y: 0.91}
   m_SizeDelta: {x: 0.6, y: 0.07}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!223 &105241483987448407
@@ -488,7 +487,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7894804957194867853, guid: 22689fd2b2dce1b41a968494fa9eb847, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -0.692
+      value: 0.087
       objectReference: {fileID: 0}
     - target: {fileID: 7894804957194867853, guid: 22689fd2b2dce1b41a968494fa9eb847, type: 3}
       propertyPath: m_LocalPosition.z
@@ -534,5 +533,10 @@ PrefabInstance:
 --- !u!4 &22340126299120631 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7894804957194867853, guid: 22689fd2b2dce1b41a968494fa9eb847, type: 3}
+  m_PrefabInstance: {fileID: 7908502907469444986}
+  m_PrefabAsset: {fileID: 0}
+--- !u!198 &1388760577258591908 stripped
+ParticleSystem:
+  m_CorrespondingSourceObject: {fileID: 9116828386731008478, guid: 22689fd2b2dce1b41a968494fa9eb847, type: 3}
   m_PrefabInstance: {fileID: 7908502907469444986}
   m_PrefabAsset: {fileID: 0}

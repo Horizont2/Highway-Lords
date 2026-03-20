@@ -5134,8 +5134,8 @@ GameObject:
   - component: {fileID: -6189253915070684454}
   - component: {fileID: 7434640485034338342}
   - component: {fileID: -6576933341641532446}
-  - component: {fileID: 7643732631977233709}
   - component: {fileID: -5091396750760047768}
+  - component: {fileID: -2926267361139581628}
   m_Layer: 6
   m_Name: Knight
   m_TagString: Player
@@ -5347,20 +5347,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UnitStats
   category: 0
---- !u!114 &7643732631977233709
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8626055746089502767}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8463ee9254fdefa408fc6c5d4056b18b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MovementVFX
-  dustParticles: {fileID: 9116828386731008478, guid: 22689fd2b2dce1b41a968494fa9eb847, type: 3}
-  anim: {fileID: 748861169845927127}
 --- !u!114 &-5091396750760047768
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5375,3 +5361,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::YSorter
   sortingOrderBase: 5000
   isStatic: 0
+--- !u!114 &-2926267361139581628
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8626055746089502767}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7f3ac2a643f928147b6702bdf2462f9e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UniversalDust
+  dustSystem: {fileID: 1966911667281628718}

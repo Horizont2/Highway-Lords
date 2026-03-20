@@ -89,9 +89,9 @@ GameObject:
   - component: {fileID: 5152619563505957817}
   - component: {fileID: 2922825187524092143}
   - component: {fileID: -3494268141185776747}
-  - component: {fileID: 3571507987319045550}
   - component: {fileID: 4994638943985929644}
   - component: {fileID: 3049094252610292049}
+  - component: {fileID: 9158805297538196110}
   m_Layer: 6
   m_Name: Archer
   m_TagString: Player
@@ -225,7 +225,7 @@ MonoBehaviour:
   arrowPrefab: {fileID: 1112989244787787666, guid: 6c5a1610ebf70b34483395be036d1e36, type: 3}
   firePoint: {fileID: 4229325192365878726}
   animator: {fileID: 5080988190488031030}
-  spriteRenderer: {fileID: 0}
+  spriteRenderer: {fileID: 815155656290504333}
   currentHealth: 0
 --- !u!50 &2922825187524092143
 Rigidbody2D:
@@ -291,20 +291,6 @@ CapsuleCollider2D:
   m_Offset: {x: 0.026509082, y: -0.17208064}
   m_Size: {x: 0.41562626, y: 0.4475975}
   m_Direction: 0
---- !u!114 &3571507987319045550
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 366371821858485913}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8463ee9254fdefa408fc6c5d4056b18b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MovementVFX
-  dustParticles: {fileID: 9116828386731008478, guid: 22689fd2b2dce1b41a968494fa9eb847, type: 3}
-  anim: {fileID: 5080988190488031030}
 --- !u!114 &4994638943985929644
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -332,6 +318,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::YSorter
   sortingOrderBase: 5000
   isStatic: 0
+--- !u!114 &9158805297538196110
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 366371821858485913}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7f3ac2a643f928147b6702bdf2462f9e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UniversalDust
+  dustSystem: {fileID: 7944076062895168589}
 --- !u!1 &3819205139818351308
 GameObject:
   m_ObjectHideFlags: 0
@@ -541,6 +540,11 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 22689fd2b2dce1b41a968494fa9eb847, type: 3}
+--- !u!198 &7944076062895168589 stripped
+ParticleSystem:
+  m_CorrespondingSourceObject: {fileID: 9116828386731008478, guid: 22689fd2b2dce1b41a968494fa9eb847, type: 3}
+  m_PrefabInstance: {fileID: 1205412239792700819}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &9022266189469427998 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7894804957194867853, guid: 22689fd2b2dce1b41a968494fa9eb847, type: 3}

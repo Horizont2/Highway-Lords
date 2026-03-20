@@ -1642,18 +1642,18 @@ public class GameManager : MonoBehaviour
     {
         if (infoPanel != null)
         {
-            bool isActive = !infoPanel.activeSelf;
-            infoPanel.SetActive(isActive);
+            bool isOpening = !infoPanel.activeSelf;
 
-            if (isActive)
+            if (isOpening)
             {
+                CloseAllPanels(); 
+                infoPanel.SetActive(true); // ЄДИНЕ місце, де панель вмикається
                 Time.timeScale = 0f; 
-                CloseAllPanels();
-                infoPanel.SetActive(true);
             }
             else
             {
-                Time.timeScale = 1f;
+                infoPanel.SetActive(false); // ЄДИНЕ місце, де панель вимикається
+                Time.timeScale = 1f; 
             }
 
             if (SoundManager.Instance != null) 
@@ -3177,9 +3177,20 @@ public class GameManager : MonoBehaviour
                     $"<size=80%>-{percentRel}% reload time</size>";
             }
         }
+        if (towerUpgradePanelRect != null)
+        {
+            towerUpgradePanelRect.gameObject.SetActive(isCrossbowBuilt);
+        }
 
         UpdateCostUIGroup(crossbowDamageCostUI, ResourceType.Gold, crossbowDamageCostGold);
         UpdateCostUIGroup(crossbowReloadCostUI, ResourceType.Gold, crossbowReloadCostGold);
+
+        // === ФІКС: Ховаємо цілі рядки з кнопками апгрейду, якщо балісту ще не побудовано ===
+        if (upgradeCrossbowDamageButton != null && upgradeCrossbowDamageButton.transform.parent != null)
+            upgradeCrossbowDamageButton.transform.parent.gameObject.SetActive(isCrossbowBuilt);
+            
+        if (upgradeCrossbowReloadButton != null && upgradeCrossbowReloadButton.transform.parent != null)
+            upgradeCrossbowReloadButton.transform.parent.gameObject.SetActive(isCrossbowBuilt);
 
         UpdateButtonState(upgradeCrossbowDamageButton, isCrossbowBuilt && gold >= crossbowDamageCostGold);
         UpdateButtonState(upgradeCrossbowReloadButton, isCrossbowBuilt && (gold >= crossbowReloadCostGold) && (GetCrossbowReloadAtLevel(crossbowReloadLevel) > 1.201f)); 

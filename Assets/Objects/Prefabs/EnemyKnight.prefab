@@ -17,8 +17,8 @@ GameObject:
   - component: {fileID: -5343067577273034550}
   - component: {fileID: -8034015485172157605}
   - component: {fileID: 2319109693727612147}
-  - component: {fileID: 4153241815745994575}
   - component: {fileID: -1509224699240628703}
+  - component: {fileID: 5398461032165903532}
   m_Layer: 7
   m_Name: EnemyKnight
   m_TagString: Enemy
@@ -254,20 +254,6 @@ MonoBehaviour:
   currentGoldReward: 0
   maxHealth: 60
   currentHealth: 0
---- !u!114 &4153241815745994575
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1433358896237211573}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8463ee9254fdefa408fc6c5d4056b18b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MovementVFX
-  dustParticles: {fileID: 9116828386731008478, guid: 22689fd2b2dce1b41a968494fa9eb847, type: 3}
-  anim: {fileID: 1479748395643584572}
 --- !u!114 &-1509224699240628703
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -282,6 +268,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::YSorter
   sortingOrderBase: 5000
   isStatic: 0
+--- !u!114 &5398461032165903532
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1433358896237211573}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7f3ac2a643f928147b6702bdf2462f9e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UniversalDust
+  dustSystem: {fileID: 5453561676117425544}
 --- !u!1 &5118082799605495796
 GameObject:
   m_ObjectHideFlags: 0
@@ -535,6 +534,11 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 22689fd2b2dce1b41a968494fa9eb847, type: 3}
+--- !u!198 &5453561676117425544 stripped
+ParticleSystem:
+  m_CorrespondingSourceObject: {fileID: 9116828386731008478, guid: 22689fd2b2dce1b41a968494fa9eb847, type: 3}
+  m_PrefabInstance: {fileID: 3831308113544551510}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &6387354595251898587 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7894804957194867853, guid: 22689fd2b2dce1b41a968494fa9eb847, type: 3}

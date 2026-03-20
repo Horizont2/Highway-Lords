@@ -190,7 +190,14 @@ public class CampaignUnit : MonoBehaviour
                     {
                         if (anim) anim.SetTrigger("Attack");
                         lastAttackTime = Time.time;
+                        // === ФІКС: Примусово наносимо урон через 0.4 сек після змаху ===
+                        StartCoroutine(DelayedDamageRoutine());
                     }
+                }
+                IEnumerator DelayedDamageRoutine()
+                {
+                    yield return new WaitForSeconds(0.4f); // 0.4с - ідеальний час для анімації удару
+                    DealDamage();
                 }
             }
             else
