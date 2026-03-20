@@ -217,7 +217,7 @@ MonoBehaviour:
   speed: 1.7
   attackRange: 6
   timeBetweenShots: 2
-  damage: 10
+  damage: 9
   maxHealth: 45
   obstacleLayer:
     serializedVersion: 2

@@ -270,10 +270,16 @@ public class CampaignUnit : MonoBehaviour
         
         transform.localScale = scale;
     }
-
+    // Старі назви
     public void Hit() { DealDamage(); }
     public void ShootArrow() { DealDamage(); }
     public void Shoot() { DealDamage(); }
+
+    // === ФІКС: НОВІ ДУБЛЕРИ ДЛЯ ТВОЇХ ЛИЦАРІВ І СПИСОНОСЦІВ ===
+    public void Attack() { DealDamage(); }
+    public void MeleeAttack() { DealDamage(); }
+    public void Strike() { DealDamage(); }
+    public void AttackAction() { DealDamage(); }
 
     void DealDamage()
     {
