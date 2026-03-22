@@ -303,6 +303,7 @@ public class GameManager : MonoBehaviour
 
     private Coroutine topHudCoroutine;
     private Dictionary<RectTransform, Vector2> originalTopPos = new Dictionary<RectTransform, Vector2>();
+    private Dictionary<GameObject, Vector3> originalPanelScales = new Dictionary<GameObject, Vector3>();
     private float topSlideDist = 300f; 
 
     [Header("Налаштування Казарми")]
@@ -1630,12 +1631,24 @@ public class GameManager : MonoBehaviour
 
     // Універсальна анімація відкриття/закриття вікон
     // Універсальна анімація відкриття/закриття вікон (ТІЛЬКИ ПРОЗОРІСТЬ)
+    // Універсальна анімація відкриття/закриття вікон (Із збереженням твого Scale)
     private IEnumerator AnimatePanel(GameObject panel, bool isOpening)
     {
         if (panel == null) yield break;
 
+        // 1. Запам'ятовуємо справжній розмір панелі (який ти виставив у сцені) при першому відкритті
+        if (!originalPanelScales.ContainsKey(panel))
+        {
+            originalPanelScales[panel] = panel.transform.localScale;
+        }
+
         float duration = 0.15f; // Швидкість анімації
         float elapsed = 0f;
+
+        // 2. Рахуємо анімацію ВІДНОСНО твого оригінального розміру (зменшуємо до 80%)
+        Vector3 baseScale = originalPanelScales[panel];
+        Vector3 startScale = isOpening ? baseScale * 0.8f : baseScale;
+        Vector3 endScale = isOpening ? baseScale : baseScale * 0.8f;
 
         CanvasGroup cg = panel.GetComponent<CanvasGroup>();
         if (cg == null) cg = panel.gameObject.AddComponent<CanvasGroup>();
@@ -1651,12 +1664,15 @@ public class GameManager : MonoBehaviour
             float t = elapsed / duration;
             float ease = isOpening ? 1f - Mathf.Pow(1f - t, 3f) : t * t * t; 
 
-            // Змінюємо ТІЛЬКИ прозорість, розмір більше не чіпаємо
+            // Змінюємо і прозорість, і масштаб
+            panel.transform.localScale = Vector3.Lerp(startScale, endScale, ease);
             cg.alpha = Mathf.Lerp(startAlpha, endAlpha, ease);
 
             yield return null;
         }
 
+        // 3. Гарантовано повертаємо до твого ідеального розміру
+        panel.transform.localScale = endScale;
         cg.alpha = endAlpha;
 
         if (!isOpening) panel.SetActive(false);
