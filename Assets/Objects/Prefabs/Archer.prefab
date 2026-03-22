@@ -213,7 +213,7 @@ MonoBehaviour:
   healthBarFill: {fileID: 8802944667539692756}
   hitParticlePrefab: {fileID: 2978876853960275596, guid: 938b59e62d459cf4085a4c92fc89aeaa, type: 3}
   speed: 1.8
-  attackRange: 7
+  attackRange: 8
   attackRate: 1.2
   maxHealth: 60
   obstacleLayer:

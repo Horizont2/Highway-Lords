@@ -139,9 +139,9 @@ MonoBehaviour:
   healthBarFill: {fileID: 8374215288154043255}
   hitParticlePrefab: {fileID: 2978876853960275596, guid: 938b59e62d459cf4085a4c92fc89aeaa, type: 3}
   speed: 1.8
-  attackRange: 1.1
+  attackRange: 1
   damage: 13
-  health: 60
+  health: 50
   obstacleLayer:
     serializedVersion: 2
     m_Bits: 256
@@ -210,8 +210,8 @@ CapsuleCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: -0.058480844, y: -0.030104129}
-  m_Size: {x: 0.36468473, y: 0.57214797}
+  m_Offset: {x: -0.058480844, y: -0.11016073}
+  m_Size: {x: 0.36468473, y: 0.4120344}
   m_Direction: 0
 --- !u!114 &-5343067577273034550
 MonoBehaviour:

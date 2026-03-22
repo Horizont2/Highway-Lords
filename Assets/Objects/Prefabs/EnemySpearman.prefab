@@ -116,10 +116,10 @@ MonoBehaviour:
   healthBarFill: {fileID: 4141782854986824732}
   hitParticlePrefab: {fileID: 2978876853960275596, guid: 938b59e62d459cf4085a4c92fc89aeaa, type: 3}
   speed: 1.8
-  attackRange: 1.5
+  attackRange: 1.4
   attackCooldown: 0.8
   damage: 15
-  maxHealth: 90
+  maxHealth: 80
   obstacleLayer:
     serializedVersion: 2
     m_Bits: 256
@@ -235,7 +235,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemyStats
   baseGoldReward: 18
   currentGoldReward: 0
-  maxHealth: 90
+  maxHealth: 80
   currentHealth: 0
 --- !u!114 &1929767374024655216
 MonoBehaviour:

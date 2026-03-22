@@ -34,8 +34,8 @@ public class EnemySpawner : MonoBehaviour
     public int bossEscortMax = 5;
 
     [Header("Масштабування розміру загону (Армія)")]
-    public int baseSquadMin = 3;
-    public int baseSquadMax = 6;
+    public int baseSquadMin = 2; // Зменшено для більш варіативних малих загонів
+    public int baseSquadMax = 5;
     public float squadGrowthPerWave = 0.5f; 
     public int absoluteMaxSquadSize = 18; 
 
@@ -47,7 +47,6 @@ public class EnemySpawner : MonoBehaviour
     public WaveInfoPanel waveInfoPanel;  
 
     private List<EnemyConfig> currentWavePool = new List<EnemyConfig>(); 
-    // ДОДАНО: Список тих, хто ОБОВ'ЯЗКОВО має вийти
     private List<EnemyConfig> guaranteedSpawns = new List<EnemyConfig>(); 
 
     private EnemyConfig bossConfig;
@@ -149,20 +148,17 @@ public class EnemySpawner : MonoBehaviour
 
             if (isMassiveHorde)
             {
+                // Величезна орда
                 int hordeMin = Mathf.Max(baseSquadMax, currentWaveMax - 3);
                 escortCount = Random.Range(hordeMin, currentWaveMax + 1);
             }
             else
             {
+                // === ФІКС: Звичайний або малий загін ===
+                // Тепер ми не прив'язуємо розмір загону до кількості гарантованих ворогів.
+                // Вони просто будуть рівномірно виходити в різних (навіть маленьких) загонах.
                 int normalMax = Mathf.Max(baseSquadMin + 2, currentWaveMax / 2);
-                int minRange = Mathf.Min(baseSquadMin, normalMax);
-                
-                // ФІКС: Якщо у нас є гарантовані вороги, збільшуємо загін, щоб вони всі помістилися
-                if (guaranteedSpawns.Count > minRange) 
-                {
-                    minRange = guaranteedSpawns.Count;
-                    if (normalMax < minRange) normalMax = minRange;
-                }
+                int minRange = baseSquadMin; 
 
                 escortCount = Random.Range(minRange, normalMax + 1);
             }
@@ -243,11 +239,9 @@ public class EnemySpawner : MonoBehaviour
         if (elephantConfig != null) currentWavePool.Add(elephantConfig);
         if (ramConfig != null) currentWavePool.Add(ramConfig); 
 
-        // ДОДАНО: Копіюємо пул у список гарантованого спавну
         guaranteedSpawns.Clear();
         foreach (var enemy in currentWavePool)
         {
-            // Беремо тільки стандартних ворогів (боси/вози спавняться окремо)
             if (!enemy.isBoss && !enemy.isCart && !enemy.isElephant && !enemy.isBatteringRam)
             {
                 guaranteedSpawns.Add(enemy);
@@ -259,7 +253,6 @@ public class EnemySpawner : MonoBehaviour
     {
         if (currentWavePool.Count == 0) return null;
 
-        // --- НОВА СИСТЕМА: Спочатку випускаємо тих, кого пообіцяли в UI ---
         if (guaranteedSpawns.Count > 0)
         {
             var validGuaranteed = allowCarts 
@@ -268,14 +261,12 @@ public class EnemySpawner : MonoBehaviour
             
             if (validGuaranteed.Count > 0)
             {
-                // Беремо випадкового з "гарантованих", щоб вони не виходили завжди в одному порядку
                 EnemyConfig forcedEnemy = validGuaranteed[Random.Range(0, validGuaranteed.Count)];
                 guaranteedSpawns.Remove(forcedEnemy);
                 return forcedEnemy;
             }
         }
 
-        // --- Коли гарантовані закінчилися - вмикається звичайний рандом ---
         var pool = allowCarts 
             ? currentWavePool 
             : currentWavePool.Where(e => !e.isCart && !e.isElephant && !e.isBoss && !e.isBatteringRam).ToList();

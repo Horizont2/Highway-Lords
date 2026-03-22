@@ -45,7 +45,12 @@ public class UnitEvolutionUI
 
     public Image[] progressPips;    
     
-    public TMP_Text statsText;      
+    // === ТЕПЕР ТУТ 4 ПОЛЯ ДЛЯ ТЕКСТУ ===
+    public TMP_Text nameText;       
+    public TMP_Text statsText;         // Сюди піде "⚔️ 32"
+    public TMP_Text bonusStatsText;    // Сюди піде "+5"
+    public TMP_Text tacticsText;    
+    
     public Button upgradeBtn;        
     public UICostGroup costUI;      
 }
@@ -340,6 +345,11 @@ public class GameManager : MonoBehaviour
     public Button hireSpearmanButton;
     public Button hireCavalryButton; 
 
+    public TMP_Text hireKnightCostText;
+    public TMP_Text hireArcherCostText;
+    public TMP_Text hireSpearmanCostText;
+    public TMP_Text hireCavalryCostText;
+
     [Header("UI: Прогрес Хвилі")]
     public Slider waveTimerBar;
 
@@ -456,6 +466,7 @@ public class GameManager : MonoBehaviour
 
     private bool isWaveInProgress = false;
     private float _lastHireTime = 0f;
+    private float lastInfoPanelToggleTime = 0f;
     private int killsForGloryCounter = 0;
     private Vector2 defaultGloryPopupPos; // Початкова позиція попапу // ДОДАНО: Лічильник для розрахунку слави
 
@@ -1206,7 +1217,6 @@ public class GameManager : MonoBehaviour
         if (closeBarracksBtn != null) { closeBarracksBtn.onClick.RemoveAllListeners(); closeBarracksBtn.onClick.AddListener(ToggleBarracksUpgradeMenu); }
         if (closeShopBtn != null) { closeShopBtn.onClick.RemoveAllListeners(); closeShopBtn.onClick.AddListener(ToggleShop); }
 
-        if (openInfoButton != null) { openInfoButton.onClick.RemoveAllListeners(); openInfoButton.onClick.AddListener(ToggleInfoPanel); }
         if (closeInfoButton != null) { closeInfoButton.onClick.RemoveAllListeners(); closeInfoButton.onClick.AddListener(ToggleInfoPanel); }
         
         if (exitGameButton != null) { exitGameButton.onClick.RemoveAllListeners(); exitGameButton.onClick.AddListener(ExitGame); }
@@ -1413,23 +1423,16 @@ public class GameManager : MonoBehaviour
 
     public void ToggleMetaShop()
     {
-        if (metaShopPanel != null)
-        {
-            bool isActive = !metaShopPanel.activeSelf;
-            metaShopPanel.SetActive(isActive);
+        if (metaShopPanel == null) return;
+        
+        bool isOpening = !metaShopPanel.activeSelf;
+        if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.clickSound, 2.0f);
 
-            if (SoundManager.Instance != null)
-                SoundManager.Instance.PlaySFX(SoundManager.Instance.clickSound, 2.0f);
-
-            if (isActive)
-            {
-                UpdateMetaUI();
-                CloseAllPanels();
-                metaShopPanel.SetActive(true); 
-            }
-        }
+        if (isOpening) { UpdateMetaUI(); CloseAllPanels(); StartCoroutine(AnimatePanel(metaShopPanel, true)); }
+        else { StartCoroutine(AnimatePanel(metaShopPanel, false)); }
+        
         UpdateUI();
-    }
+    }  
 
     void UpdateMetaSlot(MetaSkillUI ui, int currentLevel, int baseCost, int costPerLevel, string lvlStr, string descStr, bool isUnlocked)
     {
@@ -1543,11 +1546,29 @@ public class GameManager : MonoBehaviour
             }
         }
 
+        // === ФІКС: Заповнюємо розділені тексти (Назва, Стати, Тактика) ===
+        // === ФІКС: Заповнюємо розділені тексти ===
+        if (ui.nameText != null)
+        {
+            ui.nameText.text = $"{unitName} LV {level}";
+        }
+
         if (ui.statsText != null)
         {
-            ui.statsText.text = $"<color=#3E2723><size=140%><b>{unitName} LV {level}</b></size></color>\n" +
-                                $"<color=#4A2E1B><size=95%><color=#111111><size=150%><voffset=1.0em><sprite name=\"icon_sword\" tint=1></voffset></size></color> DMG: {curDmg} → </color><color=#4CAF50>{nextDmg}</color></size>\n" +
-                                $"<size=80%>{tactics}</size>";
+            // Тільки іконка і базовий урон
+            ui.statsText.text = $"<color=#111111><size=120%><voffset=0.1em><sprite name=\"icon_sword\" tint=1></voffset></size></color> {curDmg}";
+        }
+
+        if (ui.bonusStatsText != null)
+        {
+            int diff = nextDmg - curDmg;
+            // Зелений бонус окремо!
+            ui.bonusStatsText.text = $"<color=#00FF00><b>+{diff}</b></color>";
+        }
+
+        if (ui.tacticsText != null)
+        {
+            ui.tacticsText.text = tactics; 
         }
 
         if (!isUnlocked)
@@ -1582,83 +1603,89 @@ public class GameManager : MonoBehaviour
     public void ToggleConstructionMenu()
     {
         GameObject panel = constructionPanel != null ? constructionPanel : constructionPanelNew;
-        if (panel != null)
-        {
-            bool isActive = !panel.activeSelf;
-            panel.SetActive(isActive);
+        if (panel == null) return;
+        
+        bool isOpening = !panel.activeSelf;
+        if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.clickSound, 2.0f);
 
-            if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.clickSound, 2.0f);
-
-            if (isActive)
-            {
-                CloseAllPanels();
-                panel.SetActive(true);
-                UpdateBarracksStateUI();
-            }
-        }
+        if (isOpening) { CloseAllPanels(); StartCoroutine(AnimatePanel(panel, true)); UpdateBarracksStateUI(); }
+        else { StartCoroutine(AnimatePanel(panel, false)); }
+        
         UpdateUI();
     }
 
     public void ToggleBarracksUpgradeMenu()
     {
         GameObject panel = barracksUpgradePanel != null ? barracksUpgradePanel : barracksPanelNew;
-        if (panel != null)
-        {
-            bool isActive = !panel.activeSelf;
-            panel.SetActive(isActive);
+        if (panel == null) return;
+        
+        bool isOpening = !panel.activeSelf;
+        if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.clickSound, 2.0f);
 
-            if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.clickSound, 2.0f);
-
-            if (isActive)
-            {
-                UpdateUpgradeMenuPrice();
-                CloseAllPanels();
-                panel.SetActive(true);
-            }
-        }
+        if (isOpening) { UpdateUpgradeMenuPrice(); CloseAllPanels(); StartCoroutine(AnimatePanel(panel, true)); }
+        else { StartCoroutine(AnimatePanel(panel, false)); }
+        
         UpdateUI();
+    }
+
+    // Універсальна анімація відкриття/закриття вікон
+    // Універсальна анімація відкриття/закриття вікон (ТІЛЬКИ ПРОЗОРІСТЬ)
+    private IEnumerator AnimatePanel(GameObject panel, bool isOpening)
+    {
+        if (panel == null) yield break;
+
+        float duration = 0.15f; // Швидкість анімації
+        float elapsed = 0f;
+
+        CanvasGroup cg = panel.GetComponent<CanvasGroup>();
+        if (cg == null) cg = panel.gameObject.AddComponent<CanvasGroup>();
+
+        float startAlpha = isOpening ? 0f : 1f;
+        float endAlpha = isOpening ? 1f : 0f;
+
+        if (isOpening) panel.SetActive(true);
+
+        while (elapsed < duration)
+        {
+            elapsed += Time.unscaledDeltaTime; 
+            float t = elapsed / duration;
+            float ease = isOpening ? 1f - Mathf.Pow(1f - t, 3f) : t * t * t; 
+
+            // Змінюємо ТІЛЬКИ прозорість, розмір більше не чіпаємо
+            cg.alpha = Mathf.Lerp(startAlpha, endAlpha, ease);
+
+            yield return null;
+        }
+
+        cg.alpha = endAlpha;
+
+        if (!isOpening) panel.SetActive(false);
     }
 
     public void ToggleShop()
     {
         GameObject panel = shopPanel != null ? shopPanel : shopPanelNew;
-        if (panel != null)
-        {
-            bool isActive = !panel.activeSelf;
-            panel.SetActive(isActive);
+        if (panel == null) return;
+        
+        bool isOpening = !panel.activeSelf;
+        if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.clickSound, 2.0f);
 
-            if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.clickSound, 2.0f);
-
-            if(isActive)
-            {
-                CloseAllPanels();
-                panel.SetActive(true);
-            }
-        }
+        if (isOpening) { CloseAllPanels(); StartCoroutine(AnimatePanel(panel, true)); }
+        else { StartCoroutine(AnimatePanel(panel, false)); }
+        
         UpdateUI();
     }
 
     public void ToggleInfoPanel()
     {
-        if (infoPanel != null)
-        {
-            bool isOpening = !infoPanel.activeSelf;
+        if (infoPanel == null) return;
 
-            if (isOpening)
-            {
-                CloseAllPanels(); 
-                infoPanel.SetActive(true); // ЄДИНЕ місце, де панель вмикається
-                Time.timeScale = 0f; 
-            }
-            else
-            {
-                infoPanel.SetActive(false); // ЄДИНЕ місце, де панель вимикається
-                Time.timeScale = 1f; 
-            }
+        bool isOpening = !infoPanel.activeSelf;
+        if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.clickSound, 2.0f);
 
-            if (SoundManager.Instance != null) 
-                SoundManager.Instance.PlaySFX(SoundManager.Instance.clickSound, 2.0f);
-        }
+        if (isOpening) { CloseAllPanels(); StartCoroutine(AnimatePanel(infoPanel, true)); Time.timeScale = 0f; }
+        else { StartCoroutine(AnimatePanel(infoPanel, false)); Time.timeScale = 1f; }
+        
         UpdateUI();
     }
 
@@ -1667,21 +1694,11 @@ public class GameManager : MonoBehaviour
         if (settingsPanel == null) return;
 
         bool isOpening = !settingsPanel.activeSelf;
+        if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.clickSound, 2.0f);
 
-        if (isOpening)
-        {
-            CloseAllPanels(); 
-            settingsPanel.SetActive(true); 
-            Time.timeScale = 0f; 
-        }
-        else
-        {
-            ResumeGame(); 
-        }
-
-        if (SoundManager.Instance != null) 
-            SoundManager.Instance.PlaySFX(SoundManager.Instance.clickSound, 2.0f);
-            
+        if (isOpening) { CloseAllPanels(); StartCoroutine(AnimatePanel(settingsPanel, true)); Time.timeScale = 0f; }
+        else { ResumeGame(); } // ResumeGame закриє вікно
+        
         UpdateUI();
     }
 
@@ -2204,6 +2221,8 @@ public class GameManager : MonoBehaviour
             SaveGame();
             UpdateUI();
             RefreshAllUnitSkins("Knight");
+
+            if (hireKnightCostText != null) StartCoroutine(AnimatePriceChange(hireKnightCostText));
         }
         else
         {
@@ -2225,6 +2244,8 @@ public class GameManager : MonoBehaviour
             SaveGame();
             UpdateUI();
             RefreshAllUnitSkins("Archer");
+
+            if (hireArcherCostText != null) StartCoroutine(AnimatePriceChange(hireArcherCostText));
         }
         else
         {
@@ -2246,6 +2267,8 @@ public class GameManager : MonoBehaviour
             SaveGame();
             UpdateUI();
             RefreshAllUnitSkins("Spearman");
+
+            if (hireSpearmanCostText != null) StartCoroutine(AnimatePriceChange(hireSpearmanCostText));
         }
         else
         {
@@ -2267,6 +2290,8 @@ public class GameManager : MonoBehaviour
             SaveGame();
             UpdateUI();
             RefreshAllUnitSkins("Cavalry");
+
+            if (hireCavalryCostText != null) StartCoroutine(AnimatePriceChange(hireCavalryCostText));
         }
         else
         {
@@ -2754,15 +2779,13 @@ public class GameManager : MonoBehaviour
 
     public void ResumeGame()
     {
-        if (settingsPanel != null) settingsPanel.SetActive(false);
-        if (infoPanel != null) infoPanel.SetActive(false);
+        // Анімація закриття для вікон, що ставлять гру на паузу
+        if (settingsPanel != null && settingsPanel.activeSelf) StartCoroutine(AnimatePanel(settingsPanel, false));
+        if (infoPanel != null && infoPanel.activeSelf) StartCoroutine(AnimatePanel(infoPanel, false));
         
         Time.timeScale = 1f; 
-        
         UpdateUI();
-
-        if (SoundManager.Instance != null)
-            SoundManager.Instance.PlaySFX(SoundManager.Instance.clickSound, 2.0f);
+        if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.clickSound, 2.0f);
     }
 
     public void SaveGame()
@@ -3119,6 +3142,16 @@ public class GameManager : MonoBehaviour
         if (waveText) waveText.text = "Wave " + currentWave;
 
         if (limitText != null) limitText.text = $"{currentUnits} / {maxUnits}";
+
+        // === ФІКС: Індивідуальне оновлення текстів цін ===
+        if (hireKnightCostText) hireKnightCostText.text = $"{GetCurrentKnightCost()} G";
+        if (hireArcherCostText) hireArcherCostText.text = $"{GetCurrentArcherCost()} G";
+        
+        if (hireSpearmanCostText) 
+            hireSpearmanCostText.text = isSpearmanUnlocked ? $"{GetCurrentSpearmanCost()} G" : "LOCKED";
+            
+        if (hireCavalryCostText) 
+            hireCavalryCostText.text = isCavalryUnlocked ? $"{GetCurrentCavalryCost()} G" : "LOCKED";
 
         if (hirePriceText)
         {
@@ -3705,5 +3738,36 @@ public class GameManager : MonoBehaviour
             
         UpdateMetaSlot(uiMendingMasonry, metaMendingMasonry, 20, 15, "Lv " + metaMendingMasonry, 
             $"<color=#111111><size=150%><voffset=1.0em><sprite name=\"icon_heart\" tint=1></voffset></size></color> HP Regen: {metaMendingMasonry}%/s → <color=#008800>{metaMendingMasonry + 1}%/s</color>", true);
+    }
+
+    // === ДОДАНО: Анімація зміни ціни ===
+    private IEnumerator AnimatePriceChange(TMP_Text textElement)
+    {
+        if (textElement == null) yield break;
+
+        float duration = 0.35f;
+        float elapsed = 0f;
+        Vector3 originalScale = Vector3.one; 
+        Vector3 targetScale = new Vector3(1.3f, 1.3f, 1f); // Збільшення на 30%
+        Color originalColor = Color.white; // Базовий колір (можеш змінити, якщо у тебе інший)
+        Color popColor = new Color(1f, 0.6f, 0f); // Золото-оранжевий колір при зміні
+
+        while (elapsed < duration)
+        {
+            elapsed += Time.unscaledDeltaTime;
+            float progress = elapsed / duration;
+            
+            // Ефект Ping-Pong: від 0 до 1 (збільшення) і назад від 1 до 0 (зменшення)
+            float scaleT = Mathf.PingPong(progress * 2f, 1f);
+            
+            textElement.transform.localScale = Vector3.Lerp(originalScale, targetScale, scaleT);
+            textElement.color = Color.Lerp(originalColor, popColor, scaleT);
+            
+            yield return null;
+        }
+
+        // Гарантовано повертаємо до нормального стану
+        textElement.transform.localScale = originalScale;
+        textElement.color = originalColor;
     }
 }

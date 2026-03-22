@@ -21,7 +21,6 @@ public class CampaignManager : MonoBehaviour
     public TMP_Text goldRewardText, woodRewardText, stoneRewardText;
 
     [Header("Smart Scroll Shop (8 Cards)")]
-    // Порядок: 0=Knight, 1=Archer, 2=Spear, 3=Cav, 4=MercKnight, 5=MercArcher, 6=MercSpear, 7=MercCav
     public GameObject[] shopCardObjects; 
     public RectTransform[] shopCardRects;
     public Button[] shopAddButtons; 
@@ -204,11 +203,17 @@ public class CampaignManager : MonoBehaviour
             squadCosts[i] = baseCosts[i] + ((lvls[i] - 1) * costPerLevel[i]);
         }
 
+        // === ФІКС: Точні стати найманців (такі ж, як у BattleManager) ===
         int cityBonus = (currentNode != null) ? currentNode.campLevel * 15 : 0;
-        for (int i = 4; i < 8; i++)
+        
+        int[] mercHPs = { 200, 100, 150, 250 };   // Knight, Archer, Spearman, Cavalry
+        int[] mercDmgs = { 45, 35, 40, 55 };
+
+        for (int i = 0; i < 4; i++)
         {
-            squadPowers[i] = 120 + cityBonus;
-            squadCosts[i] = 0;
+            int mercIndex = i + 4; // Індекси 4, 5, 6, 7
+            squadPowers[mercIndex] = mercDmgs[i] + Mathf.RoundToInt(mercHPs[i] * 0.2f) + cityBonus;
+            squadCosts[mercIndex] = 0; // Найманці безкоштовні (бо вже куплені в таверні)
         }
 
         if (shopPowerTexts != null)
@@ -401,10 +406,11 @@ public class CampaignManager : MonoBehaviour
             }
         }
 
+        // === ФІКС: 6 літер у кольорі (#FFAAAA) та менший розмір тексту ===
         for (int i = 4; i < 8; i++)
         {
             if (shopCostTexts != null && i < shopCostTexts.Length && shopCostTexts[i] != null)
-                shopCostTexts[i].text = "<color=#FFAAA>MERCENARY</color>";
+                shopCostTexts[i].text = "<color=#FFAAAA><size=80%>MERCENARY</size></color>";
         }
 
         for (int i = 0; i < 9; i++)
@@ -415,18 +421,12 @@ public class CampaignManager : MonoBehaviour
         if (totalCostText) totalCostText.text = "TOTAL COST: " + totalCost.ToString() + "G";
         if (yourPowerText) yourPowerText.text = "Your Power: " + totalPower.ToString();
 
-        // ФІКС ПРЕДІКТУ: Множимо силу ворога на 2.5, щоб врахувати кількість хвиль
-        // === ФІКС: Динамічний множник хвиль ===
-        int wavesCount = (currentNode != null) ? currentNode.campLevel : 1; // 1 лвл = 1 хвиля
-        
-        // Якщо 1 хвиля (множник 1.0). Кожна наступна хвиля додає 50% загальної сили (1.5, 2.0, 2.5, 3.0)
+        int wavesCount = (currentNode != null) ? currentNode.campLevel : 1;
         float waveMultiplier = 1f + ((wavesCount - 1) * 0.5f);
         float enemyPowerAdjusted = (currentNode != null) ? (currentNode.enemyPowerScore * waveMultiplier) : 1f;
 
-        // ПОКАЗУЄМО ГРАВЦЮ ЧЕСНУ ЦИФРУ:
         if (enemyPowerText) enemyPowerText.text = "ENEMY POWER: " + Mathf.RoundToInt(enemyPowerAdjusted);
 
-        // ... (вище код з enemyPowerAdjusted) ...
         float ratio = (float)totalPower / Mathf.Max(1f, enemyPowerAdjusted);
 
         if (winChanceSlider)
@@ -448,7 +448,7 @@ public class CampaignManager : MonoBehaviour
         if (attackButton) attackButton.interactable = canAfford && totalSquads > 0 && !isAnimating;
 
         UpdateButtonStates(totalCost);
-    } // <-- Це кінець функції UpdateUI
+    }
 
     void UpdateButtonStates(int totalCost)
     {

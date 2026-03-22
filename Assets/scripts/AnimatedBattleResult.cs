@@ -20,7 +20,7 @@ public class AnimatedBattleResult : MonoBehaviour
     [Header("Settings")]
     public float panelFadeInDuration = 0.5f; 
     public float resourceCountingDuration = 2.0f; 
-    public float defeatAutoCloseDelay = 3.0f; // Скільки секунд висить панель поразки
+    public float defeatAutoCloseDelay = 3.0f; 
 
     private CanvasGroup canvasGroup;
 
@@ -37,15 +37,13 @@ public class AnimatedBattleResult : MonoBehaviour
 
     public void ShowResult(bool isVictory, int gold = 0, int wood = 0, int stone = 0)
     {
-        gameObject.SetActive(true); // Примусово вмикаємо себе
+        gameObject.SetActive(true); 
         
-        // Захист: якщо Awake не встиг відпрацювати через те, що об'єкт був вимкнений
         if (canvasGroup == null) canvasGroup = GetComponent<CanvasGroup>();
 
         canvasGroup.alpha = 0; 
         transform.localScale = Vector3.one * 0.8f; 
 
-        // Зупиняємо всі попередні анімації
         StopAllCoroutines(); 
 
         if (isVictory)
@@ -67,14 +65,16 @@ public class AnimatedBattleResult : MonoBehaviour
 
         if (isVictory)
         {
-            // Нараховуємо ресурси для перемоги
-            StartCoroutine(CountResourceCoroutine(gold, goldText));
-            StartCoroutine(CountResourceCoroutine(wood, woodText));
-            StartCoroutine(CountResourceCoroutine(stone, stoneText));
+            // === ФІКС: Красиве нарахування доходу (Gold/Hour) ===
+            // Передаємо префікс "+" та суфікс " Gold/Hour" із золотим кольором
+            StartCoroutine(CountResourceCoroutine(gold, goldText, "+", " <color=#FFD700>Gold/Hour</color>"));
+            
+            // Для дерева і каменю можна залишити просто "+цифра"
+            StartCoroutine(CountResourceCoroutine(wood, woodText, "+", ""));
+            StartCoroutine(CountResourceCoroutine(stone, stoneText, "+", ""));
         }
         else
         {
-            // Якщо це поразка - запускаємо таймер автозакриття
             StartCoroutine(AutoCloseDefeatCoroutine());
         }
     }
@@ -87,7 +87,7 @@ public class AnimatedBattleResult : MonoBehaviour
 
         while (time < panelFadeInDuration)
         {
-            time += Time.deltaTime;
+            time += Time.unscaledDeltaTime; // Використовуємо реальний час, незалежно від паузи
             float t = time / panelFadeInDuration;
             
             canvasGroup.alpha = Mathf.Lerp(0f, 1f, t);
@@ -102,50 +102,56 @@ public class AnimatedBattleResult : MonoBehaviour
         canvasGroup.alpha = 1f;
     }
 
-    // --- АВТОМАТИЧНЕ ЗАКРИТТЯ ПАНЕЛІ ПОРАЗКИ ---
     IEnumerator AutoCloseDefeatCoroutine()
     {
-        // 1. Чекаємо заданий час (наприклад, 3 секунди)
-        yield return new WaitForSeconds(defeatAutoCloseDelay);
+        yield return new WaitForSecondsRealtime(defeatAutoCloseDelay);
 
-        // 2. Плавно розчиняємо панель (Fade Out)
         float time = 0;
         while (time < panelFadeInDuration)
         {
-            time += Time.deltaTime;
+            time += Time.unscaledDeltaTime;
             float t = time / panelFadeInDuration;
             
             canvasGroup.alpha = Mathf.Lerp(1f, 0f, t);
             yield return null;
         }
 
-        // 3. Вимикаємо об'єкт повністю
         gameObject.SetActive(false);
     }
 
-    IEnumerator CountResourceCoroutine(int targetValue, TMP_Text textElement)
+    // === ФІКС: Додано підтримку тексту до і після цифри ===
+    IEnumerator CountResourceCoroutine(int targetValue, TMP_Text textElement, string prefix = "", string suffix = "")
     {
         if (textElement == null || targetValue <= 0) yield break;
 
         float time = 0;
         int currentValue = 0;
+        
+        // Опціонально: Можеш додати звук старту нарахування монет
+        if (SoundManager.Instance != null && suffix.Contains("Gold")) 
+            SoundManager.Instance.PlaySFX(SoundManager.Instance.coinPickup);
 
         while (time < resourceCountingDuration)
         {
-            time += Time.deltaTime;
+            time += Time.unscaledDeltaTime;
             float t = time / resourceCountingDuration;
 
+            // Ease-out ефект: спочатку швидко, під кінець повільно
             float t_slow = 1f - Mathf.Pow(1f - t, 2.5f); 
 
             currentValue = Mathf.RoundToInt(Mathf.Lerp(0, targetValue, t_slow));
-            textElement.text = currentValue.ToString();
+            textElement.text = $"{prefix}{currentValue}{suffix}";
 
             yield return null;
         }
 
-        textElement.text = targetValue.ToString();
+        textElement.text = $"{prefix}{targetValue}{suffix}";
+        
+        // Опціонально: Звук завершення нарахування
+        if (SoundManager.Instance != null && suffix.Contains("Gold")) 
+            SoundManager.Instance.PlaySFX(SoundManager.Instance.coinPickup, 1.5f);
     }
 
-    public void TestVictory() { ShowResult(true, 1000, 500, 250); }
+    public void TestVictory() { ShowResult(true, 250, 50, 20); }
     public void TestDefeat() { ShowResult(false); }
 }

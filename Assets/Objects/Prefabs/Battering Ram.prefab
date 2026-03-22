@@ -180,9 +180,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BatteringRam
   healthBar: {fileID: 5028116062317788131}
   speed: 0.9
-  attackRange: 2.5
-  attackCooldown: 3
-  baseDamage: 50
+  attackRange: 2
+  attackCooldown: 4
+  baseDamage: 40
   baseHealth: 300
   tierAnimators:
   - {fileID: 9100000, guid: 4e5a7dd24777f9441bf59fc3658ec60f, type: 2}

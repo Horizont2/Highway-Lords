@@ -69,6 +69,8 @@ public class SoundManager : MonoBehaviour
         if (Instance == null) 
         {
             Instance = this;
+            // Робимо об'єкт незнищуваним між сценами
+            DontDestroyOnLoad(gameObject); 
         }
         else 
         {
@@ -76,6 +78,7 @@ public class SoundManager : MonoBehaviour
             return;
         }
 
+        // Завантажуємо збережені налаштування гучності
         musicVolume = PlayerPrefs.GetFloat("MusicVolume", 0.5f);
         sfxVolume = PlayerPrefs.GetFloat("SFXVolume", 1f);
     }
@@ -245,5 +248,22 @@ public class SoundManager : MonoBehaviour
         if (sfxSource != null) sfxSource.volume = sfxVolume;
         if (ambientSource != null && ambientSource.isPlaying) ambientSource.volume = sfxVolume * 0.4f; 
         PlayerPrefs.SetFloat("SFXVolume", sfxVolume);
+    }
+
+    // Викликай це зі слайдера в налаштуваннях
+    public void UpdateMusicVolume(float volume)
+    {
+        musicVolume = volume;
+        if (musicSource != null) musicSource.volume = musicVolume;
+        PlayerPrefs.SetFloat("MusicVolume", musicVolume);
+        PlayerPrefs.Save();
+    }
+
+    public void UpdateSFXVolume(float volume)
+    {
+        sfxVolume = volume;
+        if (sfxSource != null) sfxSource.volume = sfxVolume;
+        PlayerPrefs.SetFloat("SFXVolume", sfxVolume);
+        PlayerPrefs.Save();
     }
 }

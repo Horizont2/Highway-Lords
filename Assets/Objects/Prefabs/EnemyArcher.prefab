@@ -330,7 +330,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemyStats
   baseGoldReward: 15
   currentGoldReward: 0
-  maxHealth: 45
+  maxHealth: 40
   currentHealth: 0
 --- !u!114 &-3058477403529774307
 MonoBehaviour:

@@ -110,34 +110,14 @@ public class CampaignUnit : MonoBehaviour
 
         if (state == BattleManager.BattleState.Retreating)
         {
-            if (!isEnemy)
-            {
-                // ШВИДКІСТЬ ВІДСТУПУ (x1.8 від звичайної швидкості - це швидкий біг, але не телепортація)
-                transform.position += Vector3.left * (originalMoveSpeed * 1.8f) * Time.deltaTime;
-                if (anim) anim.SetBool("IsMoving", true);
-                FlipTowards(transform.position + Vector3.left);
-            }
-            else
-            {
-                if (anim) anim.SetBool("IsMoving", false);
-            }
+            MoveUnit(Vector3.left * 1.8f);
             return;
         }
 
         if (state == BattleManager.BattleState.March)
         {
-            if (!isEnemy)
-            {
-                // МАРШ ТЕПЕР ШВИДШИЙ (2.5)
-                transform.position += Vector3.right * 2.5f * Time.deltaTime;
-                tacticalTargetPos = transform.position; 
-                if (anim) anim.SetBool("IsMoving", true);
-                FlipTowards(transform.position + Vector3.right);
-            }
-            else
-            {
-                if (anim) anim.SetBool("IsMoving", false);
-            }
+            MoveUnit(Vector3.right * 2.5f);
+            tacticalTargetPos = transform.position; 
             return;
         }
 
@@ -145,8 +125,7 @@ public class CampaignUnit : MonoBehaviour
         {
             if (!isEnemy)
             {
-                float dist = Vector3.Distance(transform.position, tacticalTargetPos);
-                if (dist > 0.05f)
+                if (Vector3.Distance(transform.position, tacticalTargetPos) > 0.05f)
                 {
                     transform.position = Vector3.MoveTowards(transform.position, tacticalTargetPos, originalMoveSpeed * 2.5f * Time.deltaTime);
                     if (anim) anim.SetBool("IsMoving", true);
@@ -164,23 +143,37 @@ public class CampaignUnit : MonoBehaviour
         if (state == BattleManager.BattleState.Battle)
         {
             if (currentTarget != null && currentTarget.isDead) SetTarget(null);
-
             FindTarget();
 
             if (currentTarget != null)
             {
                 float dist = Vector2.Distance(transform.position, currentTarget.transform.position);
 
-                // Якщо ми ДАЛЕКО - йдемо і відштовхуємось від своїх (щоб не злипатися)
-                if (dist > attackRange)
+                // --- НОВА ЛОГІКА: КАЙТИНГ ДЛЯ ЛУЧНИКІВ ---
+                if (isRanged && dist < attackRange * 0.4f)
+                {
+                    // Ворог занадто близько! Відходимо назад
+                    Vector3 retreatDir = (transform.position - currentTarget.transform.position).normalized;
+                    retreatDir.y = 0; // Відходимо тільки по горизонталі
+                    transform.position += retreatDir * (moveSpeed * 0.8f) * Time.deltaTime;
+                    
+                    if (anim) anim.SetBool("IsMoving", true);
+                    FlipTowards(currentTarget.transform.position); // Все ще дивимось на ворога
+                }
+                // --- ЗВИЧАЙНИЙ РУХ ДО ЦІЛІ ---
+                else if (dist > attackRange)
                 {
                     ApplySeparation(); 
-                    transform.position = Vector3.MoveTowards(transform.position, currentTarget.transform.position, moveSpeed * Time.deltaTime);
+                    // Додаємо мікро-зміщення по осі Y, щоб вони не йшли "гуськом" один за одним
+                    Vector3 targetPos = currentTarget.transform.position;
+                    targetPos.y += Random.Range(-0.1f, 0.1f); 
+
+                    transform.position = Vector3.MoveTowards(transform.position, targetPos, moveSpeed * Time.deltaTime);
                     
                     if (anim) anim.SetBool("IsMoving", true);
                     FlipTowards(currentTarget.transform.position);
                 }
-                // Якщо ми БЛИЗЬКО - ЖОРСТКО СТОЇМО і б'ємо (ніякого сковзання)
+                // --- АТАКА ---
                 else
                 {
                     if (anim) anim.SetBool("IsMoving", false);
@@ -190,22 +183,35 @@ public class CampaignUnit : MonoBehaviour
                     {
                         if (anim) anim.SetTrigger("Attack");
                         lastAttackTime = Time.time;
-                        // === ФІКС: Примусово наносимо урон через 0.4 сек після змаху ===
                         StartCoroutine(DelayedDamageRoutine());
                     }
-                }
-                IEnumerator DelayedDamageRoutine()
-                {
-                    yield return new WaitForSeconds(0.4f); // 0.4с - ідеальний час для анімації удару
-                    DealDamage();
                 }
             }
             else
             {
                 if (anim) anim.SetBool("IsMoving", false);
-                ApplySeparation(); // Трохи розходимось, якщо немає ворогів
+                ApplySeparation(); 
             }
         }
+    }
+
+    private void MoveUnit(Vector3 directionMultiplier)
+    {
+        if (isEnemy)
+        {
+            if (anim) anim.SetBool("IsMoving", false);
+            return;
+        }
+        transform.position += directionMultiplier * (originalMoveSpeed * Time.deltaTime);
+        if (anim) anim.SetBool("IsMoving", true);
+        FlipTowards(transform.position + directionMultiplier);
+    }
+
+    // ВИНЕСЛИ КОРУТИНУ З UPDATE (Це виправить купу мікро-багів)
+    private IEnumerator DelayedDamageRoutine()
+    {
+        yield return new WaitForSeconds(0.4f); 
+        DealDamage();
     }
 
     void ApplySeparation()

@@ -88,7 +88,8 @@ public class CodexManager : MonoBehaviour
 
     void Start()
     {
-        if (codexPanel != null) codexPanel.SetActive(false);
+        // Рядок codexPanel.SetActive(false); ВИДАЛЕНО!
+        
         if (unitsTabBtn) unitsTabBtn.onClick.AddListener(() => OpenCategory(CodexCategory.Units));
         if (buildingsTabBtn) buildingsTabBtn.onClick.AddListener(() => OpenCategory(CodexCategory.Buildings));
         if (enemiesTabBtn) enemiesTabBtn.onClick.AddListener(() => OpenCategory(CodexCategory.Enemies));

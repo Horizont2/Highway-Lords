@@ -58,6 +58,13 @@ public class BattleManager : MonoBehaviour
     public GameObject playerSpearmanPrefab; 
     public GameObject playerCavalryPrefab; 
 
+    // === ДОДАНО: Поля для префабів Найманців ===
+    [Header("Префаби Найманців (Mercenaries)")]
+    public GameObject mercKnightPrefab;
+    public GameObject mercArcherPrefab;
+    public GameObject mercSpearmanPrefab;
+    public GameObject mercCavalryPrefab;
+
     [Header("Префаби Ворога")]
     public GameObject enemyGuardPrefab; 
     public GameObject enemyArcherPrefab; 
@@ -132,27 +139,24 @@ public class BattleManager : MonoBehaviour
         audioSrc = gameObject.AddComponent<AudioSource>();
         if (SoundManager.Instance != null) SoundManager.Instance.PlayBattleMusic();
 
-        isVolleyUnlocked = PlayerPrefs.GetInt("Meta_VolleyBarrage", 0) > 0;
-        isWarCryUnlocked = PlayerPrefs.GetInt("KnightLevel", 1) >= 2 || PlayerPrefs.GetInt("Meta_FortifiedWalls", 0) > 0; 
+        isVolleyUnlocked = PlayerPrefs.GetInt("MetaVolleyBarrage", 0) > 0;
+        isWarCryUnlocked = PlayerPrefs.GetInt("SavedKnightLevel", 1) >= 2 || PlayerPrefs.GetInt("MetaFortifiedWalls", 0) > 0; 
 
-        // Гарантуємо, що битва завжди починається з ПЕРШОГО легіону
         currentLegion = 0;
 
-        // === ФІКС: Шукаємо класи юнітів ТІЛЬКИ в ПЕРШОМУ легіоні (слоти 0, 1, 2) ===
         activeClasses.Clear();
         for (int i = 0; i < 3; i++) 
         {
             int slotType = CrossSceneData.squadSlots[i];
-            if (slotType != -1) // Якщо слот не порожній
+            if (slotType != -1) 
             {
-                int baseType = slotType % 4; // 0=Knight, 1=Archer, 2=Spear, 3=Cav
+                int baseType = slotType % 4; 
                 string uClass = "";
                 if (baseType == 0) uClass = "Knight";
                 else if (baseType == 1) uClass = "Archer";
                 else if (baseType == 2) uClass = "Spearman";
                 else if (baseType == 3) uClass = "Cavalry";
 
-                // Додаємо клас для формування ліній, якщо його ще немає
                 if (!activeClasses.Contains(uClass)) activeClasses.Add(uClass);
             }
         }
@@ -166,9 +170,8 @@ public class BattleManager : MonoBehaviour
         Vector3 offScreenStart = playerSpawnPoint.position + new Vector3(-18f, 0, 0);
         Camera.main.transform.position = new Vector3(offScreenStart.x + 5f, Camera.main.transform.position.y, -10f);
 
-        // Спавн армії бойовими блоками
-        // Спавн ТІЛЬКИ ПЕРШОГО легіону (індекс 0)
         SpawnLegion(currentLegion, offScreenStart);
+        UpdateFormationPositions(offScreenStart.x + 4f, true); 
         UpdateRowUI(); 
 
         CalculateEnemyPool();
@@ -198,8 +201,8 @@ public class BattleManager : MonoBehaviour
 
     void SpawnLegion(int legionIndex, Vector3 startPos)
     {
-        float squadSpacingY = 2.0f; // Відстань між загонами по вертикалі
-        float squadSpacingX = 2.5f; // ДОДАНО: Відстань між загонами в глибину (ось X)
+        float squadSpacingY = 2.0f; 
+        float squadSpacingX = 2.5f; 
 
         int startIndex = legionIndex * 3;
         
@@ -212,13 +215,12 @@ public class BattleManager : MonoBehaviour
 
             int slotInLegion = i % 3;
 
-            // ФІКС: Тепер загони стають у шаховому порядку або в 2 лінії
             float yPos = 0;
             float xPos = 0;
             
-            if (slotInLegion == 0) { yPos = 0f; xPos = 0f; }                    // ЦЕНТР (Авангард)
-            else if (slotInLegion == 1) { yPos = squadSpacingY; xPos = -squadSpacingX; } // ВЕРХ (Фланг позаду)
-            else if (slotInLegion == 2) { yPos = -squadSpacingY; xPos = -squadSpacingX; } // НИЗ (Фланг позаду)
+            if (slotInLegion == 0) { yPos = 0f; xPos = 0f; }                    
+            else if (slotInLegion == 1) { yPos = squadSpacingY; xPos = -squadSpacingX; } 
+            else if (slotInLegion == 2) { yPos = -squadSpacingY; xPos = -squadSpacingX; } 
 
             Vector3 squadCenter = startPos + new Vector3(xPos, yPos, 0);
             SpawnSquadInFormation(unitType, squadCenter);
@@ -231,12 +233,13 @@ public class BattleManager : MonoBehaviour
         string uClass = "";
         bool isMerc = type >= 4;
         bool flip = false;
-        int baseType = type % 4; // 0=Knight, 1=Archer, 2=Spear, 3=Cav
+        int baseType = type % 4; 
 
-        if (baseType == 0) { prefab = playerKnightPrefab; flip = flipPlayerKnight; uClass = "Knight"; }
-        else if (baseType == 1) { prefab = playerArcherPrefab; flip = flipPlayerArcher; uClass = "Archer"; }
-        else if (baseType == 2) { prefab = playerSpearmanPrefab; flip = flipPlayerSpearman; uClass = "Spearman"; }
-        else if (baseType == 3) { prefab = playerCavalryPrefab; flip = flipPlayerCavalry; uClass = "Cavalry"; }
+        // === ФІКС: Підв'язка префабів найманців (або дефолтних, якщо поля пусті) ===
+        if (baseType == 0) { prefab = (isMerc && mercKnightPrefab != null) ? mercKnightPrefab : playerKnightPrefab; flip = flipPlayerKnight; uClass = "Knight"; }
+        else if (baseType == 1) { prefab = (isMerc && mercArcherPrefab != null) ? mercArcherPrefab : playerArcherPrefab; flip = flipPlayerArcher; uClass = "Archer"; }
+        else if (baseType == 2) { prefab = (isMerc && mercSpearmanPrefab != null) ? mercSpearmanPrefab : playerSpearmanPrefab; flip = flipPlayerSpearman; uClass = "Spearman"; }
+        else if (baseType == 3) { prefab = (isMerc && mercCavalryPrefab != null) ? mercCavalryPrefab : playerCavalryPrefab; flip = flipPlayerCavalry; uClass = "Cavalry"; }
 
         if (prefab == null) return;
 
@@ -264,14 +267,12 @@ public class BattleManager : MonoBehaviour
             else if (uClass == "Cavalry") { hp = 150 + (c_lvl * 25); dmg = 40 + (c_lvl * 8); }
         }
 
-        // ФІКС: Більш квадратна формація загону (2 юніти спереду, 3 ззаду)
-        // Тут ми змінили координати по X, щоб вони стояли не парканом, а гарним блоком
         Vector3[] formationOffsets = new Vector3[5] {
-            new Vector3( 0.0f,  0.8f, 0), // Передній ряд (верхній)
-            new Vector3( 0.0f, -0.8f, 0), // Передній ряд (нижній)
-            new Vector3(-1.2f,  1.2f, 0), // Задній ряд (верхній)
-            new Vector3(-1.2f,  0.0f, 0), // Задній ряд (центр)
-            new Vector3(-1.2f, -1.2f, 0)  // Задній ряд (нижній)
+            new Vector3( 0.0f,  0.8f, 0), 
+            new Vector3( 0.0f, -0.8f, 0), 
+            new Vector3(-1.2f,  1.2f, 0), 
+            new Vector3(-1.2f,  0.0f, 0), 
+            new Vector3(-1.2f, -1.2f, 0)  
         };
 
         for (int i = 0; i < 5; i++)
@@ -288,7 +289,8 @@ public class BattleManager : MonoBehaviour
 
             CampaignUnit newAI = unitGO.AddComponent<CampaignUnit>();
             newAI.Setup(false, uClass, hp, dmg, speed, isRanged, bloodHitPrefab, flip);
-            if (isMerc) newAI.transform.localScale *= 1.2f; 
+            
+            if (isMerc) newAI.transform.localScale *= 1f; 
             
             newAI.tacticalTargetPos = spawnPos; 
             allUnitsOnField.Add(newAI);
@@ -297,7 +299,6 @@ public class BattleManager : MonoBehaviour
 
     public void SpawnNextLegion()
     {
-        // Якщо ми вже викликали 3 легіони (індекси 0, 1, 2), то більше немає
         if (currentLegion >= maxLegions - 1) return; 
         
         currentLegion++;
@@ -305,8 +306,8 @@ public class BattleManager : MonoBehaviour
         
         Vector3 spawnPos = new Vector3(Camera.main.transform.position.x - 14f, playerSpawnPoint.position.y, 0f);
         
-        // Викликаємо наступний легіон
         SpawnLegion(currentLegion, spawnPos);
+        UpdateFormationPositions(spawnPos.x, true);
         
         UpdateHUDText(); 
     }
@@ -315,7 +316,6 @@ public class BattleManager : MonoBehaviour
     {
         if (SoundManager.Instance && warHornSound) audioSrc.PlayOneShot(warHornSound, 1f);
 
-        // Спавн найманців за екраном, щоб вони гарно виходили
         Vector3 spawnPos = new Vector3(Camera.main.transform.position.x - 15f, playerSpawnPoint.position.y, 0f);
 
         if (CrossSceneData.useMercKnights) SpawnSquadInFormation(4, spawnPos + new Vector3(0, 2.5f, 0));
@@ -323,6 +323,7 @@ public class BattleManager : MonoBehaviour
         if (CrossSceneData.useMercSpearmen) SpawnSquadInFormation(6, spawnPos + new Vector3(0, -2.5f, 0));
         if (CrossSceneData.useMercCavalry) SpawnSquadInFormation(7, spawnPos + new Vector3(-3.0f, 0, 0));
 
+        UpdateFormationPositions(spawnPos.x, true);
         UpdateHUDText();
     }
 
@@ -330,7 +331,6 @@ public class BattleManager : MonoBehaviour
     {
         if (tacticalUnitButtons == null || tacticalUnitButtons.Length < 4) return;
         
-        // ФІКС: Робимо портрети клікабельними ТІЛЬКИ якщо цей клас вийшов на поле зараз
         tacticalUnitButtons[0].interactable = activeClasses.Contains("Knight");
         tacticalUnitButtons[1].interactable = activeClasses.Contains("Archer");
         tacticalUnitButtons[2].interactable = activeClasses.Contains("Spearman");
@@ -460,9 +460,9 @@ public class BattleManager : MonoBehaviour
     void UpdateFormationPositions(float baseX, bool snapInstantly)
     {
         float currentXOffset = 0f; 
-        int unitsPerCol = 3; // ФІКС: Тепер вони шикуються по 3 у висоту, а не по 5 (менш "парканно")
-        float spacingX = 1.2f; 
-        float spacingY = 0.9f; 
+        int unitsPerCol = 4; 
+        float spacingX = 1.0f; 
+        float spacingY = 0.8f; 
 
         for (int i = 0; i < activeLineCount; i++)
         {
@@ -475,14 +475,13 @@ public class BattleManager : MonoBehaviour
                 int col = j / unitsPerCol; int row = j % unitsPerCol;
                 float targetX = baseX - currentXOffset - (col * spacingX);
                 int currentRows = Mathf.Min(classUnits.Count - (col * unitsPerCol), unitsPerCol);
-                if (classUnits.Count > unitsPerCol) currentRows = unitsPerCol; 
                 
                 float targetY = playerSpawnPoint.position.y + (row * spacingY) - ((currentRows - 1) * spacingY / 2f);
                 classUnits[j].tacticalTargetPos = new Vector3(targetX, targetY, 0);
                 if (snapInstantly) classUnits[j].transform.position = classUnits[j].tacticalTargetPos;
             }
             int colsNeeded = Mathf.CeilToInt((float)classUnits.Count / unitsPerCol);
-            currentXOffset += (colsNeeded * spacingX) + 1.5f; 
+            currentXOffset += (colsNeeded * spacingX) + 1.2f; 
         }
     }
 
@@ -527,12 +526,10 @@ public class BattleManager : MonoBehaviour
         
         enemiesKilled = enemiesSpawned - aliveEnemies;
         
-        // Оновлюємо шкалу захисту табору
         if (campDefenseProgressBarFill && totalEnemies > 0 && currentWave >= maxWaves) 
             campDefenseProgressBarFill.fillAmount = 1f - ((float)enemiesKilled / totalEnemies);
 
-        // Якщо ворогів лишилось мало, і ще є не випущені хвилі - випускаємо наступну
-        if (aliveEnemies <= 3 && currentWave < maxWaves)
+        if (aliveEnemies <= 0 && currentWave < maxWaves)
         {
             if (SoundManager.Instance && warHornSound) audioSrc.PlayOneShot(warHornSound, 2f);
             SpawnEnemyWave();
@@ -581,7 +578,7 @@ public class BattleManager : MonoBehaviour
     IEnumerator VolleyDamageRoutine(Vector3 targetPos)
     {
         yield return new WaitForSeconds(0.6f);
-        int damageToDeal = 150 + (PlayerPrefs.GetInt("Meta_VolleyBarrage", 0) * 50);
+        int damageToDeal = 150 + (PlayerPrefs.GetInt("MetaVolleyBarrage", 0) * 50);
         foreach (var u in allUnitsOnField)
         {
             if (u != null && !u.isDead && u.isEnemy && Vector2.Distance(u.transform.position, targetPos) <= 3.5f) u.TakeDamage(damageToDeal);
@@ -600,31 +597,26 @@ public class BattleManager : MonoBehaviour
     {
         int campLvl = CrossSceneData.campLevel > 0 ? CrossSceneData.campLevel : 1;
         
-        // ЖОРСТКЕ ОБМЕЖЕННЯ ХВИЛЬ
         maxWaves = campLvl; 
         currentWave = 0;
         enemiesSpawned = 0; 
         enemiesKilled = 0;
         
-        // Приблизна кількість ворогів (щоб шкала прогресу працювала)
         totalEnemies = 999; 
     }
 
-    // Зверни увагу: ми прибрали аргумент (bool isVanguard), він більше не потрібен!
     void SpawnEnemyWave()
     {
-        if (currentWave >= maxWaves) return; // Якщо всі хвилі вийшли - більше не спавнимо
+        if (currentWave >= maxWaves) return; 
         currentWave++;
 
         int campLvl = CrossSceneData.campLevel > 0 ? CrossSceneData.campLevel : 1;
         
-        // Скільки ворогів спавнити В ОДНІЙ ХВИЛІ
         int eGuards = 3 + campLvl; 
         int eSpearmen = campLvl >= 2 ? 1 + campLvl : 0;
         int eArchers = campLvl >= 3 ? 1 + campLvl : 0;
         int eCavalry = campLvl >= 4 ? 1 + campLvl : 0;
 
-        // Перша хвиля з'являється на точці, наступні - йдуть з-за екрану
         Vector3 spawnCenter = (currentWave == 1) ? enemySpawnPoint.position : enemySpawnPoint.position + new Vector3(15f, 0, 0);
         float currentXOffset = 0f;
 
@@ -635,7 +627,6 @@ public class BattleManager : MonoBehaviour
 
         enemiesSpawned += (eGuards + eSpearmen + eArchers + eCavalry);
         
-        // Коли виходить ОСТАННЯ хвиля, ми кажемо грі точну кількість ворогів для умови перемоги
         if (currentWave >= maxWaves) totalEnemies = enemiesSpawned;
     }
 
@@ -648,12 +639,13 @@ public class BattleManager : MonoBehaviour
         if (unitClass == "Spearman") speed = 1.6f; else if (unitClass == "Archer") speed = 1.3f; else if (unitClass == "Cavalry") speed = 3.2f;
 
         int campLvl = CrossSceneData.campLevel > 0 ? CrossSceneData.campLevel : 1;
-        if (unitClass == "Knight") { hp = 100 + (campLvl * 40); dmg = 15 + (campLvl * 8); }
-        else if (unitClass == "Archer") { hp = 70 + (campLvl * 25); dmg = 10 + (campLvl * 6); }
-        else if (unitClass == "Spearman") { hp = 90 + (campLvl * 35); dmg = 12 + (campLvl * 7); }
-        else if (unitClass == "Cavalry") { hp = 150 + (campLvl * 50); dmg = 25 + (campLvl * 10); }
+        
+        if (unitClass == "Knight") { hp = 60 + (campLvl * 15); dmg = 10 + (campLvl * 3); }
+        else if (unitClass == "Archer") { hp = 40 + (campLvl * 10); dmg = 7 + (campLvl * 2); }
+        else if (unitClass == "Spearman") { hp = 50 + (campLvl * 12); dmg = 9 + (campLvl * 3); }
+        else if (unitClass == "Cavalry") { hp = 90 + (campLvl * 20); dmg = 15 + (campLvl * 4); }
 
-        int rows = 3; // ФІКС: Вороги теж шикуються по 3 у висоту
+        int rows = 3; 
         float spacingX = 1.2f; float spacingY = 0.9f; int colsUsed = Mathf.CeilToInt((float)count / rows);
 
         for (int i = 0; i < count; i++)
@@ -716,10 +708,13 @@ public class BattleManager : MonoBehaviour
     {
         currentState = BattleState.GameOver;
         if (retreatButton) retreatButton.gameObject.SetActive(false); 
+
         Time.timeScale = 0.3f;
-        if (SoundManager.Instance != null && SoundManager.Instance.victoryMusicStinger != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.victoryMusicStinger);
+        if (SoundManager.Instance != null && SoundManager.Instance.victoryMusicStinger != null) 
+            SoundManager.Instance.PlaySFX(SoundManager.Instance.victoryMusicStinger);
+        
         yield return new WaitForSecondsRealtime(1.8f);
-        Time.timeScale = 1f; 
+        
         EndBattle(true);
     }
 
@@ -763,7 +758,6 @@ public class BattleManager : MonoBehaviour
 
         int k_left = 0, a_left = 0, s_left = 0, c_left = 0;
         
-        // 1. Рахуємо тих, хто вижив на полі бою
         foreach (var u in allUnitsOnField)
         {
             if (u != null && !u.isDead && !u.isEnemy)
@@ -775,19 +769,16 @@ public class BattleManager : MonoBehaviour
             }
         }
 
-        // 2. Рахуємо тих, хто сидів у резерві і навіть не був викликаний (економимо війська гравця!)
         int nextUncalledSlot = (currentLegion + 1) * 3;
         for (int i = nextUncalledSlot; i < 9; i++)
         {
             int uType = CrossSceneData.squadSlots[i];
-            // Повертаємо базові війська (0-3). Найманці (4-7) просто не витрачаються з поля бою.
             if (uType == 0) k_left += 5;
             else if (uType == 1) a_left += 5;
             else if (uType == 2) s_left += 5;
             else if (uType == 3) c_left += 5;
         }
         
-        // Записуємо всіх збережених юнітів у "Безкоштовний пул"
         PlayerPrefs.SetInt("FreeKnights", PlayerPrefs.GetInt("FreeKnights", 0) + k_left);
         PlayerPrefs.SetInt("FreeArchers", PlayerPrefs.GetInt("FreeArchers", 0) + a_left);
         PlayerPrefs.SetInt("FreeSpearmen", PlayerPrefs.GetInt("FreeSpearmen", 0) + s_left);
@@ -800,11 +791,9 @@ public class BattleManager : MonoBehaviour
             PlayerPrefs.SetInt("SavedStone", PlayerPrefs.GetInt("SavedStone", 0) + CrossSceneData.rewardStone);
             PlayerPrefs.SetInt("Camp_" + CrossSceneData.campId + "_Conquered", 1);
             PlayerPrefs.SetInt("PlayerGlory", PlayerPrefs.GetInt("PlayerGlory", 0) + (CrossSceneData.campLevel * 50));
-            
-            // === ФІКС ДЛЯ ТУТОРІАЛУ: Запам'ятовуємо, що гравець вже перемагав ===
             PlayerPrefs.SetInt("CitiesConquered", 1);
         }
-        PlayerPrefs.Save(); // Цей рядок у тебе вже є трохи нижче, він збереже і наші нові дані
+        PlayerPrefs.Save(); 
         PlayerPrefs.Save();
 
         CrossSceneData.knightsCount = k_left;
@@ -865,5 +854,14 @@ public class BattleManager : MonoBehaviour
         else SceneManager.LoadScene("Main");
     }
 
-    
+    public void OnContinueButtonClicked()
+    {
+        if (SoundManager.Instance != null && SoundManager.Instance.clickSound != null)
+            SoundManager.Instance.PlaySFX(SoundManager.Instance.clickSound, 1.5f);
+
+        if (AnimatedBattleResult.Instance != null) 
+            AnimatedBattleResult.Instance.gameObject.SetActive(false);
+
+        LoadMainScene();
+    }
 }

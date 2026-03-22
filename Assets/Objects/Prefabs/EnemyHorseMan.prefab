@@ -140,7 +140,7 @@ MonoBehaviour:
   attackRange: 1.8
   attackCooldown: 2
   damage: 25
-  maxHealth: 120
+  maxHealth: 100
   obstacleLayer:
     serializedVersion: 2
     m_Bits: 256
