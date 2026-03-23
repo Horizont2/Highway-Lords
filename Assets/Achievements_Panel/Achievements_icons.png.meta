@@ -1,0 +1,574 @@
+fileFormatVersion: 2
+guid: 58d0d40493c124b4db54ea0963684a64
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -4478258860735002598
+    second: Achievements_icons_0
+  - first:
+      213: -7646604850884294382
+    second: Achievements_icons_1
+  - first:
+      213: -5539086660527895554
+    second: Achievements_icons_2
+  - first:
+      213: 250713509569331327
+    second: Achievements_icons_3
+  - first:
+      213: 8132022713935631603
+    second: Achievements_icons_4
+  - first:
+      213: -6039492520050372857
+    second: Achievements_icons_5
+  - first:
+      213: 2953699179926624921
+    second: Achievements_icons_6
+  - first:
+      213: 5367493435066441640
+    second: Achievements_icons_7
+  - first:
+      213: -1317833790984167498
+    second: Achievements_icons_8
+  - first:
+      213: -1635848165006313648
+    second: Achievements_icons_9
+  - first:
+      213: 2698191892329090051
+    second: Achievements_icons_10
+  - first:
+      213: 9054275999179510067
+    second: Achievements_icons_11
+  - first:
+      213: -391606483707007991
+    second: Achievements_icons_12
+  - first:
+      213: 778372473351591729
+    second: Achievements_icons_13
+  - first:
+      213: 9013538287578655278
+    second: Achievements_icons_14
+  - first:
+      213: 9174959142746880514
+    second: Achievements_icons_15
+  - first:
+      213: 7588192956642196906
+    second: Achievements_icons_16
+  - first:
+      213: 6173825628430879900
+    second: Achievements_icons_17
+  - first:
+      213: 8856756063937993722
+    second: Achievements_icons_18
+  - first:
+      213: 6952797465762149313
+    second: Achievements_icons_19
+  - first:
+      213: -3545151982509651298
+    second: Achievements_icons_20
+  - first:
+      213: -8506869513090103368
+    second: Achievements_icons_21
+  - first:
+      213: 3018401344854583847
+    second: Achievements_icons_22
+  - first:
+      213: -2007400306147707869
+    second: Achievements_icons_23
+  - first:
+      213: 3787868837487503647
+    second: Achievements_icons_24
+  - first:
+      213: -899208891081528122
+    second: Achievements_icons_25
+  - first:
+      213: -5613684081772692059
+    second: Achievements_icons_26
+  - first:
+      213: 3880661311307992041
+    second: Achievements_icons_27
+  - first:
+      213: 7489806096970193928
+    second: Achievements_icons_28
+  - first:
+      213: 5453382882075551278
+    second: Achievements_icons_29
+  - first:
+      213: -462060003816524835
+    second: Achievements_icons_30
+  - first:
+      213: 4361411022142397324
+    second: Achievements_icons_31
+  - first:
+      213: 4195140661979810012
+    second: Achievements_icons_32
+  - first:
+      213: -4029779523518482459
+    second: Achievements_icons_33
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: Achievements_icons_0
+      rect:
+        serializedVersion: 2
+        x: 229
+        y: 1896
+        width: 858
+        height: 806
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a1805a10b470ad1c0800000000000000
+      internalID: -4478258860735002598
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Achievements_icons_1
+      rect:
+        serializedVersion: 2
+        x: 1239
+        y: 1916
+        width: 812
+        height: 754
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 219434dc66dc1e590800000000000000
+      internalID: -7646604850884294382
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Achievements_icons_3
+      rect:
+        serializedVersion: 2
+        x: 2228
+        y: 1956
+        width: 665
+        height: 682
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f70854ecb96ba7300800000000000000
+      internalID: 250713509569331327
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Achievements_icons_4
+      rect:
+        serializedVersion: 2
+        x: 3259
+        y: 1946
+        width: 464
+        height: 716
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3f49a81b29fbad070800000000000000
+      internalID: 8132022713935631603
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Achievements_icons_6
+      rect:
+        serializedVersion: 2
+        x: 4049
+        y: 1893
+        width: 821
+        height: 798
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 99a93e831c5adf820800000000000000
+      internalID: 2953699179926624921
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Achievements_icons_11
+      rect:
+        serializedVersion: 2
+        x: 1261
+        y: 1020
+        width: 742
+        height: 785
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3319075bc0047ad70800000000000000
+      internalID: 9054275999179510067
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Achievements_icons_12
+      rect:
+        serializedVersion: 2
+        x: 2164
+        y: 1088
+        width: 792
+        height: 668
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 90c67e65afbb09af0800000000000000
+      internalID: -391606483707007991
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Achievements_icons_13
+      rect:
+        serializedVersion: 2
+        x: 3192
+        y: 1022
+        width: 612
+        height: 778
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1375019f3a55dca00800000000000000
+      internalID: 778372473351591729
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Achievements_icons_15
+      rect:
+        serializedVersion: 2
+        x: 4165
+        y: 1019
+        width: 580
+        height: 789
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 20a7624bab0045f70800000000000000
+      internalID: 9174959142746880514
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Achievements_icons_20
+      rect:
+        serializedVersion: 2
+        x: 385
+        y: 175
+        width: 595
+        height: 750
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e9a8dbf0e071dcec0800000000000000
+      internalID: -3545151982509651298
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Achievements_icons_21
+      rect:
+        serializedVersion: 2
+        x: 1349
+        y: 153
+        width: 565
+        height: 775
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8b70aa9cf3781f980800000000000000
+      internalID: -8506869513090103368
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Achievements_icons_22
+      rect:
+        serializedVersion: 2
+        x: 2223
+        y: 157
+        width: 673
+        height: 768
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 72a6e9de70483e920800000000000000
+      internalID: 3018401344854583847
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Achievements_icons_23
+      rect:
+        serializedVersion: 2
+        x: 3095
+        y: 185
+        width: 808
+        height: 703
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3243e06ae084424e0800000000000000
+      internalID: -2007400306147707869
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Achievements_icons_24
+      rect:
+        serializedVersion: 2
+        x: 4091
+        y: 149
+        width: 717
+        height: 764
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f19e63283a6319430800000000000000
+      internalID: 3787868837487503647
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 0695cc8c386d1d84da91a616a24c834b
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      Achievements_icons_0: -4478258860735002598
+      Achievements_icons_1: -7646604850884294382
+      Achievements_icons_10: 2698191892329090051
+      Achievements_icons_11: 9054275999179510067
+      Achievements_icons_12: -391606483707007991
+      Achievements_icons_13: 778372473351591729
+      Achievements_icons_14: 9013538287578655278
+      Achievements_icons_15: 9174959142746880514
+      Achievements_icons_16: 7588192956642196906
+      Achievements_icons_17: 6173825628430879900
+      Achievements_icons_18: 8856756063937993722
+      Achievements_icons_19: 6952797465762149313
+      Achievements_icons_2: -5539086660527895554
+      Achievements_icons_20: -3545151982509651298
+      Achievements_icons_21: -8506869513090103368
+      Achievements_icons_22: 3018401344854583847
+      Achievements_icons_23: -2007400306147707869
+      Achievements_icons_24: 3787868837487503647
+      Achievements_icons_25: -899208891081528122
+      Achievements_icons_26: -5613684081772692059
+      Achievements_icons_27: 3880661311307992041
+      Achievements_icons_28: 7489806096970193928
+      Achievements_icons_29: 5453382882075551278
+      Achievements_icons_3: 250713509569331327
+      Achievements_icons_30: -462060003816524835
+      Achievements_icons_31: 4361411022142397324
+      Achievements_icons_32: 4195140661979810012
+      Achievements_icons_33: -4029779523518482459
+      Achievements_icons_4: 8132022713935631603
+      Achievements_icons_5: -6039492520050372857
+      Achievements_icons_6: 2953699179926624921
+      Achievements_icons_7: 5367493435066441640
+      Achievements_icons_8: -1317833790984167498
+      Achievements_icons_9: -1635848165006313648
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

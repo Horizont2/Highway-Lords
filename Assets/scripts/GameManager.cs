@@ -204,6 +204,7 @@ public class GameManager : MonoBehaviour
     public Button requestCartButton; 
     public Button volleyBarrageButton; 
     public Button openMapButton;
+    public Button openQuestButton;
     
     [Header("Ефекти пульсації кнопок")]
     public UIPulseEffect shopPulse;
@@ -845,9 +846,8 @@ public class GameManager : MonoBehaviour
         float duration = 0.5f; 
         float slideDistance = 400f; 
         float t = 0f;
-
         Button[] buttonsToAnimate = new Button[] { 
-            hammerButton, openShopButton, openMetaShopButton, nextWaveButton, barracksIconButton, openMapButton 
+            hammerButton, openShopButton, openMetaShopButton, nextWaveButton, barracksIconButton, openMapButton, openQuestButton 
         };
         
         List<RectTransform> rects = new List<RectTransform>();
@@ -1947,6 +1947,7 @@ public class GameManager : MonoBehaviour
         if(enemiesAlive < 0) enemiesAlive = 0;
 
         AddKillProgress(1);
+        if (QuestManager.Instance != null) QuestManager.Instance.AddQuestProgress(QuestType.KillEnemies, 1);
         UpdateUI();
 
         if (manualTarget != null && !manualTarget.gameObject.activeInHierarchy)
@@ -2508,6 +2509,10 @@ public class GameManager : MonoBehaviour
         if(currentUnits >= maxUnits || gold < cost) return null;
 
         gold -= cost;
+        if (QuestManager.Instance != null) {
+            QuestManager.Instance.AddQuestProgress(QuestType.SpendGold, cost);
+            QuestManager.Instance.AddQuestProgress(QuestType.HireUnits, 1);
+        }
         currentUnits++;
         UpdateUI();
 
@@ -2603,6 +2608,9 @@ public class GameManager : MonoBehaviour
 
     public void AddResource(ResourceType type, int amount)
     {
+        if (type == ResourceType.Gold && amount > 0 && QuestManager.Instance != null) 
+            QuestManager.Instance.AddQuestProgress(QuestType.EarnGold, amount);
+
         switch (type)
         {
             case ResourceType.Gold: gold += amount; break;
