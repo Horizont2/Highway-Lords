@@ -1,0 +1,1664 @@
+fileFormatVersion: 2
+guid: 912be56289be40f4ba5f25a809f3b6a4
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 6589978026548644355
+    second: SiegeSceneMap_0
+  - first:
+      213: 9210454197203647912
+    second: SiegeSceneMap_1
+  - first:
+      213: -4762817102078265164
+    second: SiegeSceneMap_2
+  - first:
+      213: 6104086283759837587
+    second: SiegeSceneMap_3
+  - first:
+      213: -7985902049270239948
+    second: SiegeSceneMap_4
+  - first:
+      213: -7910703163215170673
+    second: SiegeSceneMap_5
+  - first:
+      213: -7251286337590714255
+    second: SiegeSceneMap_6
+  - first:
+      213: 8875219636829003495
+    second: SiegeSceneMap_7
+  - first:
+      213: -3578725755058615457
+    second: SiegeSceneMap_8
+  - first:
+      213: 3136293822535759444
+    second: SiegeSceneMap_9
+  - first:
+      213: 2345865574523258925
+    second: SiegeSceneMap_10
+  - first:
+      213: 66883295391623702
+    second: SiegeSceneMap_11
+  - first:
+      213: 6863106401036626413
+    second: SiegeSceneMap_12
+  - first:
+      213: -1328699073829720328
+    second: SiegeSceneMap_13
+  - first:
+      213: 77839326247751953
+    second: SiegeSceneMap_14
+  - first:
+      213: 2154824269210758054
+    second: SiegeSceneMap_15
+  - first:
+      213: 1122783566882510268
+    second: SiegeSceneMap_16
+  - first:
+      213: -8203590101125937091
+    second: SiegeSceneMap_17
+  - first:
+      213: 6370482368176484835
+    second: SiegeSceneMap_18
+  - first:
+      213: -1953400493076428696
+    second: SiegeSceneMap_19
+  - first:
+      213: 4555540513858672103
+    second: SiegeSceneMap_20
+  - first:
+      213: 1284905812241137917
+    second: SiegeSceneMap_21
+  - first:
+      213: -8841492308400069178
+    second: SiegeSceneMap_22
+  - first:
+      213: 1034660867505494224
+    second: SiegeSceneMap_23
+  - first:
+      213: 6488225122360770652
+    second: SiegeSceneMap_24
+  - first:
+      213: -5612446100388043638
+    second: SiegeSceneMap_25
+  - first:
+      213: 7625479023587133496
+    second: SiegeSceneMap_26
+  - first:
+      213: -3057603046416332582
+    second: SiegeSceneMap_27
+  - first:
+      213: -557815771024070833
+    second: SiegeSceneMap_28
+  - first:
+      213: -1445223236122003535
+    second: SiegeSceneMap_29
+  - first:
+      213: 4135784438413866015
+    second: SiegeSceneMap_30
+  - first:
+      213: -4486302867582429263
+    second: SiegeSceneMap_31
+  - first:
+      213: 3864058983536154426
+    second: SiegeSceneMap_32
+  - first:
+      213: 7088015101382079012
+    second: SiegeSceneMap_33
+  - first:
+      213: 4389828020345926735
+    second: SiegeSceneMap_34
+  - first:
+      213: 4468064538809825037
+    second: SiegeSceneMap_35
+  - first:
+      213: 7113394612791968064
+    second: SiegeSceneMap_36
+  - first:
+      213: 1845085990090125809
+    second: SiegeSceneMap_37
+  - first:
+      213: 7516078993412735794
+    second: SiegeSceneMap_38
+  - first:
+      213: 4457759227864477935
+    second: SiegeSceneMap_39
+  - first:
+      213: 2959122801763796278
+    second: SiegeSceneMap_40
+  - first:
+      213: -1966880705081177688
+    second: SiegeSceneMap_41
+  - first:
+      213: -5621385457915901790
+    second: SiegeSceneMap_42
+  - first:
+      213: 2699596339107143130
+    second: SiegeSceneMap_43
+  - first:
+      213: -8015731672182518023
+    second: SiegeSceneMap_44
+  - first:
+      213: -6228174022886607388
+    second: SiegeSceneMap_45
+  - first:
+      213: -4614890705986357567
+    second: SiegeSceneMap_46
+  - first:
+      213: -4139015921062044516
+    second: SiegeSceneMap_47
+  - first:
+      213: -290457154320690445
+    second: SiegeSceneMap_48
+  - first:
+      213: 7203125178495879253
+    second: SiegeSceneMap_49
+  - first:
+      213: -4044036674327752228
+    second: SiegeSceneMap_50
+  - first:
+      213: -2322883407217024470
+    second: SiegeSceneMap_51
+  - first:
+      213: 2523851567110847870
+    second: SiegeSceneMap_52
+  - first:
+      213: 8569161468984863803
+    second: SiegeSceneMap_53
+  - first:
+      213: -6990483525145183797
+    second: SiegeSceneMap_54
+  - first:
+      213: 1717439821247308630
+    second: SiegeSceneMap_55
+  - first:
+      213: 2224017571104469801
+    second: SiegeSceneMap_56
+  - first:
+      213: -8327363032532291327
+    second: SiegeSceneMap_57
+  - first:
+      213: -495967380373425517
+    second: SiegeSceneMap_58
+  - first:
+      213: -8662308413506985926
+    second: SiegeSceneMap_59
+  - first:
+      213: -5580423656393209386
+    second: SiegeSceneMap_60
+  - first:
+      213: -3976944569725349720
+    second: SiegeSceneMap_61
+  - first:
+      213: 6702032869018961470
+    second: SiegeSceneMap_62
+  - first:
+      213: -1581710363552856006
+    second: SiegeSceneMap_63
+  - first:
+      213: 3639465218052444404
+    second: SiegeSceneMap_64
+  - first:
+      213: 6999151824954820736
+    second: SiegeSceneMap_65
+  - first:
+      213: -6074965624902373722
+    second: SiegeSceneMap_66
+  - first:
+      213: -3961290467344850156
+    second: SiegeSceneMap_67
+  - first:
+      213: 2380856313767783504
+    second: SiegeSceneMap_68
+  - first:
+      213: 1845377037255542141
+    second: SiegeSceneMap_69
+  - first:
+      213: -7207146884041864235
+    second: SiegeSceneMap_70
+  - first:
+      213: -5962645029235773546
+    second: SiegeSceneMap_71
+  - first:
+      213: -4957725039930194006
+    second: SiegeSceneMap_72
+  - first:
+      213: 4040096359098378866
+    second: SiegeSceneMap_73
+  - first:
+      213: -6957346248934289893
+    second: SiegeSceneMap_74
+  - first:
+      213: 7448508365713072794
+    second: SiegeSceneMap_75
+  - first:
+      213: -4984288070727470946
+    second: SiegeSceneMap_76
+  - first:
+      213: 8322072496053900044
+    second: SiegeSceneMap_77
+  - first:
+      213: -3422579086561552426
+    second: SiegeSceneMap_78
+  - first:
+      213: -3021670690928472482
+    second: SiegeSceneMap_79
+  - first:
+      213: 4028604426506074473
+    second: SiegeSceneMap_80
+  - first:
+      213: 1536755464791818525
+    second: SiegeSceneMap_81
+  - first:
+      213: -9134869816095317545
+    second: SiegeSceneMap_82
+  - first:
+      213: 4564512473031405163
+    second: SiegeSceneMap_83
+  - first:
+      213: -956612955742030763
+    second: SiegeSceneMap_84
+  - first:
+      213: -7689614366964424956
+    second: SiegeSceneMap_85
+  - first:
+      213: 7870189498695606773
+    second: SiegeSceneMap_86
+  - first:
+      213: -7289356956062207732
+    second: SiegeSceneMap_87
+  - first:
+      213: -5598294848129248127
+    second: SiegeSceneMap_88
+  - first:
+      213: 3261104378339181502
+    second: SiegeSceneMap_89
+  - first:
+      213: 5120773316825456885
+    second: SiegeSceneMap_90
+  - first:
+      213: 5333268125167286649
+    second: SiegeSceneMap_91
+  - first:
+      213: 8861644812648022506
+    second: SiegeSceneMap_92
+  - first:
+      213: 8115121899790684928
+    second: SiegeSceneMap_93
+  - first:
+      213: 3938857938849310917
+    second: SiegeSceneMap_94
+  - first:
+      213: 5867207024601662098
+    second: SiegeSceneMap_95
+  - first:
+      213: -6723810815583421449
+    second: SiegeSceneMap_96
+  - first:
+      213: 4130656529467008957
+    second: SiegeSceneMap_97
+  - first:
+      213: -2212499842715539187
+    second: SiegeSceneMap_98
+  - first:
+      213: -4077759378789039034
+    second: SiegeSceneMap_99
+  - first:
+      213: 775597098164420764
+    second: SiegeSceneMap_100
+  - first:
+      213: -6265138171594253894
+    second: SiegeSceneMap_101
+  - first:
+      213: -7342179077705397726
+    second: SiegeSceneMap_102
+  - first:
+      213: 527835831880255429
+    second: SiegeSceneMap_103
+  - first:
+      213: 6073422436440070240
+    second: SiegeSceneMap_104
+  - first:
+      213: 3200855214679250708
+    second: SiegeSceneMap_105
+  - first:
+      213: -6088132338923841223
+    second: SiegeSceneMap_106
+  - first:
+      213: -1123555451099211145
+    second: SiegeSceneMap_107
+  - first:
+      213: -7927786413631684064
+    second: SiegeSceneMap_108
+  - first:
+      213: 1817759447750619881
+    second: SiegeSceneMap_109
+  - first:
+      213: 5394771048670409804
+    second: SiegeSceneMap_110
+  - first:
+      213: -1275532714914646132
+    second: SiegeSceneMap_111
+  - first:
+      213: 4892791532231039772
+    second: SiegeSceneMap_112
+  - first:
+      213: 4550376378838967956
+    second: SiegeSceneMap_113
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: SiegeSceneMap_0
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 2188
+        width: 611
+        height: 604
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 30acf06991e447b50800000000000000
+      internalID: 6589978026548644355
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SiegeSceneMap_3
+      rect:
+        serializedVersion: 2
+        x: 646
+        y: 2178
+        width: 613
+        height: 614
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 391e6dd522216b450800000000000000
+      internalID: 6104086283759837587
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SiegeSceneMap_5
+      rect:
+        serializedVersion: 2
+        x: 1290
+        y: 2161
+        width: 608
+        height: 631
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f833001c269873290800000000000000
+      internalID: -7910703163215170673
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SiegeSceneMap_6
+      rect:
+        serializedVersion: 2
+        x: 1933
+        y: 2178
+        width: 613
+        height: 614
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1702343be714e5b90800000000000000
+      internalID: -7251286337590714255
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SiegeSceneMap_8
+      rect:
+        serializedVersion: 2
+        x: 2571
+        y: 2157
+        width: 609
+        height: 635
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f5b803df2efc55ec0800000000000000
+      internalID: -3578725755058615457
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SiegeSceneMap_12
+      rect:
+        serializedVersion: 2
+        x: 3263
+        y: 2190
+        width: 608
+        height: 574
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: de96f71d8e6ae3f50800000000000000
+      internalID: 6863106401036626413
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SiegeSceneMap_14
+      rect:
+        serializedVersion: 2
+        x: 3887
+        y: 2188
+        width: 616
+        height: 604
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1119d8e647a841100800000000000000
+      internalID: 77839326247751953
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SiegeSceneMap_16
+      rect:
+        serializedVersion: 2
+        x: 4498
+        y: 2154
+        width: 622
+        height: 638
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cb59daf84bde49f00800000000000000
+      internalID: 1122783566882510268
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SiegeSceneMap_29
+      rect:
+        serializedVersion: 2
+        x: 3410
+        y: 1693
+        width: 565
+        height: 476
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1b7bec5bf1981fbe0800000000000000
+      internalID: -1445223236122003535
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SiegeSceneMap_33
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 1752
+        width: 576
+        height: 341
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 422bb784e20bd5260800000000000000
+      internalID: 7088015101382079012
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SiegeSceneMap_34
+      rect:
+        serializedVersion: 2
+        x: 1182
+        y: 1588
+        width: 1376
+        height: 471
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f4476c1835dcbec30800000000000000
+      internalID: 4389828020345926735
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SiegeSceneMap_35
+      rect:
+        serializedVersion: 2
+        x: 2869
+        y: 1712
+        width: 121
+        height: 384
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d0777457601c10e30800000000000000
+      internalID: 4468064538809825037
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SiegeSceneMap_36
+      rect:
+        serializedVersion: 2
+        x: 3064
+        y: 1702
+        width: 130
+        height: 396
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 04184a246bad7b260800000000000000
+      internalID: 7113394612791968064
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SiegeSceneMap_37
+      rect:
+        serializedVersion: 2
+        x: 3253
+        y: 1711
+        width: 128
+        height: 389
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1f13f5baeef0b9910800000000000000
+      internalID: 1845085990090125809
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SiegeSceneMap_38
+      rect:
+        serializedVersion: 2
+        x: 4040
+        y: 1874
+        width: 474
+        height: 235
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 233442ac50a7e4860800000000000000
+      internalID: 7516078993412735794
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SiegeSceneMap_39
+      rect:
+        serializedVersion: 2
+        x: 4590
+        y: 1712
+        width: 479
+        height: 379
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fe0f41746642ddd30800000000000000
+      internalID: 4457759227864477935
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SiegeSceneMap_41
+      rect:
+        serializedVersion: 2
+        x: 589
+        y: 1800
+        width: 588
+        height: 212
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8a901127b6c34b4e0800000000000000
+      internalID: -1966880705081177688
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SiegeSceneMap_42
+      rect:
+        serializedVersion: 2
+        x: 2624
+        y: 1714
+        width: 147
+        height: 319
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2a8406b95b3dcf1b0800000000000000
+      internalID: -5621385457915901790
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SiegeSceneMap_46
+      rect:
+        serializedVersion: 2
+        x: 4063
+        y: 1694
+        width: 495
+        height: 174
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1c67e688a5d94ffb0800000000000000
+      internalID: -4614890705986357567
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SiegeSceneMap_50
+      rect:
+        serializedVersion: 2
+        x: 685
+        y: 1254
+        width: 189
+        height: 331
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cd1da082212b0e7c0800000000000000
+      internalID: -4044036674327752228
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SiegeSceneMap_53
+      rect:
+        serializedVersion: 2
+        x: 70
+        y: 1177
+        width: 517
+        height: 386
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b3caec564f6cbe670800000000000000
+      internalID: 8569161468984863803
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SiegeSceneMap_55
+      rect:
+        serializedVersion: 2
+        x: 938
+        y: 1292
+        width: 101
+        height: 260
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6536e840b6295d710800000000000000
+      internalID: 1717439821247308630
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SiegeSceneMap_56
+      rect:
+        serializedVersion: 2
+        x: 1052
+        y: 1260
+        width: 193
+        height: 254
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 923b8e3923c4dde10800000000000000
+      internalID: 2224017571104469801
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SiegeSceneMap_58
+      rect:
+        serializedVersion: 2
+        x: 1333
+        y: 1234
+        width: 136
+        height: 219
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 39239a89b48fd19f0800000000000000
+      internalID: -495967380373425517
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SiegeSceneMap_59
+      rect:
+        serializedVersion: 2
+        x: 1686
+        y: 1298
+        width: 252
+        height: 184
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a30e90e846c49c780800000000000000
+      internalID: -8662308413506985926
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SiegeSceneMap_60
+      rect:
+        serializedVersion: 2
+        x: 2076
+        y: 1209
+        width: 531
+        height: 336
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6d90f78304a5e82b0800000000000000
+      internalID: -5580423656393209386
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SiegeSceneMap_61
+      rect:
+        serializedVersion: 2
+        x: 2708
+        y: 1257
+        width: 367
+        height: 249
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8a01a1e0cfd0fc8c0800000000000000
+      internalID: -3976944569725349720
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SiegeSceneMap_62
+      rect:
+        serializedVersion: 2
+        x: 3211
+        y: 1124
+        width: 593
+        height: 446
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e360edea267620d50800000000000000
+      internalID: 6702032869018961470
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SiegeSceneMap_63
+      rect:
+        serializedVersion: 2
+        x: 3891
+        y: 1190
+        width: 621
+        height: 366
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a38c0eafdc2ac0ae0800000000000000
+      internalID: -1581710363552856006
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SiegeSceneMap_64
+      rect:
+        serializedVersion: 2
+        x: 4529
+        y: 1199
+        width: 520
+        height: 323
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4f0d766455af18230800000000000000
+      internalID: 3639465218052444404
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SiegeSceneMap_72
+      rect:
+        serializedVersion: 2
+        x: 1147
+        y: 484
+        width: 604
+        height: 522
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: aa7c6e4e75f923bb0800000000000000
+      internalID: -4957725039930194006
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SiegeSceneMap_73
+      rect:
+        serializedVersion: 2
+        x: 1903
+        y: 385
+        width: 1272
+        height: 791
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 27a6866bb3e411830800000000000000
+      internalID: 4040096359098378866
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SiegeSceneMap_74
+      rect:
+        serializedVersion: 2
+        x: 3303
+        y: 521
+        width: 676
+        height: 521
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b1e00ecb27a827f90800000000000000
+      internalID: -6957346248934289893
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SiegeSceneMap_75
+      rect:
+        serializedVersion: 2
+        x: 4113
+        y: 501
+        width: 882
+        height: 491
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a926adc05ea6e5760800000000000000
+      internalID: 7448508365713072794
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SiegeSceneMap_77
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 543
+        width: 720
+        height: 419
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c03575ac7d0fd7370800000000000000
+      internalID: 8322072496053900044
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SiegeSceneMap_81
+      rect:
+        serializedVersion: 2
+        x: 720
+        y: 589
+        width: 325
+        height: 281
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d118e8104f6a35510800000000000000
+      internalID: 1536755464791818525
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SiegeSceneMap_84
+      rect:
+        serializedVersion: 2
+        x: 655
+        y: 144
+        width: 156
+        height: 113
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 554b579c59d69b2f0800000000000000
+      internalID: -956612955742030763
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SiegeSceneMap_85
+      rect:
+        serializedVersion: 2
+        x: 822
+        y: 210
+        width: 102
+        height: 76
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 40f585d7970094590800000000000000
+      internalID: -7689614366964424956
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SiegeSceneMap_86
+      rect:
+        serializedVersion: 2
+        x: 833
+        y: 119
+        width: 71
+        height: 65
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5f1e2c8a6a7883d60800000000000000
+      internalID: 7870189498695606773
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SiegeSceneMap_88
+      rect:
+        serializedVersion: 2
+        x: 1113
+        y: 159
+        width: 147
+        height: 121
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1845b552f7cde42b0800000000000000
+      internalID: -5598294848129248127
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SiegeSceneMap_89
+      rect:
+        serializedVersion: 2
+        x: 1356
+        y: 165
+        width: 139
+        height: 104
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: eb3c06e6725c14d20800000000000000
+      internalID: 3261104378339181502
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SiegeSceneMap_91
+      rect:
+        serializedVersion: 2
+        x: 1646
+        y: 124
+        width: 218
+        height: 150
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 979728c5a13930a40800000000000000
+      internalID: 5333268125167286649
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SiegeSceneMap_100
+      rect:
+        serializedVersion: 2
+        x: 2250
+        y: 89
+        width: 227
+        height: 258
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c900ae4937973ca00800000000000000
+      internalID: 775597098164420764
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SiegeSceneMap_102
+      rect:
+        serializedVersion: 2
+        x: 2704
+        y: 114
+        width: 309
+        height: 174
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 22a801487075b1a90800000000000000
+      internalID: -7342179077705397726
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SiegeSceneMap_104
+      rect:
+        serializedVersion: 2
+        x: 3104
+        y: 106
+        width: 216
+        height: 151
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 068d5ee0781294450800000000000000
+      internalID: 6073422436440070240
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SiegeSceneMap_107
+      rect:
+        serializedVersion: 2
+        x: 3361
+        y: 202
+        width: 216
+        height: 125
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 77a17c325445860f0800000000000000
+      internalID: -1123555451099211145
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SiegeSceneMap_109
+      rect:
+        serializedVersion: 2
+        x: 3384
+        y: 91
+        width: 240
+        height: 98
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9e2394a369af93910800000000000000
+      internalID: 1817759447750619881
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SiegeSceneMap_110
+      rect:
+        serializedVersion: 2
+        x: 3696
+        y: 42
+        width: 375
+        height: 325
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c44bf80afa31eda40800000000000000
+      internalID: 5394771048670409804
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SiegeSceneMap_111
+      rect:
+        serializedVersion: 2
+        x: 4161
+        y: 77
+        width: 210
+        height: 245
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c877f1cf0c56c4ee0800000000000000
+      internalID: -1275532714914646132
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: b3d0440ce52bd3e4ba33fc8ad5eaa007
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      SiegeSceneMap_0: 6589978026548644355
+      SiegeSceneMap_1: 9210454197203647912
+      SiegeSceneMap_10: 2345865574523258925
+      SiegeSceneMap_100: 775597098164420764
+      SiegeSceneMap_101: -6265138171594253894
+      SiegeSceneMap_102: -7342179077705397726
+      SiegeSceneMap_103: 527835831880255429
+      SiegeSceneMap_104: 6073422436440070240
+      SiegeSceneMap_105: 3200855214679250708
+      SiegeSceneMap_106: -6088132338923841223
+      SiegeSceneMap_107: -1123555451099211145
+      SiegeSceneMap_108: -7927786413631684064
+      SiegeSceneMap_109: 1817759447750619881
+      SiegeSceneMap_11: 66883295391623702
+      SiegeSceneMap_110: 5394771048670409804
+      SiegeSceneMap_111: -1275532714914646132
+      SiegeSceneMap_112: 4892791532231039772
+      SiegeSceneMap_113: 4550376378838967956
+      SiegeSceneMap_12: 6863106401036626413
+      SiegeSceneMap_13: -1328699073829720328
+      SiegeSceneMap_14: 77839326247751953
+      SiegeSceneMap_15: 2154824269210758054
+      SiegeSceneMap_16: 1122783566882510268
+      SiegeSceneMap_17: -8203590101125937091
+      SiegeSceneMap_18: 6370482368176484835
+      SiegeSceneMap_19: -1953400493076428696
+      SiegeSceneMap_2: -4762817102078265164
+      SiegeSceneMap_20: 4555540513858672103
+      SiegeSceneMap_21: 1284905812241137917
+      SiegeSceneMap_22: -8841492308400069178
+      SiegeSceneMap_23: 1034660867505494224
+      SiegeSceneMap_24: 6488225122360770652
+      SiegeSceneMap_25: -5612446100388043638
+      SiegeSceneMap_26: 7625479023587133496
+      SiegeSceneMap_27: -3057603046416332582
+      SiegeSceneMap_28: -557815771024070833
+      SiegeSceneMap_29: -1445223236122003535
+      SiegeSceneMap_3: 6104086283759837587
+      SiegeSceneMap_30: 4135784438413866015
+      SiegeSceneMap_31: -4486302867582429263
+      SiegeSceneMap_32: 3864058983536154426
+      SiegeSceneMap_33: 7088015101382079012
+      SiegeSceneMap_34: 4389828020345926735
+      SiegeSceneMap_35: 4468064538809825037
+      SiegeSceneMap_36: 7113394612791968064
+      SiegeSceneMap_37: 1845085990090125809
+      SiegeSceneMap_38: 7516078993412735794
+      SiegeSceneMap_39: 4457759227864477935
+      SiegeSceneMap_4: -7985902049270239948
+      SiegeSceneMap_40: 2959122801763796278
+      SiegeSceneMap_41: -1966880705081177688
+      SiegeSceneMap_42: -5621385457915901790
+      SiegeSceneMap_43: 2699596339107143130
+      SiegeSceneMap_44: -8015731672182518023
+      SiegeSceneMap_45: -6228174022886607388
+      SiegeSceneMap_46: -4614890705986357567
+      SiegeSceneMap_47: -4139015921062044516
+      SiegeSceneMap_48: -290457154320690445
+      SiegeSceneMap_49: 7203125178495879253
+      SiegeSceneMap_5: -7910703163215170673
+      SiegeSceneMap_50: -4044036674327752228
+      SiegeSceneMap_51: -2322883407217024470
+      SiegeSceneMap_52: 2523851567110847870
+      SiegeSceneMap_53: 8569161468984863803
+      SiegeSceneMap_54: -6990483525145183797
+      SiegeSceneMap_55: 1717439821247308630
+      SiegeSceneMap_56: 2224017571104469801
+      SiegeSceneMap_57: -8327363032532291327
+      SiegeSceneMap_58: -495967380373425517
+      SiegeSceneMap_59: -8662308413506985926
+      SiegeSceneMap_6: -7251286337590714255
+      SiegeSceneMap_60: -5580423656393209386
+      SiegeSceneMap_61: -3976944569725349720
+      SiegeSceneMap_62: 6702032869018961470
+      SiegeSceneMap_63: -1581710363552856006
+      SiegeSceneMap_64: 3639465218052444404
+      SiegeSceneMap_65: 6999151824954820736
+      SiegeSceneMap_66: -6074965624902373722
+      SiegeSceneMap_67: -3961290467344850156
+      SiegeSceneMap_68: 2380856313767783504
+      SiegeSceneMap_69: 1845377037255542141
+      SiegeSceneMap_7: 8875219636829003495
+      SiegeSceneMap_70: -7207146884041864235
+      SiegeSceneMap_71: -5962645029235773546
+      SiegeSceneMap_72: -4957725039930194006
+      SiegeSceneMap_73: 4040096359098378866
+      SiegeSceneMap_74: -6957346248934289893
+      SiegeSceneMap_75: 7448508365713072794
+      SiegeSceneMap_76: -4984288070727470946
+      SiegeSceneMap_77: 8322072496053900044
+      SiegeSceneMap_78: -3422579086561552426
+      SiegeSceneMap_79: -3021670690928472482
+      SiegeSceneMap_8: -3578725755058615457
+      SiegeSceneMap_80: 4028604426506074473
+      SiegeSceneMap_81: 1536755464791818525
+      SiegeSceneMap_82: -9134869816095317545
+      SiegeSceneMap_83: 4564512473031405163
+      SiegeSceneMap_84: -956612955742030763
+      SiegeSceneMap_85: -7689614366964424956
+      SiegeSceneMap_86: 7870189498695606773
+      SiegeSceneMap_87: -7289356956062207732
+      SiegeSceneMap_88: -5598294848129248127
+      SiegeSceneMap_89: 3261104378339181502
+      SiegeSceneMap_9: 3136293822535759444
+      SiegeSceneMap_90: 5120773316825456885
+      SiegeSceneMap_91: 5333268125167286649
+      SiegeSceneMap_92: 8861644812648022506
+      SiegeSceneMap_93: 8115121899790684928
+      SiegeSceneMap_94: 3938857938849310917
+      SiegeSceneMap_95: 5867207024601662098
+      SiegeSceneMap_96: -6723810815583421449
+      SiegeSceneMap_97: 4130656529467008957
+      SiegeSceneMap_98: -2212499842715539187
+      SiegeSceneMap_99: -4077759378789039034
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

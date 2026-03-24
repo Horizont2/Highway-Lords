@@ -49,6 +49,11 @@ public class SoundManager : MonoBehaviour
     public AudioClip constructionSound; 
     public AudioClip constructionComplete; 
 
+    [Header("Скрині (Lootbox)")]
+    public AudioClip chestShakeSound;     // Звук тряски скрині
+    public AudioClip chestOpenSound;      // Звук відкриття (скрип/магічний хлопок)
+    public AudioClip chestLootBurstSound; // Звук вильоту луту фонтаном
+
     [Header("Події гри")]
     public AudioClip waveStart;     
     public AudioClip victory;  

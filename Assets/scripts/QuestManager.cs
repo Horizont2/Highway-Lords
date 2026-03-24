@@ -13,6 +13,7 @@ public class QuestInfo
 {
     public string questID;
     public string questName;
+    public string questDescription;
     public QuestType type;
     public int targetAmount;
     public RewardType rewardType;
@@ -211,8 +212,14 @@ public class QuestManager : MonoBehaviour
     {
         if (todayLoginClaimed) return;
 
-        if (consecutiveDays == 7) GameManager.Instance.gems += 25; 
-        else GameManager.Instance.AddResource(ResourceType.Gold, 100 * consecutiveDays);
+        if (consecutiveDays == 7) 
+        {
+            if (ChestManager.Instance != null) ChestManager.Instance.GiveChest();
+        }
+        else 
+        {
+            GameManager.Instance.AddResource(ResourceType.Gold, 100 * consecutiveDays);
+        }
 
         if (SoundManager.Instance) SoundManager.Instance.PlaySFX(SoundManager.Instance.coinPickup);
 
@@ -270,9 +277,8 @@ public class QuestManager : MonoBehaviour
         List<QuestInfo> db = isShowingDaily ? allDailyQuests : allAchievements;
         Transform container = isShowingDaily ? dailyContainer : achievementsContainer;
 
-        // === НАЛАШТУВАННЯ ВІДСТУПІВ ===
-        float startYOffset = 30f; // Відступ зверху (щоб не наїжджало на календар)
-        float rowSpacing = 110f;  // Менший відступ між квестами (було 140)
+        float startYOffset = 30f; 
+        float rowSpacing = 110f;  
         int rowIndex = 0;
 
         foreach (var active in currentList)
@@ -283,65 +289,72 @@ public class QuestManager : MonoBehaviour
             GameObject row = Instantiate(questRowPrefab, container);
             spawnedRows.Add(row);
 
+            // Налаштування позиції
             RectTransform rt = row.GetComponent<RectTransform>();
             Vector2 originalSize = rt.sizeDelta; 
-
             rt.anchorMin = new Vector2(0.5f, 1f);
             rt.anchorMax = new Vector2(0.5f, 1f);
             rt.pivot = new Vector2(0.5f, 1f);
-            
             rt.sizeDelta = originalSize; 
-            
-            // Враховуємо новий стартовий відступ!
             rt.anchoredPosition = new Vector2(0, -startYOffset - (rowIndex * rowSpacing)); 
-            
             rowIndex++;
+
             // ==========================================
-
-            TMP_Text titleTxt = row.transform.Find("TitleText").GetComponent<TMP_Text>();
-            TMP_Text progressTxt = row.transform.Find("ProgressBar/ProgressText").GetComponent<TMP_Text>();
-            Slider progressSlider = row.transform.Find("ProgressBar").GetComponent<Slider>();
-            Image questIcon = row.transform.Find("QuestIcon").GetComponent<Image>();
-            
-            Image rewardIcon = row.transform.Find("RewardIcon").GetComponent<Image>();
-            TMP_Text rewardTxt = row.transform.Find("RewardText").GetComponent<TMP_Text>();
-            Button claimBtn = row.transform.Find("ClaimButton").GetComponent<Button>();
-            TMP_Text btnText = claimBtn.transform.Find("Text (TMP)").GetComponent<TMP_Text>();
-
-            int finalReward = info.baseRewardAmount;
-            if (info.isDynamicReward && info.rewardType == RewardType.Gold && GameManager.Instance != null)
+            // НОВИЙ ПІДХІД: Беремо компонент напряму!
+            // ==========================================
+            QuestRowUI rowUI = row.GetComponent<QuestRowUI>();
+            if (rowUI != null)
             {
-                float multiplier = 1f + (GameManager.Instance.currentWave * 0.15f);
-                finalReward = Mathf.RoundToInt(finalReward * multiplier);
-            }
+                // Динамічна нагорода
+                int finalReward = info.baseRewardAmount;
+                if (info.isDynamicReward && info.rewardType == RewardType.Gold && GameManager.Instance != null)
+                {
+                    float multiplier = 1f + (GameManager.Instance.currentWave * 0.15f);
+                    finalReward = Mathf.RoundToInt(finalReward * multiplier);
+                }
 
-            titleTxt.text = info.questName;
-            progressTxt.text = $"{active.currentProgress} / {info.targetAmount}";
-            progressSlider.maxValue = info.targetAmount;
-            progressSlider.value = active.currentProgress;
-            if (info.questIcon) questIcon.sprite = info.questIcon;
+                // Заповнюємо тексти та іконки
+                if (rowUI.titleText) rowUI.titleText.text = info.questName;
+                if (rowUI.descText) rowUI.descText.text = info.questDescription; // ТЕПЕР ОПИС ТОЧНО ПРАЦЮВАТИМЕ!
+                
+                if (rowUI.progressText) rowUI.progressText.text = $"{active.currentProgress} / {info.targetAmount}";
+                if (rowUI.progressSlider)
+                {
+                    rowUI.progressSlider.maxValue = info.targetAmount;
+                    rowUI.progressSlider.value = active.currentProgress;
+                }
+                
+                if (rowUI.questIcon && info.questIcon) rowUI.questIcon.sprite = info.questIcon;
+                
+                if (rowUI.rewardText) rowUI.rewardText.text = $"+{finalReward}";
+                if (rowUI.rewardIcon) rowUI.rewardIcon.sprite = (info.rewardType == RewardType.Gold) ? goldIcon : gemIcon;
 
-            rewardTxt.text = $"+{finalReward}";
-            rewardIcon.sprite = (info.rewardType == RewardType.Gold) ? goldIcon : gemIcon;
-
-            if (active.isClaimed)
-            {
-                claimBtn.interactable = false;
-                btnText.text = "CLAIMED";
-            }
-            else if (active.currentProgress >= info.targetAmount)
-            {
-                claimBtn.interactable = true;
-                btnText.text = "CLAIM!";
-                ActiveQuest currentActive = active; 
-                claimBtn.onClick.AddListener(() => ClaimReward(currentActive, info, finalReward));
-            }
-            else
-            {
-                claimBtn.interactable = false;
-                btnText.text = "CLAIM";
+                // Налаштування кнопки
+                if (rowUI.claimBtn != null)
+                {
+                    rowUI.claimBtn.onClick.RemoveAllListeners(); // Очищаємо старі кліки
+                    
+                    if (active.isClaimed)
+                    {
+                        rowUI.claimBtn.interactable = false;
+                        if (rowUI.btnText) rowUI.btnText.text = "CLAIMED";
+                    }
+                    else if (active.currentProgress >= info.targetAmount)
+                    {
+                        rowUI.claimBtn.interactable = true;
+                        if (rowUI.btnText) rowUI.btnText.text = "CLAIM!";
+                        ActiveQuest currentActive = active; 
+                        rowUI.claimBtn.onClick.AddListener(() => ClaimReward(currentActive, info, finalReward));
+                    }
+                    else
+                    {
+                        rowUI.claimBtn.interactable = false;
+                        if (rowUI.btnText) rowUI.btnText.text = "CLAIM";
+                    }
+                }
             }
         }
+        
         RectTransform containerRT = container.GetComponent<RectTransform>();
         containerRT.sizeDelta = new Vector2(containerRT.sizeDelta.x, startYOffset + (currentList.Count * rowSpacing) + 50f);
         UpdatePulseEffect();
@@ -451,6 +464,12 @@ public class QuestManager : MonoBehaviour
     // ==========================================
     public void TogglePanel()
     {
+        // ДОДАНО: Звук кліку при відкритті та закритті (гучність 2.0f як у інших кнопок)
+        if (SoundManager.Instance != null && SoundManager.Instance.clickSound != null)
+        {
+            SoundManager.Instance.PlaySFX(SoundManager.Instance.clickSound, 2.0f);
+        }
+
         if (questsPanel != null)
         {
             bool isOpening = !questsPanel.activeSelf;

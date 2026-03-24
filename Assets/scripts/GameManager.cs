@@ -221,6 +221,11 @@ public class GameManager : MonoBehaviour
     public Button exitGameButton;
     public Button continueButton;
 
+    [Header("Підтвердження Виходу")]
+    public GameObject exitConfirmPanel;
+    public Button confirmExitYesBtn;
+    public Button confirmExitNoBtn;
+
     [Header("UI: Панель Будівництва (Construction)")]
     public Button buildBarracksBtnInMenu;
     public Button buildSpikesButton;
@@ -1220,7 +1225,12 @@ public class GameManager : MonoBehaviour
 
         if (closeInfoButton != null) { closeInfoButton.onClick.RemoveAllListeners(); closeInfoButton.onClick.AddListener(ToggleInfoPanel); }
         
-        if (exitGameButton != null) { exitGameButton.onClick.RemoveAllListeners(); exitGameButton.onClick.AddListener(ExitGame); }
+        // Змінюємо стару кнопку виходу
+        if (exitGameButton != null) { exitGameButton.onClick.RemoveAllListeners(); exitGameButton.onClick.AddListener(ShowExitConfirmation); }
+        
+        // Підключаємо нові кнопки підтвердження
+        if (confirmExitYesBtn != null) { confirmExitYesBtn.onClick.RemoveAllListeners(); confirmExitYesBtn.onClick.AddListener(ConfirmExit); }
+        if (confirmExitNoBtn != null) { confirmExitNoBtn.onClick.RemoveAllListeners(); confirmExitNoBtn.onClick.AddListener(HideExitConfirmation); }
 
         if (openMetaShopButton != null) { openMetaShopButton.onClick.RemoveAllListeners(); openMetaShopButton.onClick.AddListener(ToggleMetaShop); }
         if (closeMetaShopButton != null) { closeMetaShopButton.onClick.RemoveAllListeners(); closeMetaShopButton.onClick.AddListener(ToggleMetaShop); }
@@ -2792,8 +2802,27 @@ public class GameManager : MonoBehaviour
         StartCoroutine(RecalculateUnitsNextFrame());
     }
 
-    public void ExitGame()
+    public void ShowExitConfirmation()
     {
+        if (exitConfirmPanel != null)
+        {
+            if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.clickSound, 2.0f);
+            StartCoroutine(AnimatePanel(exitConfirmPanel, true));
+        }
+    }
+
+    public void HideExitConfirmation()
+    {
+        if (exitConfirmPanel != null)
+        {
+            if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.clickSound, 2.0f);
+            StartCoroutine(AnimatePanel(exitConfirmPanel, false));
+        }
+    }
+
+    public void ConfirmExit()
+    {
+        if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.clickSound, 2.0f);
         SaveGame();
         Application.Quit();
         #if UNITY_EDITOR
