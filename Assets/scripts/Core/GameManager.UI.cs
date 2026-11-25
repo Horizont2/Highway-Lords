@@ -1393,12 +1393,68 @@ public partial class GameManager
         gloryPopupText.gameObject.SetActive(false);
         rt.anchoredPosition = defaultGloryPopupPos; 
     }
+    // Попередні значення, щоб підштовхувати лічильник лише коли він
+    // справді змінився. UpdateResourcesUI викликається часто.
+    private int shownGold = int.MinValue, shownGlory = int.MinValue;
+    private int shownWood = int.MinValue, shownStone = int.MinValue;
+
     public void UpdateResourcesUI()
     {
-        if (goldText) goldText.text = gold.ToString(); 
-        if (gloryText) gloryText.text = glory.ToString();
-        if (woodText) woodText.text = wood.ToString();
-        if (stoneText) stoneText.text = stone.ToString();
+        SetCounter(goldText, gold, ref shownGold);
+        SetCounter(gloryText, glory, ref shownGlory);
+        SetCounter(woodText, wood, ref shownWood);
+        SetCounter(stoneText, stone, ref shownStone);
+    }
+
+    private void SetCounter(TMP_Text label, int value, ref int shown)
+    {
+        if (label == null) return;
+
+        label.text = value.ToString();
+
+        bool firstFill = shown == int.MinValue;
+        bool grew = !firstFill && value > shown;
+        shown = value;
+
+        // Підштовхуємо лише на приріст: втрата ресурсу й так помітна
+        // через ціну, а смикання на кожне списання дратувало б.
+        if (grew) PunchText(label.rectTransform);
+    }
+
+    private readonly Dictionary<RectTransform, Coroutine> punchRoutines =
+        new Dictionary<RectTransform, Coroutine>();
+
+    /// <summary>
+    /// Коротке збільшення й повернення. Око ловить рух краще за зміну
+    /// цифри, тож приріст золота стає видно без окремого попапа.
+    /// </summary>
+    public void PunchText(RectTransform target, float strength = 0.22f, float duration = 0.25f)
+    {
+        if (target == null) return;
+
+        if (punchRoutines.TryGetValue(target, out var running) && running != null)
+            StopCoroutine(running);
+
+        punchRoutines[target] = StartCoroutine(PunchRoutine(target, strength, duration));
+    }
+
+    private IEnumerator PunchRoutine(RectTransform target, float strength, float duration)
+    {
+        Vector3 baseScale = Vector3.one;
+        float t = 0f;
+
+        while (t < duration)
+        {
+            t += Time.unscaledDeltaTime;
+            if (target == null) yield break;
+
+            float k = 1f + strength * Easing.Punch(t / duration);
+            target.localScale = baseScale * k;
+            yield return null;
+        }
+
+        if (target != null) target.localScale = baseScale;
+        punchRoutines.Remove(target);
     }
     public void UpdateMetaUI()
     {

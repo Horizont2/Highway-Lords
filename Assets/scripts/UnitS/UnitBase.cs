@@ -106,6 +106,8 @@ public abstract class UnitBase : MonoBehaviour
         originalScale = transform.localScale;
         startY = transform.position.y;
 
+        if (spawnPopDuration > 0f) StartCoroutine(SpawnPopRoutine());
+
         // currentHealth і effectiveMaxHealth тут НЕ виставляємо навмисно:
         // юніти гравця рахують maxHealth з EconomyConfig уже після base.Start(),
         // а вороги масштабують його під складність хвилі. Якби база щось
@@ -174,6 +176,7 @@ public abstract class UnitBase : MonoBehaviour
     private bool facingPositive = true;
     private float squashX = 1f;
     private float squashY = 1f;
+    private float spawnScale = 1f;
 
     protected void FaceTowards(float targetX)
     {
@@ -189,9 +192,39 @@ public abstract class UnitBase : MonoBehaviour
     {
         float absX = Mathf.Abs(originalScale.x);
         transform.localScale = new Vector3(
-            (facingPositive ? absX : -absX) * squashX,
-            originalScale.y * squashY,
+            (facingPositive ? absX : -absX) * squashX * spawnScale,
+            originalScale.y * squashY * spawnScale,
             originalScale.z);
+    }
+
+    // ------------------------------------------------------------------
+    // Поява
+    // ------------------------------------------------------------------
+
+    [Header("Поява")]
+    [Tooltip("З якого масштабу юніт виростає при появі. 0 вимикає ефект")]
+    public float spawnPopDuration = 0.26f;
+    [Range(0f, 1f)] public float spawnFromScale = 0.55f;
+
+    /// <summary>
+    /// Юніт виростає з перельотом, а не виникає в одному кадрі. Разом із
+    /// пилом під ногами це єдине, що відрізняє "з'явився" від "вискочив".
+    /// </summary>
+    private IEnumerator SpawnPopRoutine()
+    {
+        float duration = spawnPopDuration;
+        float t = 0f;
+
+        while (t < duration)
+        {
+            t += Time.deltaTime;
+            spawnScale = Mathf.LerpUnclamped(spawnFromScale, 1f, Easing.OutBack(t / duration, 2f));
+            if (!isDead) ApplyScale();
+            yield return null;
+        }
+
+        spawnScale = 1f;
+        if (!isDead) ApplyScale();
     }
 
     // ------------------------------------------------------------------
@@ -283,18 +316,79 @@ public abstract class UnitBase : MonoBehaviour
             animator.enabled = false;
         }
 
-        transform.Rotate(0f, 0f, -90f);
+        if (spriteRenderer != null) spriteRenderer.sortingOrder = 0;
 
-        if (spriteRenderer != null)
+        // Чим важчий юніт, тим відчутніший удар об землю.
+        if (CameraShake.Instance != null)
         {
-            spriteRenderer.color = CorpseColor;
-            spriteRenderer.sortingOrder = 0;
+            float weight = Mathf.Clamp01(maxHealth / 200f);
+            CameraShake.Instance.Shake(0.08f + weight * 0.12f, 0.04f + weight * 0.1f);
         }
 
-        // Зупиняємо логіку, але компонент лишаємо: посилання на нього
-        // можуть ще існувати, а відсіюються мертві юніти за тегом.
-        enabled = false;
+        // Компонент лишаємо увімкненим, інакше корутина падіння не доживе
+        // до кінця. Update кожного класу й так починається з if (isDead) return.
+        StartCoroutine(DeathRoutine());
         Destroy(gameObject, CorpseLifeTime);
+    }
+
+    /// <summary>
+    /// Падіння замість миттєвого повороту на 90°: юніт завалюється назад від
+    /// того боку, куди дивився, темніє, лежить — і розчиняється наприкінці,
+    /// а не зникає в одному кадрі.
+    /// </summary>
+    private IEnumerator DeathRoutine()
+    {
+        const float fallDuration = 0.32f;
+        float fadeDuration = Mathf.Min(0.8f, CorpseLifeTime * 0.4f);
+        float holdDuration = Mathf.Max(0f, CorpseLifeTime - fallDuration - fadeDuration);
+
+        Quaternion startRot = transform.rotation;
+        Quaternion endRot = startRot * Quaternion.Euler(0f, 0f, -90f);
+
+        // Валиться назад: у бік, протилежний тому, куди дивився.
+        float back = facingPositive ? -1f : 1f;
+        Vector3 startPos = transform.position;
+        Vector3 endPos = startPos + new Vector3(back * 0.35f, -0.12f, 0f);
+
+        Color liveColor = spriteRenderer != null ? spriteRenderer.color : Color.white;
+        Color deadColor = CorpseColor;
+
+        float t = 0f;
+        while (t < fallDuration)
+        {
+            t += Time.deltaTime;
+            float k = Mathf.Clamp01(t / fallDuration);
+
+            // Прискорення: падіння важчає до кінця, а не йде рівно.
+            float eased = k * k;
+
+            transform.rotation = Quaternion.Slerp(startRot, endRot, eased);
+            transform.position = Vector3.Lerp(startPos, endPos, Easing.OutCubic(k));
+
+            if (spriteRenderer != null)
+                spriteRenderer.color = Color.Lerp(liveColor, deadColor, k);
+
+            yield return null;
+        }
+
+        transform.rotation = endRot;
+        transform.position = endPos;
+        if (spriteRenderer != null) spriteRenderer.color = deadColor;
+
+        yield return new WaitForSeconds(holdDuration);
+
+        t = 0f;
+        while (t < fadeDuration)
+        {
+            t += Time.deltaTime;
+            if (spriteRenderer != null)
+            {
+                Color c = deadColor;
+                c.a = 1f - Easing.InCubic(t / fadeDuration);
+                spriteRenderer.color = c;
+            }
+            yield return null;
+        }
     }
 
     /// <summary>Що зробити в момент смерті: золото, облік, звук.</summary>

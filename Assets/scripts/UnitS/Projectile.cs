@@ -144,8 +144,10 @@ public class Projectile : MonoBehaviour, IPoolable
         {
             if (other.CompareTag("Untagged")) return;
             
-            // Якщо це Guard, перевіряємо, чи він не мертвий (enabled == false)
-            if (other.TryGetComponent<Guard>(out Guard g) && !g.enabled) return;
+            // Мертві юніти шкоди не отримують. Раніше тут перевірявся
+            // g.enabled, бо смерть вимикала компонент; тепер стан смерті
+            // читається явно й працює для всіх типів, а не лише для Guard.
+            if (other.TryGetComponent<UnitBase>(out UnitBase unit) && unit.IsDead) return;
 
             HitTarget(other.gameObject);
         }

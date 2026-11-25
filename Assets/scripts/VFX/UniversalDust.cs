@@ -18,7 +18,9 @@ public class UniversalDust : MonoBehaviour
         }
         else
         {
-            Debug.LogError($"❌ ПОМИЛКА: На юніті {gameObject.name} ВЗАГАЛІ НЕМАЄ Particle System!");
+            // Один раз при старті, а не помилка: частина юнітів свідомо без пилу.
+            Debug.LogWarning($"[UniversalDust] На '{gameObject.name}' немає ParticleSystem — пилу не буде.", this);
+            enabled = false;
         }
     }
 
@@ -31,12 +33,6 @@ public class UniversalDust : MonoBehaviour
 
         var em = dustSystem.emission;
         em.enabled = isMoving;
-
-        // ДЕТЕКТИВ: Якщо юніт рухається, але ми не бачимо пил — пишемо в консоль!
-        if (isMoving && gameObject.name.Contains("Archer"))
-        {
-            Debug.Log($"🏹 Лучник рухається зі швидкістю {speed}! Пил МАЄ йти. Якщо його не видно — він або прозорий, або під землею (Order in Layer)!");
-        }
 
         lastPos = transform.position;
     }
