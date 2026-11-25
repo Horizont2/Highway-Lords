@@ -55,5 +55,37 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 8626055746089502767, guid: 5879e71269cba99459411e60463d02d6, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 5864521252222133671}
   m_SourcePrefab: {fileID: 100100000, guid: 5879e71269cba99459411e60463d02d6, type: 3}
+--- !u!1 &6622418110694225718 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 8626055746089502767, guid: 5879e71269cba99459411e60463d02d6, type: 3}
+  m_PrefabInstance: {fileID: 3193731431262797593}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &5864521252222133671
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6622418110694225718}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f8bd449e201be1a46ac95ff51136ca2a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CampaignUnit
+  isEnemy: 0
+  unitClass: 
+  health: 0
+  maxHealth: 0
+  damage: 0
+  moveSpeed: 0
+  attackRange: 0
+  isRanged: 0
+  nativelyFacesLeft: 0
+  isDead: 0
+  tacticalTargetPos: {x: 0, y: 0, z: 0}
+  targetedByCount: 0

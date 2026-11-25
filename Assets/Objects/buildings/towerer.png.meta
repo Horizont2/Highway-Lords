@@ -78,10 +78,10 @@ TextureImporter:
   platformSettings:
   - serializedVersion: 4
     buildTarget: DefaultTexturePlatform
-    maxTextureSize: 2048
+    maxTextureSize: 512
     resizeAlgorithm: 0
     textureFormat: -1
-    textureCompression: 0
+    textureCompression: 1
     compressionQuality: 50
     crunchedCompression: 0
     allowsAlphaSplitting: 0
@@ -115,6 +115,19 @@ TextureImporter:
     ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
   spriteSheet:
     serializedVersion: 2
     sprites:
@@ -134,7 +147,7 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 8803e2647c7bbc44d9c934ca936a4577
+      spriteID: 64129e63598abc340abca06f0f417268
       internalID: -3130452453222672910
       vertices: []
       indices: 
@@ -156,7 +169,7 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: f3b1082e72fe43f40804e9f277be8336
+      spriteID: 0b944c0ea2e3453458a7a824d7bbce44
       internalID: -2529791636759169365
       vertices: []
       indices: 
@@ -166,9 +179,9 @@ TextureImporter:
       name: towerer_2
       rect:
         serializedVersion: 2
-        x: 156
+        x: 157
         y: 22
-        width: 184
+        width: 183
         height: 202
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
@@ -178,7 +191,7 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 1224caeef4d6215478aef5a68aceb902
+      spriteID: b39c870c91a13dd44a6d0c5e6c2b6377
       internalID: 389288287253645902
       vertices: []
       indices: 

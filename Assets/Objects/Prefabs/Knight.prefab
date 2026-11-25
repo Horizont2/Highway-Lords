@@ -5361,6 +5361,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::YSorter
   sortingOrderBase: 5000
   isStatic: 0
+  shadowRenderer: {fileID: 5414203223832222529}
 --- !u!114 &-2926267361139581628
 MonoBehaviour:
   m_ObjectHideFlags: 0
