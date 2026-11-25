@@ -4,43 +4,22 @@ using System.Collections;
 
 [RequireComponent(typeof(Rigidbody2D))]
 [RequireComponent(typeof(EnemyStats))]
-public class EnemySpearman : MonoBehaviour
+public class EnemySpearman : UnitBase
 {
-    [Header("Ефекти Grow Empire")]
-    public Image healthBarFill;
-    public GameObject hitParticlePrefab;
-    private Color defaultColor = Color.white;
-
     [Header("Характеристики")]
-    public float speed = 1.8f;
-    public float attackRange = 2.5f;
     public float attackCooldown = 1.5f;
     public int damage = 15;
-    public int maxHealth = 70;
 
     [Header("Навігація та Агро")]
-    public LayerMask obstacleLayer; 
-    public float avoidanceForce = 2.0f;
     public float aggroRadius = 4.5f;
     
     // --- ДИСЦИПЛІНА МАРШУ ---
-    public float aggroRange = 4.5f; 
-    private float startY;
 
     private float retargetTimer = 0f;
-
-    private Animator animator;
-    private Rigidbody2D rb;
-    private SpriteRenderer spriteRenderer;
-    private int currentHealth;
-    private int _maxHealth;
-    private bool isDead = false;
-    private Vector3 originalScale;
 
     private Transform target;
     private float nextAttackTime = 0f;
     private bool hasHitThisAttack = false;
-    private UnitStats myStats;
 
     private int _baseMaxHealth;
     private int _baseDamage;
@@ -51,28 +30,18 @@ public class EnemySpearman : MonoBehaviour
         _baseDamage = damage;
     }
 
-    void Start()
+    protected override void Start()
     {
-        animator = GetComponent<Animator>();
-        rb = GetComponent<Rigidbody2D>();
-        spriteRenderer = GetComponent<SpriteRenderer>();
-        myStats = GetComponent<UnitStats>();
-        originalScale = transform.localScale;
-
-        rb.bodyType = RigidbodyType2D.Dynamic;
-        rb.gravityScale = 0; 
-        rb.freezeRotation = true; 
-
-        startY = transform.position.y; // Запам'ятовуємо позицію
+        base.Start();
 
         if (GameManager.Instance != null)
         {
-            _maxHealth = GameManager.Instance.GetScaledEnemyHealth(_baseMaxHealth);
+            effectiveMaxHealth = GameManager.Instance.GetScaledEnemyHealth(_baseMaxHealth);
             damage = Mathf.RoundToInt(_baseDamage * GameManager.Instance.GetEnemyDamageMultiplier());
         }
-        else { _maxHealth = _baseMaxHealth; }
+        else { effectiveMaxHealth = _baseMaxHealth; }
         
-        currentHealth = _maxHealth;
+        currentHealth = effectiveMaxHealth;
         if (spriteRenderer != null) defaultColor = spriteRenderer.color;
         UpdateHealthBar();
     }
@@ -228,7 +197,7 @@ public class EnemySpearman : MonoBehaviour
         else if (GameManager.Instance != null && GameManager.Instance.castle != null) target = GameManager.Instance.castle.transform;
     }
 
-    void FaceDirection(Vector3 targetPos) { float absX = Mathf.Abs(originalScale.x); transform.localScale = new Vector3(targetPos.x > transform.position.x ? absX : -absX, originalScale.y, originalScale.z); }
+    void FaceDirection(Vector3 targetPos) => FaceTowards(targetPos.x);
 
     void Attack() { hasHitThisAttack = false; if (animator) animator.SetTrigger("Attack"); }
 
@@ -266,62 +235,11 @@ public class EnemySpearman : MonoBehaviour
         else if (target.TryGetComponent<Spikes>(out Spikes sp)) sp.TakeDamage(finalDamage);
     }
 
-    public void TakeDamage(int damageAmount)
+    protected override void OnDeath()
     {
-        if (isDead) return;
-        currentHealth -= damageAmount;
-        UpdateHealthBar();
-
-        Vector3 popupPos = transform.position + new Vector3(Random.Range(-0.3f, 0.3f), Random.Range(0.5f, 1.2f), 0);
-        GameManager.CreateDamagePopup(popupPos, damageAmount);
-
-        if (hitParticlePrefab != null)
-        {
-            GameObject particles = Instantiate(hitParticlePrefab, transform.position + Vector3.up * 0.5f, Quaternion.identity);
-            Destroy(particles, 1f);
-        }
-
-        if (spriteRenderer != null) StartCoroutine(FlashColor());
-
-        if (currentHealth <= 0) Die();
-    }
-
-    void UpdateHealthBar()
-    {
-        if (healthBarFill != null)
-            healthBarFill.fillAmount = Mathf.Clamp01((float)currentHealth / _maxHealth);
-    }
-
-    private IEnumerator FlashColor()
-    {
-        spriteRenderer.color = new Color(1f, 0.4f, 0.4f); 
-        yield return new WaitForSeconds(0.1f);
-        if (!isDead) spriteRenderer.color = defaultColor; 
-    }
-
-    void Die()
-    {
-        if (isDead) return;
-        isDead = true;
-        gameObject.tag = "Untagged";
-
-        if (healthBarFill != null && healthBarFill.transform.parent != null) 
-            healthBarFill.transform.parent.gameObject.SetActive(false);
-
-        if (rb != null) { rb.linearVelocity = Vector2.zero; rb.bodyType = RigidbodyType2D.Static; }
-        Collider2D col = GetComponent<Collider2D>();
-        if (col != null) col.enabled = false;
-        
         if (TryGetComponent<EnemyStats>(out EnemyStats stats)) stats.GiveGold();
         else if (GameManager.Instance != null) GameManager.Instance.UnregisterEnemy();
-        
+
         if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.enemyDeath);
-        
-        if (animator) { animator.Rebind(); animator.Update(0f); animator.enabled = false; }
-        transform.Rotate(0, 0, -90);
-        if (spriteRenderer != null) { spriteRenderer.color = Color.gray; spriteRenderer.sortingOrder = 0; }
-        
-        Destroy(this);
-        Destroy(gameObject, 10f);
     }
 }

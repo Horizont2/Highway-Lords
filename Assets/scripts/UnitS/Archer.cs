@@ -3,68 +3,34 @@ using UnityEngine.UI;
 using System.Collections;
 
 [RequireComponent(typeof(Rigidbody2D))]
-public class Archer : MonoBehaviour
+public class Archer : UnitBase
 {
-    [Header("Ефекти Grow Empire")]
-    public Image healthBarFill;
-    public GameObject hitParticlePrefab;
-    private Color defaultColor = Color.white;
-
     [Header("Характеристики")]
-    public float speed = 2.5f;
-    public float attackRange = 5f; 
     public float attackRate = 0.8f;
-    public int maxHealth = 60;
 
     [Header("Навігація")]
-    public LayerMask obstacleLayer; 
     public float checkDistance = 1.5f; 
-    public float avoidanceForce = 2.0f; 
-    
-    // --- ДИСЦИПЛІНА МАРШУ ---
-    public float aggroRange = 6.0f; // Лучники ламають стрій раніше, щоб зайняти позиції
-    private float startY;
 
     [Header("Стрільба")]
     public GameObject arrowPrefab;
     public Transform firePoint;
 
-    [Header("Компоненти")]
-    public Animator animator;
-    public SpriteRenderer spriteRenderer;
-
-    public int currentHealth;
     private int myDamage;
     private float nextAttackTime = 0f;
-    private Vector3 originalScale;
     private Transform target; 
-    private Rigidbody2D rb; 
-    private bool isDead = false;
 
     private Vector3 startPoint;
-    private UnitStats myStats;
     private float retargetTimer = 0f;
     private Vector3 formationPos;
 
     public void SetFormationPosition(Vector3 pos) { formationPos = pos; }
-    public void LoadState(int savedHealth) { currentHealth = savedHealth; UpdateHealthBar(); }
 
-    void Start()
+    protected override void Start()
     {
-        rb = GetComponent<Rigidbody2D>();
-        rb.bodyType = RigidbodyType2D.Dynamic; 
-        rb.gravityScale = 0; 
-        rb.freezeRotation = true; 
-
-        if(spriteRenderer == null) spriteRenderer = GetComponent<SpriteRenderer>();
-        if(animator == null) animator = GetComponent<Animator>(); 
-        myStats = GetComponent<UnitStats>();
+        base.Start();
 
         startPoint = transform.position;
         if (formationPos == Vector3.zero) formationPos = startPoint;
-        originalScale = transform.localScale;
-        
-        startY = transform.position.y; // Запам'ятовуємо лінію маршу
 
         if (GameManager.Instance != null)
         {
@@ -204,13 +170,6 @@ public class Archer : MonoBehaviour
         rb.linearVelocity = direction * speed;
     }
 
-    void FlipSprite(float targetX)
-    {
-        float absX = Mathf.Abs(originalScale.x);
-        if (targetX > transform.position.x) transform.localScale = new Vector3(absX, originalScale.y, originalScale.z); 
-        else if (targetX < transform.position.x) transform.localScale = new Vector3(-absX, originalScale.y, originalScale.z); 
-    }
-
     void FindNearestTarget()
     {
         float shortestDist = Mathf.Infinity;
@@ -235,57 +194,19 @@ public class Archer : MonoBehaviour
         target = nearest;
     }
 
-    public void TakeDamage(int damage)
+    void FlipSprite(float targetX) => FaceTowards(targetX);
+
+    // Спрайт намальований ліворуч, тож "вправо" — це від'ємний scale.
+    protected override bool FlipInverted => true;
+
+    // Труп юніта гравця лежить довше за ворожий.
+    protected override float CorpseLifeTime => 10f;
+
+    protected override Color CorpseColor => Color.gray;
+
+    protected override void OnDeath()
     {
-        if (isDead) return;
-        currentHealth -= damage;
-        UpdateHealthBar();
-
-        Vector3 popupPos = transform.position + new Vector3(Random.Range(-0.3f, 0.3f), Random.Range(0.5f, 1.2f), 0);
-        GameManager.CreateDamagePopup(popupPos, damage);
-
-        if (hitParticlePrefab != null)
-        {
-            GameObject particles = Instantiate(hitParticlePrefab, transform.position + Vector3.up * 0.5f, Quaternion.identity);
-            Destroy(particles, 1f);
-        }
-
-        if (spriteRenderer != null) StartCoroutine(FlashColor());
-
-        if (currentHealth <= 0) Die();
-    }
-
-    void UpdateHealthBar() { if (healthBarFill != null) healthBarFill.fillAmount = Mathf.Clamp01((float)currentHealth / maxHealth); }
-
-    private IEnumerator FlashColor()
-    {
-        spriteRenderer.color = new Color(1f, 0.4f, 0.4f); 
-        yield return new WaitForSeconds(0.1f);
-        if (!isDead) spriteRenderer.color = defaultColor; 
-    }
-
-    void Die()
-    {
-        if (isDead) return;
-        isDead = true;
-        gameObject.tag = "Untagged";
-        
-        if (rb != null) { rb.linearVelocity = Vector2.zero; rb.bodyType = RigidbodyType2D.Static; }
-        Collider2D col = GetComponent<Collider2D>();
-        if (col != null) col.enabled = false;
-
-        if (GameManager.Instance != null && !GameManager.Instance.isResettingUnits) 
-            GameManager.Instance.OnUnitDeath(gameObject, "Archer"); 
-        
-        if (healthBarFill != null && healthBarFill.transform.parent != null) 
-            healthBarFill.transform.parent.gameObject.SetActive(false);
-
-        if (animator) { animator.Rebind(); animator.Update(0f); animator.enabled = false; }
-
-        transform.Rotate(0, 0, -90);
-        if (spriteRenderer != null) { spriteRenderer.color = Color.gray; spriteRenderer.sortingOrder = 0; }
-        
-        Destroy(this);
-        Destroy(gameObject, 10f);
+        if (GameManager.Instance != null && !GameManager.Instance.isResettingUnits)
+            GameManager.Instance.OnUnitDeath(gameObject, "Archer");
     }
 }

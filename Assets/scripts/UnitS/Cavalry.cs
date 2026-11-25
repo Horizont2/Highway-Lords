@@ -3,32 +3,16 @@ using UnityEngine.UI;
 using System.Collections;
 
 [RequireComponent(typeof(Rigidbody2D))]
-public class Cavalry : MonoBehaviour
+public class Cavalry : UnitBase
 {
-    [Header("Ефекти Grow Empire")]
-    public Image healthBarFill;
-    public GameObject hitParticlePrefab;
-    private Color defaultColor = Color.white;
-
     [Header("Характеристики")]
-    public float speed = 4.5f;          
-    public float attackRange = 1.0f;    
     public float attackRate = 1.2f;
-    public int maxHealth = 180;         
 
     [Header("Навігація (Обхід)")]
-    public LayerMask obstacleLayer; 
-    public float avoidanceForce = 2.5f; 
     public float checkDistance = 1.8f;
 
-    [Header("Компоненти")]
-    public Animator animator;
-    public SpriteRenderer spriteRenderer;
-
-    public int currentHealth; 
     private int myDamage;
     private float nextAttackTime = 0f;
-    private Vector3 originalScale;
 
     private Boss targetBoss; 
     private BatteringRam targetRam; 
@@ -39,30 +23,18 @@ public class Cavalry : MonoBehaviour
 
     private Vector3 startPoint;
     public float patrolRadius = 3f;
-    private Rigidbody2D rb; 
-    private bool isDead = false;
 
     private float retargetTimer = 0f;
     private Vector3 formationPos;
-    private UnitStats myStats;
 
     public void SetFormationPosition(Vector3 pos) { formationPos = pos; }
-    public void LoadState(int savedHealth) { currentHealth = savedHealth; UpdateHealthBar(); }
 
-    void Start()
+    protected override void Start()
     {
-        rb = GetComponent<Rigidbody2D>();
-        rb.bodyType = RigidbodyType2D.Dynamic; 
-        rb.gravityScale = 0; 
-        rb.freezeRotation = true; 
-
-        if(spriteRenderer == null) spriteRenderer = GetComponent<SpriteRenderer>();
-        myStats = GetComponent<UnitStats>();
+        base.Start();
 
         startPoint = transform.position;
         if (formationPos == Vector3.zero) formationPos = startPoint;
-        
-        originalScale = transform.localScale;
 
         if (GameManager.Instance != null)
         {
@@ -225,24 +197,6 @@ public class Cavalry : MonoBehaviour
         rb.linearVelocity = direction.normalized * speed;
     }
 
-    void FlipSprite(float targetX)
-    {
-        // ВАЖЛИВО: Для Лицаря/Списоносця/Кінноти логіка має бути ТАКОЮ:
-        
-        float absX = Mathf.Abs(originalScale.x);
-        
-        // Якщо йдемо ВПРАВО (targetX > currentX) -> ставимо МІНУСОВИЙ scale (щоб відзеркалити спрайт вправо)
-        if (targetX > transform.position.x) 
-        {
-            transform.localScale = new Vector3(-absX, originalScale.y, originalScale.z);
-        }
-        // Якщо йдемо ВЛІВО (targetX < currentX) -> ставимо ПОЗИТИВНИЙ scale (оригінальний вигляд спрайту)
-        else if (targetX < transform.position.x)
-        {
-            transform.localScale = new Vector3(absX, originalScale.y, originalScale.z);
-        }
-    }
-
     void FindNearestTarget()
     {
         targetBoss = null; targetRam = null; targetHorse = null; 
@@ -312,67 +266,17 @@ public class Cavalry : MonoBehaviour
         else if (targetArcher != null) targetArcher.TakeDamage(finalDamage);
     }
 
-    public void TakeDamage(int damage)
+    void FlipSprite(float targetX) => FaceTowards(targetX);
+
+    // Спрайт намальований ліворуч, тож "вправо" — це від'ємний scale.
+    protected override bool FlipInverted => true;
+
+    // Труп юніта гравця лежить довше за ворожий.
+    protected override float CorpseLifeTime => 10f;
+
+    protected override void OnDeath()
     {
-        if (isDead) return;
-        currentHealth -= damage;
-        UpdateHealthBar();
-
-        if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.knightHit);
-        
-        Vector3 popupPos = transform.position + new Vector3(Random.Range(-0.3f, 0.3f), Random.Range(0.5f, 1.2f), 0);
-        GameManager.CreateDamagePopup(popupPos, damage);
-
-        if (hitParticlePrefab != null)
-        {
-            GameObject particles = Instantiate(hitParticlePrefab, transform.position + Vector3.up * 0.5f, Quaternion.identity);
-            Destroy(particles, 1f);
-        }
-
-        if (spriteRenderer != null) StartCoroutine(FlashColor());
-
-        if (currentHealth <= 0) Die();
-    }
-
-    void UpdateHealthBar()
-    {
-        if (healthBarFill != null) healthBarFill.fillAmount = Mathf.Clamp01((float)currentHealth / maxHealth);
-    }
-
-    private IEnumerator FlashColor()
-    {
-        spriteRenderer.color = new Color(1f, 0.4f, 0.4f); 
-        yield return new WaitForSeconds(0.1f);
-        if (!isDead) spriteRenderer.color = defaultColor; 
-    }
-
-    void Die()
-    {
-        if (isDead) return;
-        isDead = true;
-        gameObject.tag = "Untagged";
-
-        if (rb != null) { rb.linearVelocity = Vector2.zero; rb.bodyType = RigidbodyType2D.Static; }
-        Collider2D col = GetComponent<Collider2D>();
-        if (col != null) col.enabled = false; 
-
         if (GameManager.Instance != null && !GameManager.Instance.isResettingUnits)
-        {
-            GameManager.Instance.OnUnitDeath(gameObject, "Cavalry"); 
-        }
-
-        if (healthBarFill != null && healthBarFill.transform.parent != null) 
-            healthBarFill.transform.parent.gameObject.SetActive(false);
-
-        Transform shadow = transform.Find("Shadow");
-        if (shadow != null) shadow.gameObject.SetActive(false);
-
-        if (animator) { animator.Rebind(); animator.Update(0f); animator.enabled = false; }
-        
-        transform.Rotate(0, 0, -90);
-        if (spriteRenderer != null) { spriteRenderer.color = new Color(0.6f, 0.6f, 0.6f); spriteRenderer.sortingOrder = 0; }
-
-        Destroy(this);
-        Destroy(gameObject, 10f);
+            GameManager.Instance.OnUnitDeath(gameObject, "Cavalry");
     }
 }

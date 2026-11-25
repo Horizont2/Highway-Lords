@@ -2,42 +2,25 @@ using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody2D))]
 [RequireComponent(typeof(EnemyStats))] 
-public class EnemyHorse : MonoBehaviour
+public class EnemyHorse : UnitBase
 {
     [Header("UI")]
     public HealthBar healthBar;
 
     [Header("Характеристики")]
-    public float speed = 2.5f;          
-    public float attackRange = 1.8f;    
     public float attackCooldown = 2.0f; 
     public int damage = 25;             
-    public int maxHealth = 90;          
 
     [Header("Навігація та Агро")]
-    public LayerMask obstacleLayer; 
-    public float avoidanceForce = 2.0f;
     public float aggroRadius = 6.0f; 
     
     // --- ДИСЦИПЛІНА МАРШУ ---
-    public float aggroRange = 6.0f; 
-    private float startY;
 
     private float retargetTimer = 0f;
-
-    private Animator animator;
-    private Rigidbody2D rb;
-    private SpriteRenderer spriteRenderer;
-    private int currentHealth;
-    private int _maxHealth;
-    private bool isDead = false;
-    private Vector3 originalScale;
 
     private Transform target;
     private float nextAttackTime = 0f;
     private bool hasHitThisAttack = false;
-
-    private UnitStats myStats;
 
     private int _baseMaxHealth;
     private int _baseDamage;
@@ -48,33 +31,23 @@ public class EnemyHorse : MonoBehaviour
         _baseDamage = damage;
     }
 
-    void Start()
+    protected override void Start()
     {
-        animator = GetComponent<Animator>();
-        rb = GetComponent<Rigidbody2D>();
-        spriteRenderer = GetComponent<SpriteRenderer>();
-        myStats = GetComponent<UnitStats>(); 
-        originalScale = transform.localScale;
-
-        rb.bodyType = RigidbodyType2D.Dynamic;
-        rb.gravityScale = 0;
-        rb.freezeRotation = true;
-
-        startY = transform.position.y;
+        base.Start();
 
         if (GameManager.Instance != null)
         {
-            _maxHealth = GameManager.Instance.GetScaledEnemyHealth(_baseMaxHealth);
+            effectiveMaxHealth = GameManager.Instance.GetScaledEnemyHealth(_baseMaxHealth);
             damage = Mathf.RoundToInt(_baseDamage * GameManager.Instance.GetEnemyDamageMultiplier());
         }
-        else { _maxHealth = _baseMaxHealth; }
+        else { effectiveMaxHealth = _baseMaxHealth; }
         
-        currentHealth = _maxHealth;
+        currentHealth = effectiveMaxHealth;
 
         if (healthBar != null)
         {
             healthBar.targetTransform = transform;
-            healthBar.SetHealth(currentHealth, _maxHealth);
+            healthBar.SetHealth(currentHealth, effectiveMaxHealth);
         }
     }
 
@@ -242,7 +215,7 @@ public class EnemyHorse : MonoBehaviour
         else if (GameManager.Instance != null && GameManager.Instance.castle != null) target = GameManager.Instance.castle.transform;
     }
 
-    void FaceDirection(Vector3 targetPos) { float absX = Mathf.Abs(originalScale.x); transform.localScale = new Vector3(targetPos.x > transform.position.x ? absX : -absX, originalScale.y, originalScale.z); }
+    void FaceDirection(Vector3 targetPos) => FaceTowards(targetPos.x);
 
     void Attack() { hasHitThisAttack = false; if (animator) animator.SetTrigger("Attack"); }
 
@@ -280,34 +253,22 @@ public class EnemyHorse : MonoBehaviour
         else if (target.TryGetComponent<Spikes>(out Spikes sp)) sp.TakeDamage(finalDamage);
     }
 
-    public void TakeDamage(int damageAmount)
+    protected override void OnDeath()
     {
-        if (isDead) return;
-        currentHealth -= damageAmount;
-        if (healthBar != null) healthBar.SetHealth(currentHealth, _maxHealth);
-        GameManager.CreateDamagePopup(transform.position, damageAmount);
-        if (currentHealth <= 0) Die();
-    }
-
-    void Die()
-    {
-        if (isDead) return;
-        isDead = true;
-        gameObject.tag = "Untagged";
-
-        if (healthBar != null) healthBar.gameObject.SetActive(false);
-        if (rb) { rb.linearVelocity = Vector2.zero; rb.bodyType = RigidbodyType2D.Static; }
-        Collider2D col = GetComponent<Collider2D>();
-        if (col) col.enabled = false;
-
         if (TryGetComponent<EnemyStats>(out EnemyStats stats)) stats.GiveGold();
         else if (GameManager.Instance != null) GameManager.Instance.UnregisterEnemy();
 
         if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.enemyDeath);
+    }
 
-        if (animator) { animator.enabled = false; }
-        transform.Rotate(0, 0, -90);
-        if (spriteRenderer) { spriteRenderer.color = Color.gray; spriteRenderer.sortingOrder = 0; }
-        Destroy(gameObject, 5f);
+    // У цього юніта смуга здоров'я — окремий компонент, а не Image з fillAmount.
+    protected override void UpdateHealthBar()
+    {
+        if (healthBar != null) healthBar.SetHealth(currentHealth, effectiveMaxHealth);
+    }
+
+    protected override void HideHealthBar()
+    {
+        if (healthBar != null) healthBar.gameObject.SetActive(false);
     }
 }
