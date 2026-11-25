@@ -338,7 +338,7 @@ public static class RenderingSetupTool
             volume.priority = 0f;
             volume.sharedProfile = profile;
 
-            log.AppendLine($"    + '{GlobalVolumeName}' (профіль: {profile.name})");
+            log.AppendLine($"    + '{GlobalVolumeName}' (профіль: {(profile != null ? profile.name : "немає")})");
             changed = true;
         }
         else if (volume.sharedProfile == null)
