@@ -1,0 +1,241 @@
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
+using UnityEditor;
+using UnityEngine;
+
+/// <summary>
+/// Розкладає асети по папках за призначенням.
+///
+/// Переміщення через AssetDatabase.MoveAsset зберігає GUID, тож усі посилання
+/// зі сцен, префабів і ProjectSettings лишаються цілими. Саме тому це
+/// безпечно робити інструментом, а не руками через файлову систему.
+///
+/// Що робиться:
+///   * 8 файлів з кореня Assets/ розкладаються по папках;
+///   * 94 скрипти з однієї купи — по підпапках за призначенням.
+///
+/// Що лише повідомляється, без дій: три папки анімацій (animations/, anim2/,
+/// archer/) і залишок _Recovery/. Їх злиття вимагає рішень про колізії імен
+/// і про те, що взагалі треба зберегти — це не автоматизується наосліп.
+/// </summary>
+public static class AssetOrderTool
+{
+    // Куди переносимо файли з кореня Assets/
+    private static readonly Dictionary<string, string> RootStrays = new Dictionary<string, string>
+    {
+        { "Flag.anim",                                "Assets/Art/Animations" },
+        { "Idle.anim",                                "Assets/Art/Animations" },
+        { "flag_1 (1).controller",                    "Assets/Art/Animations" },
+        { "maincart_0.controller",                    "Assets/Art/Animations" },
+        { "ZeroFriction.physicsMaterial2D",           "Assets/Settings" },
+        { "DefaultVolumeProfile.asset",               "Assets/Settings" },
+        { "UniversalRenderPipelineGlobalSettings.asset", "Assets/Settings" },
+        { "InputSystem_Actions.inputactions",         "Assets/Settings" },
+    };
+
+    // Розкладка скриптів. Підпапка -> імена файлів без розширення.
+    private static readonly Dictionary<string, string[]> ScriptFolders = new Dictionary<string, string[]>
+    {
+        ["Core"] = new[]
+        {
+            "GameManager", "GameSaveData", "EconomyConfig", "GameStarter",
+            "InitialLoader", "ResolutionFixer", "CrossSceneData",
+        },
+        ["Units"] = new[]
+        {
+            "Knight", "Archer", "Spearman", "Cavalry",
+            "Guard", "EnemyArcher", "EnemySpearman", "EnemyHorse", "EnemyElephant",
+            "Boss", "BatteringRam", "WallArcher", "CrossbowTower",
+            "UnitStats", "EnemyStats", "Enemy", "EnemySelector",
+            "Projectile", "EnemyProjectile", "Arrow", "RainArrow",
+        },
+        ["Buildings"] = new[]
+        {
+            "Wall", "Spikes", "GoldMine", "Barracks", "BuildingSpot", "Cart",
+        },
+        ["Campaign"] = new[]
+        {
+            "CampaignBalance", "CampaignManager", "CampaignUnit", "BattleManager",
+            "MapNode", "MapMarkerVisuals", "GlobalMapController",
+            "FogOfWarCloud", "FogRegion", "ManualMapScroll",
+            "AnimatedBattleResult", "BattleCameraScroll",
+        },
+        ["Managers"] = new[]
+        {
+            "SoundManager", "QuestManager", "ChestManager", "CodexManager",
+            "TavernManager", "SkillManager", "TutorialManager", "WeatherManager",
+            "LoadingManager", "EnemySpawner", "Spawner", "CartSpawner", "CartManager",
+            "WallArcherManager", "CallLegionCooldownManager",
+        },
+        ["UI"] = new[]
+        {
+            "CastleUpgradeUI", "SettingsMenu", "PanelSlider", "LivingButton",
+            "UIPulseEffect", "BonusPanelBlinker", "WaveInfoPanel", "QuestRowUI",
+            "HealthBar", "HealthBarSegments", "DamagePopup", "UI_ForceScrollToTop",
+            "LoadingSpinner", "ForgeLock", "FloatingIcon", "TargetIndicator",
+            "AudioSettingsSync", "HornController",
+        },
+        ["Camera"] = new[]
+        {
+            "CameraController", "CameraShake",
+        },
+        ["VFX"] = new[]
+        {
+            "CloudShadow", "CloudScroller", "UniversalDust", "MovementVFX",
+            "SimpleShine", "YSorter", "DepthSorter", "FlickeringLight2D",
+        },
+    };
+
+    private const string ScriptsRoot = "Assets/scripts";
+
+    // ==================================================================
+
+    [MenuItem("Tools/Highway Lords/Assets/1. План наведення порядку", false, 700)]
+    public static void Preview() => Run(apply: false);
+
+    [MenuItem("Tools/Highway Lords/Assets/2. Навести порядок", false, 701)]
+    public static void Apply()
+    {
+        bool ok = EditorUtility.DisplayDialog(
+            "Навести порядок в асетах",
+            "Файли з кореня Assets/ і скрипти розкладуться по папках.\n\n" +
+            "Переміщення зберігає GUID, тож посилання зі сцен і префабів\n" +
+            "не ламаються.\n\n" +
+            "Спершу подивись план (пункт 1).",
+            "Навести порядок", "Скасувати");
+
+        if (ok) Run(apply: true);
+    }
+
+    // ==================================================================
+
+    private static void Run(bool apply)
+    {
+        var log = new StringBuilder(apply ? "=== НАВЕДЕНО ПОРЯДОК ===\n" : "=== ПЛАН ===\n");
+        var moves = new List<(string from, string to)>();
+
+        // --- файли з кореня ---
+        foreach (var pair in RootStrays)
+        {
+            string from = "Assets/" + pair.Key;
+            if (!File.Exists(from)) continue;
+            moves.Add((from, pair.Value + "/" + pair.Key));
+        }
+
+        // --- скрипти ---
+        if (AssetDatabase.IsValidFolder(ScriptsRoot))
+        {
+            foreach (var path in Directory.GetFiles(ScriptsRoot, "*.cs"))
+            {
+                string normalized = path.Replace('\\', '/');
+                string name = Path.GetFileNameWithoutExtension(normalized);
+
+                string folder = ScriptFolders
+                    .Where(kv => kv.Value.Contains(name))
+                    .Select(kv => kv.Key)
+                    .FirstOrDefault();
+
+                if (folder == null) continue;
+                moves.Add((normalized, $"{ScriptsRoot}/{folder}/{name}.cs"));
+            }
+        }
+
+        if (moves.Count == 0)
+        {
+            log.AppendLine("Нема що переносити — усе вже на місці.");
+        }
+        else
+        {
+            foreach (var group in moves.GroupBy(m => Path.GetDirectoryName(m.to).Replace('\\', '/')))
+            {
+                log.AppendLine($"  {group.Key}");
+                foreach (var m in group) log.AppendLine($"      {Path.GetFileName(m.from)}");
+            }
+        }
+
+        // --- непереміщені скрипти ---
+        if (AssetDatabase.IsValidFolder(ScriptsRoot))
+        {
+            var unclassified = Directory.GetFiles(ScriptsRoot, "*.cs")
+                .Select(p => Path.GetFileNameWithoutExtension(p))
+                .Where(n => !ScriptFolders.Any(kv => kv.Value.Contains(n)))
+                .ToList();
+
+            if (unclassified.Count > 0)
+            {
+                log.AppendLine();
+                log.AppendLine($"  Не класифіковано ({unclassified.Count}) — лишаються на місці:");
+                foreach (var n in unclassified) log.AppendLine($"      {n}");
+            }
+        }
+
+        // --- те, що треба вирішити вручну ---
+        log.AppendLine();
+        log.AppendLine("  Потребує твого рішення (інструмент не чіпає):");
+
+        foreach (var folder in new[] { "Assets/animations", "Assets/anim2", "Assets/archer" })
+        {
+            if (!AssetDatabase.IsValidFolder(folder)) continue;
+            int count = AssetDatabase.FindAssets("", new[] { folder }).Length;
+            log.AppendLine($"      {folder} — {count} асетів");
+        }
+        log.AppendLine("      три папки під анімації та спрайти; злиття може дати колізії імен");
+
+        if (AssetDatabase.IsValidFolder("Assets/_Recovery"))
+            log.AppendLine("      Assets/_Recovery — залишок від аварійного відновлення редактора");
+
+        if (!apply)
+        {
+            log.AppendLine();
+            log.AppendLine("Це лише план. Застосувати: Assets > 2. Навести порядок.");
+            Debug.Log(log.ToString());
+            return;
+        }
+
+        // --- переносимо ---
+        int moved = 0, failed = 0;
+
+        try
+        {
+            AssetDatabase.StartAssetEditing();
+
+            foreach (var (from, to) in moves)
+            {
+                EnsureFolder(Path.GetDirectoryName(to).Replace('\\', '/'));
+
+                string error = AssetDatabase.MoveAsset(from, to);
+                if (string.IsNullOrEmpty(error)) moved++;
+                else
+                {
+                    failed++;
+                    log.AppendLine($"  [ПОМИЛКА] {from}: {error}");
+                }
+            }
+        }
+        finally
+        {
+            AssetDatabase.StopAssetEditing();
+            AssetDatabase.Refresh();
+        }
+
+        log.AppendLine();
+        log.AppendLine($"Перенесено: {moved}, з помилками: {failed}.");
+        Debug.Log(log.ToString());
+    }
+
+    /// <summary>Створює папку з усіма проміжними рівнями.</summary>
+    private static void EnsureFolder(string folder)
+    {
+        if (AssetDatabase.IsValidFolder(folder)) return;
+
+        string parent = Path.GetDirectoryName(folder).Replace('\\', '/');
+        string leaf = Path.GetFileName(folder);
+
+        if (!string.IsNullOrEmpty(parent) && !AssetDatabase.IsValidFolder(parent))
+            EnsureFolder(parent);
+
+        AssetDatabase.CreateFolder(parent, leaf);
+    }
+}
