@@ -117,7 +117,7 @@ public class WallArcher : MonoBehaviour
 
         if (arrowPrefab != null && firePoint != null)
         {
-            GameObject arrowObj = Instantiate(arrowPrefab, firePoint.position, firePoint.rotation);
+            GameObject arrowObj = PoolRegistry.Spawn(arrowPrefab, firePoint.position, firePoint.rotation);
             
             Arrow arrowScript = arrowObj.GetComponent<Arrow>();
             // Використовуємо наш Projectile (стрілу)

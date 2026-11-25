@@ -100,7 +100,14 @@ public class PoolRegistry : MonoBehaviour
 
         var registry = Instance;
         if (registry == null || !registry.poolByPrefab.TryGetValue(prefab, out var pool))
-            return Instantiate(prefab, position, rotation);
+        {
+            // Без пулу поводимося так само, тільки без перевикористання.
+            // OnSpawnFromPool кличемо й тут, щоб логіка старту об'єкта була
+            // однаковою в обох випадках.
+            var fresh = Instantiate(prefab, position, rotation);
+            NotifySpawned(fresh);
+            return fresh;
+        }
 
         GameObject instance = null;
 
@@ -118,10 +125,16 @@ public class PoolRegistry : MonoBehaviour
         instance.transform.SetPositionAndRotation(position, rotation);
         instance.SetActive(true);
 
-        foreach (var poolable in instance.GetComponentsInChildren<IPoolable>(true))
-            poolable.OnSpawnFromPool();
+        NotifySpawned(instance);
 
         return instance;
+    }
+
+    private static void NotifySpawned(GameObject instance)
+    {
+        if (instance == null) return;
+        foreach (var poolable in instance.GetComponentsInChildren<IPoolable>(true))
+            poolable.OnSpawnFromPool();
     }
 
     /// <summary>
@@ -130,6 +143,11 @@ public class PoolRegistry : MonoBehaviour
     public static void Despawn(GameObject instance)
     {
         if (instance == null) return;
+
+        // Захист від подвійного повернення: об'єкт міг despawn-нутись і за
+        // таймером, і за влучанням. Без цього той самий екземпляр потрапляв
+        // би у стек двічі й потім видавався двом власникам одночасно.
+        if (!instance.activeSelf) return;
 
         var registry = Instance;
         if (registry == null || !registry.poolByInstance.TryGetValue(instance, out var pool))

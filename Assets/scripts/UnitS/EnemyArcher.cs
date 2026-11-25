@@ -204,7 +204,7 @@ public class EnemyArcher : UnitBase
         if (arrowPrefab != null && firePoint != null)
         {
             AimAtTarget(); 
-            GameObject arrowObj = Instantiate(arrowPrefab, firePoint.position, firePoint.rotation);
+            GameObject arrowObj = PoolRegistry.Spawn(arrowPrefab, firePoint.position, firePoint.rotation);
             EnemyProjectile p = arrowObj.GetComponent<EnemyProjectile>();
             
             if (p != null)
@@ -237,14 +237,15 @@ public class EnemyArcher : UnitBase
 
     bool ShouldWaitForTank()
     {
-        Guard[] guards = FindObjectsByType<Guard>(FindObjectsSortMode.None);
+        var guards = Guard.Active;
         float myX = transform.position.x;
         float forwardMostX = 9999f; 
         bool hasRelevantTank = false;
 
-        foreach (Guard g in guards) 
+        for (int i = 0; i < guards.Count; i++)
         {
-            if (g.CompareTag("Untagged")) continue;
+            Guard g = guards[i];
+            if (g == null || g.CompareTag("Untagged")) continue;
             float guardX = g.transform.position.x;
             if (guardX < myX && Mathf.Abs(myX - guardX) < maxTankWaitDistance) { if (guardX < forwardMostX) forwardMostX = guardX; hasRelevantTank = true; }
         }

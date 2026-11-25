@@ -112,7 +112,7 @@ public class Archer : UnitBase
             if (SoundManager.Instance != null) 
                 SoundManager.Instance.PlaySFXRandomPitch(SoundManager.Instance.arrowShoot);
 
-            GameObject arrowGO = Instantiate(arrowPrefab, firePoint.position, Quaternion.identity);
+            GameObject arrowGO = PoolRegistry.Spawn(arrowPrefab, firePoint.position, Quaternion.identity);
             Arrow arrowScript = arrowGO.GetComponent<Arrow>();
             
             if (arrowScript != null)

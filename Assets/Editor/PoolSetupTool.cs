@@ -28,6 +28,12 @@ public static class PoolSetupTool
         { "resourcePopupPrefab", 16 },
         { "bloodHitPrefab", 24 },
         { "volleyEffectPrefab", 4 },
+        { "hitParticlePrefab", 24 },
+        { "arrowPrefab", 48 },
+        { "projectilePrefab", 16 },
+        { "rainArrowPrefab", 24 },
+        { "destroyEffect", 4 },
+        { "miningEffect", 4 },
     };
 
     // ==================================================================
@@ -187,26 +193,38 @@ public static class PoolSetupTool
     {
         var result = new List<(string, GameObject)>();
 
-        foreach (var root in scene.GetRootGameObjects())
+        void Scan(MonoBehaviour mb)
         {
-            foreach (var mb in root.GetComponentsInChildren<MonoBehaviour>(true))
+            if (mb == null) return;
+
+            var so = new SerializedObject(mb);
+            foreach (var field in PooledFields.Keys)
             {
-                if (mb == null) continue;
-                if (!(mb is GameManager) && !(mb is BattleManager)) continue;
+                var prop = so.FindProperty(field);
+                if (prop == null || prop.propertyType != SerializedPropertyType.ObjectReference) continue;
 
-                var so = new SerializedObject(mb);
-                foreach (var field in PooledFields.Keys)
-                {
-                    var prop = so.FindProperty(field);
-                    if (prop == null || prop.objectReferenceValue == null) continue;
+                var prefab = prop.objectReferenceValue as GameObject;
+                if (prefab == null) continue;
+                if (result.Any(r => r.Item2 == prefab)) continue;
 
-                    var prefab = prop.objectReferenceValue as GameObject;
-                    if (prefab == null) continue;
-                    if (result.Any(r => r.Item2 == prefab)) continue;
-
-                    result.Add((field, prefab));
-                }
+                result.Add((field, prefab));
             }
+        }
+
+        // Об'єкти сцени.
+        foreach (var root in scene.GetRootGameObjects())
+            foreach (var mb in root.GetComponentsInChildren<MonoBehaviour>(true))
+                Scan(mb);
+
+        // І префаби проєкту: стріли та ефекти влучання прив'язані саме там,
+        // на лучниках і вежах, а не на менеджерах у сцені.
+        foreach (var guid in AssetDatabase.FindAssets("t:Prefab", new[] { "Assets" }))
+        {
+            var asset = AssetDatabase.LoadAssetAtPath<GameObject>(AssetDatabase.GUIDToAssetPath(guid));
+            if (asset == null) continue;
+
+            foreach (var mb in asset.GetComponentsInChildren<MonoBehaviour>(true))
+                Scan(mb);
         }
 
         return result;

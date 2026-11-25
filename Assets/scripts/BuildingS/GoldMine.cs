@@ -43,7 +43,7 @@ public class GoldMine : MonoBehaviour
                 GameManager.Instance.ShowResourcePopup(ResourceType.Gold, amount, transform.position);
 
                 // Ефект
-                if (miningEffect != null) Instantiate(miningEffect, transform.position, Quaternion.identity);
+                if (miningEffect != null) PoolRegistry.DespawnAfter(PoolRegistry.Spawn(miningEffect, transform.position, Quaternion.identity), 2f);
             }
         }
     }

@@ -159,7 +159,7 @@ public class SkillManager : MonoBehaviour
             Vector3 spawnPos = new Vector3(targetPos.x + offsetX - 3f, targetPos.y + 12f, -2f);
             Vector3 hitPos = new Vector3(targetPos.x + offsetX, targetPos.y, -2f);
 
-            GameObject arrow = Instantiate(rainArrowPrefab, spawnPos, Quaternion.identity);
+            GameObject arrow = PoolRegistry.Spawn(rainArrowPrefab, spawnPos, Quaternion.identity);
             SpriteRenderer sr = arrow.GetComponent<SpriteRenderer>();
             if(sr != null) sr.sortingOrder = 2001;
 

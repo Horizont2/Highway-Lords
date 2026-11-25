@@ -62,7 +62,7 @@ public class Spikes : MonoBehaviour
         }
 
         if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.castleDamage);
-        if (destroyEffect != null) Instantiate(destroyEffect, transform.position, Quaternion.identity);
+        if (destroyEffect != null) PoolRegistry.DespawnAfter(PoolRegistry.Spawn(destroyEffect, transform.position, Quaternion.identity), 2f);
 
         Destroy(gameObject);
     }

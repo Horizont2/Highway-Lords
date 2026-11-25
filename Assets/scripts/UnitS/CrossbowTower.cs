@@ -85,7 +85,7 @@ public class CrossbowTower : MonoBehaviour
         // Спавнимо стрілу
         if (projectilePrefab != null && firePoint != null)
         {
-            GameObject projGO = Instantiate(projectilePrefab, firePoint.position, firePoint.rotation);
+            GameObject projGO = PoolRegistry.Spawn(projectilePrefab, firePoint.position, firePoint.rotation);
             
             int dmg = 25; 
             if (GameManager.Instance != null)

@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
+using System.Collections.Generic;
 
 [RequireComponent(typeof(Rigidbody2D))]
 [RequireComponent(typeof(EnemyStats))] 
@@ -29,6 +30,20 @@ public class Guard : UnitBase
 
     private int _baseHealth;
     private int _baseDamage;
+
+    // Ворожі лучники щокадру питають, чи є попереду танк. Раніше кожен із них
+    // робив повне сканування сцени — при 8 лучниках це 480 сканувань на
+    // секунду. Реєстр підтримується самими вартовими, тож коштує нічого.
+    private static readonly List<Guard> active = new List<Guard>();
+    public static IReadOnlyList<Guard> Active => active;
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ResetRegistry() => active.Clear();
+
+    void OnEnable() { if (!active.Contains(this)) active.Add(this); }
+
+    // Die() вимикає компонент, тож мертвий вартовий виходить звідси сам.
+    void OnDisable() { active.Remove(this); }
 
     void Awake()
     {

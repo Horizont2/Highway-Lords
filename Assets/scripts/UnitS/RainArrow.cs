@@ -1,20 +1,17 @@
 using UnityEngine;
 
-public class RainArrow : MonoBehaviour
+public class RainArrow : MonoBehaviour, IPoolable
 {
     public int damage = 50; 
     public float speed = 15f;
     
-    void Start()
+    /// <summary>
+    /// Час життя рахуємо тут, а не в Start: Start виконується лише при
+    /// першому створенні, а пул віддає екземпляр багато разів.
+    /// </summary>
+    public void OnSpawnFromPool()
     {
-        // === НОВЕ: Місце для бонусу урону від кристалів ===
-        /*
-        if (BonusManager.Instance != null)
-        {
-            damage += BonusManager.Instance.GetExtraVolleyDamage();
-        }
-        */
-        Destroy(gameObject, 3.0f);
+        PoolRegistry.DespawnAfter(gameObject, 3.0f);
     }
 
     void Update()
@@ -30,12 +27,12 @@ public class RainArrow : MonoBehaviour
             else if (other.TryGetComponent<EnemyArcher>(out EnemyArcher a)) a.TakeDamage(damage);
             else if (other.TryGetComponent<EnemyHorse>(out EnemyHorse h)) h.TakeDamage(damage);
             else if (other.TryGetComponent<EnemySpearman>(out EnemySpearman s)) s.TakeDamage(damage);
-            
-            Destroy(gameObject); 
+
+            PoolRegistry.Despawn(gameObject);
         }
         else if (other.CompareTag("Ground"))
         {
-            Destroy(gameObject);
+            PoolRegistry.Despawn(gameObject);
         }
     }
 }

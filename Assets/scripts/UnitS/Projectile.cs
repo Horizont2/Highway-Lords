@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class Projectile : MonoBehaviour
+public class Projectile : MonoBehaviour, IPoolable
 {
     [Header("Налаштування")]
     public float speed = 15f;
@@ -16,6 +16,15 @@ public class Projectile : MonoBehaviour
 
     private Vector3 moveDir; 
     private bool hasHit = false; // Захист від подвійного урону
+
+    /// <summary>Скидаємо стан: пул віддає той самий екземпляр повторно.</summary>
+    public void OnSpawnFromPool()
+    {
+        hasHit = false;
+        isInitialized = false;
+        homing = false;
+        targetTransform = null;
+    }
 
     // === ВАРІАНТ 1: Самонаведення (Для Вежі та Лучників) ===
     public void Initialize(Transform _target, int _damage)
@@ -46,7 +55,7 @@ public class Projectile : MonoBehaviour
         isInitialized = true;
         
         UpdateRotation();
-        Destroy(gameObject, 3f); // Знищення через 3 секунди, якщо нікуди не влучили
+        PoolRegistry.DespawnAfter(gameObject, 3f); // Повертаємо в пул, якщо нікуди не влучили
     }
 
     void UpdateRotation()
@@ -89,8 +98,8 @@ public class Projectile : MonoBehaviour
                 }
                 else
                 {
-                    // Ціль вже мертва, просто знищуємо стрілу (ніби встрягла в землю)
-                    Destroy(gameObject);
+                    // Ціль вже мертва, просто прибираємо стрілу (ніби встрягла в землю)
+                    PoolRegistry.Despawn(gameObject);
                 }
                 return;
             }
@@ -110,7 +119,7 @@ public class Projectile : MonoBehaviour
             }
             else if (hit.collider.CompareTag("Ground") || hit.collider.CompareTag("Boundary"))
             {
-                Destroy(gameObject);
+                PoolRegistry.Despawn(gameObject);
                 return;
             }
         }
@@ -127,7 +136,7 @@ public class Projectile : MonoBehaviour
         
         if (other.CompareTag("Boundary") || other.CompareTag("Ground"))
         {
-            Destroy(gameObject);
+            PoolRegistry.Despawn(gameObject);
             return;
         }
 
@@ -152,7 +161,7 @@ public class Projectile : MonoBehaviour
         {
             specificHit.SendMessage("TakeDamage", damage, SendMessageOptions.DontRequireReceiver);
         }
-        
-        Destroy(gameObject);
+
+        PoolRegistry.Despawn(gameObject);
     }
 }

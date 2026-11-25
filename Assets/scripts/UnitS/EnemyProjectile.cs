@@ -2,7 +2,7 @@ using UnityEngine;
 using System.Collections;
 
 [RequireComponent(typeof(Rigidbody2D))]
-public class EnemyProjectile : MonoBehaviour
+public class EnemyProjectile : MonoBehaviour, IPoolable
 {
     [Header("Характеристики")]
     public float speed = 10f;
@@ -17,6 +17,54 @@ public class EnemyProjectile : MonoBehaviour
     
     // Зберігаємо ціль, щоб перевіряти, чи вона ще жива
     private Transform trackedTarget; 
+
+    // Куди встрягли. Замість SetParent — інакше стріла гине разом із ціллю
+    // і повертати в пул немає чого.
+    private Transform stuckInto;
+    private Vector3 stuckOffset;
+
+    private Collider2D myCollider;
+    private SpriteRenderer sprite;
+    private int baseSortingOrder;
+    private Color baseColor = Color.white;
+
+    void Awake()
+    {
+        rb = GetComponent<Rigidbody2D>();
+        myCollider = GetComponent<Collider2D>();
+        sprite = GetComponent<SpriteRenderer>();
+
+        if (sprite != null)
+        {
+            baseSortingOrder = sprite.sortingOrder;
+            baseColor = sprite.color;
+        }
+    }
+
+    /// <summary>Пул віддає той самий екземпляр — повертаємо все до вихідного.</summary>
+    public void OnSpawnFromPool()
+    {
+        hasHit = false;
+        trackedTarget = null;
+        stuckInto = null;
+
+        StopAllCoroutines();
+
+        if (myCollider != null) myCollider.enabled = true;
+        if (rb != null) rb.linearVelocity = Vector2.zero;
+
+        if (sprite != null)
+        {
+            sprite.sortingOrder = baseSortingOrder;
+            sprite.color = baseColor;
+        }
+    }
+
+    void LateUpdate()
+    {
+        // Тримаємося за ціль, поки вона існує.
+        if (hasHit && stuckInto != null) transform.position = stuckInto.position + stuckOffset;
+    }
 
     // Додано необов'язковий параметр targetUnit (можете передавати його з ворожого лучника)
     public void Initialize(Vector3 targetPos, int dmg, Transform targetUnit = null)
@@ -122,7 +170,8 @@ public class EnemyProjectile : MonoBehaviour
         // Якщо влучили в юніта - робимо стрілу його дочірнім об'єктом, щоб вона "встрягла"
         if (stickToTarget && targetObj != null && !targetObj.CompareTag("Ground"))
         {
-            transform.SetParent(targetObj);
+            stuckInto = targetObj;
+            stuckOffset = transform.position - targetObj.position;
         }
 
         DisablePhysics();
@@ -132,6 +181,7 @@ public class EnemyProjectile : MonoBehaviour
     void FallToGround()
     {
         hasHit = true;
+        stuckInto = null;
         
         // Трохи опускаємо її вниз, ніби вона встромилась у землю
         transform.position += new Vector3(0, -0.2f, 0); 
@@ -146,21 +196,19 @@ public class EnemyProjectile : MonoBehaviour
         if (rb != null) rb.linearVelocity = Vector2.zero;
 
         // Вимикаємо колайдер, щоб вона не пошкодила когось випадково
-        Collider2D col = GetComponent<Collider2D>();
-        if (col != null) col.enabled = false;
+        if (myCollider != null) myCollider.enabled = false;
 
         // Відправляємо на задній план (за юнітів)
-        SpriteRenderer sr = GetComponent<SpriteRenderer>();
-        if (sr != null) sr.sortingOrder = -10; 
+        if (sprite != null) sprite.sortingOrder = -10; 
     }
 
     IEnumerator FadeAndDestroy()
     {
         // Чекаємо основний час
-        yield return new WaitForSeconds(stickTime - 1f); 
+        yield return new WaitForSeconds(Mathf.Max(0f, stickTime - 1f)); 
         
         // Останню секунду плавно розчиняємо стрілу (робимо прозорою)
-        SpriteRenderer sr = GetComponent<SpriteRenderer>();
+        SpriteRenderer sr = sprite;
         if (sr != null)
         {
             float fadeDuration = 1f;
@@ -176,7 +224,7 @@ public class EnemyProjectile : MonoBehaviour
             }
         }
         
-        // Остаточно знищуємо
-        Destroy(gameObject);
+        // Повертаємо в пул
+        PoolRegistry.Despawn(gameObject);
     }
 }

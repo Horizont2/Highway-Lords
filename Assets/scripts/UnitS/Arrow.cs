@@ -1,18 +1,69 @@
 using UnityEngine;
 using System.Collections;
 
-public class Arrow : MonoBehaviour
+/// <summary>
+/// Стріла лучника гравця.
+///
+/// Чому не SetParent: раніше при влучанні стріла ставала дочірньою цілі, щоб
+/// триматися за неї. Але тоді вона гинула разом із ціллю, і повертати її в
+/// пул було нічим. Тепер вона запам'ятовує ціль і зсув, і щокадру тримається
+/// на місці — вигляд той самий, але екземпляр належить пулу, а не трупу.
+/// </summary>
+public class Arrow : MonoBehaviour, IPoolable
 {
     [Header("Характеристики")]
     public float speed = 15f;
-    public float stickTime = 5f; 
-    public bool stickToTarget = true; 
+    public float stickTime = 5f;
+    public bool stickToTarget = true;
 
     private Transform target;
     private int damage;
     private bool hasHit = false;
-    
+
     private Vector3 lastKnownPosition;
+
+    // Куди встрягли
+    private Transform stuckInto;
+    private Vector3 stuckOffset;
+
+    private Collider2D myCollider;
+    private SpriteRenderer sprite;
+    private int baseSortingOrder;
+    private Color baseColor = Color.white;
+
+    void Awake()
+    {
+        myCollider = GetComponent<Collider2D>();
+        sprite = GetComponent<SpriteRenderer>();
+
+        if (sprite != null)
+        {
+            baseSortingOrder = sprite.sortingOrder;
+            baseColor = sprite.color;
+        }
+    }
+
+    /// <summary>
+    /// Пул віддає той самий екземпляр, тож усе, що змінилося за попередній
+    /// політ — вимкнений колайдер, прозорість, порядок малювання — треба
+    /// повернути до вихідного.
+    /// </summary>
+    public void OnSpawnFromPool()
+    {
+        hasHit = false;
+        target = null;
+        stuckInto = null;
+
+        StopAllCoroutines();
+
+        if (myCollider != null) myCollider.enabled = true;
+
+        if (sprite != null)
+        {
+            sprite.sortingOrder = baseSortingOrder;
+            sprite.color = baseColor;
+        }
+    }
 
     public void Initialize(Transform targetTransform, int damageAmount)
     {
@@ -27,16 +78,21 @@ public class Arrow : MonoBehaviour
         else
         {
             // Якщо цілі немає при спавні, просто падаємо поруч
-            lastKnownPosition = transform.position + new Vector3(1f, -1f, 0); 
+            lastKnownPosition = transform.position + new Vector3(1f, -1f, 0);
         }
     }
 
     void Update()
     {
-        if (hasHit) return; 
+        if (hasHit)
+        {
+            // Тримаємося за ціль, поки вона існує.
+            if (stuckInto != null) transform.position = stuckInto.position + stuckOffset;
+            return;
+        }
 
         bool isTargetAlive = target != null && target.gameObject.activeInHierarchy && !target.CompareTag("Untagged");
-        
+
         if (isTargetAlive)
         {
             lastKnownPosition = target.position;
@@ -49,15 +105,8 @@ public class Arrow : MonoBehaviour
         // Якщо долетіли до точки
         if (Vector3.Distance(transform.position, lastKnownPosition) < 0.2f)
         {
-            if (isTargetAlive)
-            {
-                HitTarget();
-            }
-            else
-            {
-                // Якщо ворога вже нема, просто падаємо там, де він був
-                FallToGround(); 
-            }
+            if (isTargetAlive) HitTarget();
+            else FallToGround();
         }
     }
 
@@ -83,49 +132,48 @@ public class Arrow : MonoBehaviour
 
         if (stickToTarget && target != null)
         {
-            transform.SetParent(target); 
+            stuckInto = target;
+            stuckOffset = transform.position - target.position;
         }
 
         DisablePhysics();
-        StartCoroutine(FadeAndDestroy());
+        StartCoroutine(FadeAndRelease());
     }
 
     void FallToGround()
     {
         hasHit = true;
+        stuckInto = null;
         transform.position += new Vector3(0, -0.2f, 0); // Трохи в землю
         DisablePhysics();
-        StartCoroutine(FadeAndDestroy());
+        StartCoroutine(FadeAndRelease());
     }
 
     void DisablePhysics()
     {
-        Collider2D col = GetComponent<Collider2D>();
-        if (col != null) col.enabled = false; // Вимикаємо колайдер
-
-        SpriteRenderer sr = GetComponent<SpriteRenderer>();
-        if (sr != null) sr.sortingOrder = -10; // Ховаємо за юнітами
+        if (myCollider != null) myCollider.enabled = false;
+        if (sprite != null) sprite.sortingOrder = -10; // Ховаємо за юнітами
     }
 
-    IEnumerator FadeAndDestroy()
+    IEnumerator FadeAndRelease()
     {
-        yield return new WaitForSeconds(stickTime - 1f); 
-        
-        SpriteRenderer sr = GetComponent<SpriteRenderer>();
-        if (sr != null)
+        yield return new WaitForSeconds(Mathf.Max(0f, stickTime - 1f));
+
+        if (sprite != null)
         {
             float fadeDuration = 1f;
-            float t = 0;
-            Color startColor = sr.color;
+            float t = 0f;
+            Color startColor = sprite.color;
 
             while (t < fadeDuration)
             {
                 t += Time.deltaTime;
                 float alpha = Mathf.Lerp(1f, 0f, t / fadeDuration);
-                sr.color = new Color(startColor.r, startColor.g, startColor.b, alpha);
+                sprite.color = new Color(startColor.r, startColor.g, startColor.b, alpha);
                 yield return null;
             }
         }
-        Destroy(gameObject);
+
+        PoolRegistry.Despawn(gameObject);
     }
 }
