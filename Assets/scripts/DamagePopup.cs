@@ -1,7 +1,7 @@
 using UnityEngine;
 using TMPro;
 
-public class DamagePopup : MonoBehaviour
+public class DamagePopup : MonoBehaviour, IPoolable
 {
     // Замінюємо TextMeshPro на універсальний TMP_Text
     private TMP_Text textMesh; 
@@ -10,7 +10,9 @@ public class DamagePopup : MonoBehaviour
     public SpriteRenderer iconSprite;
     public Vector3 resourceIconOffset = new Vector3(-0.8f, 0, 0); 
 
-    private float disappearTimer = 1f;
+    private const float LifeTime = 1f;
+
+    private float disappearTimer = LifeTime;
     private Color textColor;
     private Color iconColor;
     private Vector3 moveVector;
@@ -22,8 +24,36 @@ public class DamagePopup : MonoBehaviour
         if (iconSprite == null) iconSprite = GetComponentInChildren<SpriteRenderer>();
     }
 
+    /// <summary>
+    /// Пул віддає цей самий об'єкт повторно, а disappearTimer і прозорість
+    /// лишаються від минулого разу — без скидання попап зникав би миттєво.
+    /// </summary>
+    public void OnSpawnFromPool()
+    {
+        disappearTimer = LifeTime;
+
+        if (textMesh != null)
+        {
+            Color c = textMesh.color;
+            c.a = 1f;
+            textMesh.color = c;
+            textColor = c;
+        }
+
+        if (iconSprite != null)
+        {
+            Color ic = iconSprite.color;
+            ic.a = 1f;
+            iconSprite.color = ic;
+            iconColor = ic;
+            iconSprite.enabled = false;
+        }
+    }
+
     public void Setup(int damageAmount, bool isCriticalHit = false)
     {
+        disappearTimer = LifeTime;
+
         if (textMesh == null) return; // Захист: якщо тексту немає, нічого не робимо
         
         if (iconSprite != null) iconSprite.enabled = false;
@@ -47,6 +77,7 @@ public class DamagePopup : MonoBehaviour
     public void SetupResource(Sprite resourceIcon, int amount, Color specificColor)
     {
         if (textMesh == null) return;
+        disappearTimer = LifeTime;
 
         textMesh.text = "+" + amount.ToString();
         textMesh.color = specificColor;
@@ -85,7 +116,7 @@ public class DamagePopup : MonoBehaviour
                 iconSprite.color = iconColor;
             }
 
-            if (textColor.a < 0) Destroy(gameObject);
+            if (textColor.a < 0) PoolRegistry.Despawn(gameObject);
         }
     }
 }

@@ -155,7 +155,7 @@ public class GameManager : MonoBehaviour
     {
         if (Instance != null && Instance.damagePopupPrefab != null)
         {
-            GameObject popupObj = Instantiate(Instance.damagePopupPrefab, position, Quaternion.identity);
+            GameObject popupObj = PoolRegistry.Spawn(Instance.damagePopupPrefab, position, Quaternion.identity);
             DamagePopup popup = popupObj.GetComponent<DamagePopup>();
             if (popup != null) popup.Setup(damageAmount, isCritical);
         }
@@ -2645,8 +2645,9 @@ public class GameManager : MonoBehaviour
                 break;
         }
 
-        GameObject popup = Instantiate(resourcePopupPrefab, position + Vector3.up, Quaternion.identity);
-        popup.GetComponent<DamagePopup>().SetupResource(icon, amount, color);
+        GameObject popup = PoolRegistry.Spawn(resourcePopupPrefab, position + Vector3.up, Quaternion.identity);
+        DamagePopup popupScript = popup != null ? popup.GetComponent<DamagePopup>() : null;
+        if (popupScript != null) popupScript.SetupResource(icon, amount, color);
     }
 
     public void AddResource(ResourceType type, int amount)

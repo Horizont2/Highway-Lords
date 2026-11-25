@@ -30,6 +30,10 @@ public class CampaignUnit : MonoBehaviour
 
     public int targetedByCount = 0; 
 
+    /// <summary>Скільки живе ефект крові, перш ніж повернутися в пул.</summary>
+    private const float BloodLifeTime = 2f;
+
+
     /// <summary>Поки Setup не викликали, юніт не діє: полів ще немає.</summary>
     private bool isReady = false;
 
@@ -378,7 +382,13 @@ public class CampaignUnit : MonoBehaviour
         if (hpFillImage != null) hpFillImage.fillAmount = (float)health / maxHealth; 
         
         if (BattleManager.Instance != null) BattleManager.Instance.ShowDamagePopup(transform.position + Vector3.up * 1.5f, dmg);
-        if (bloodPrefab != null) Instantiate(bloodPrefab, transform.position + Vector3.up * 0.5f, Quaternion.identity);
+        if (bloodPrefab != null)
+        {
+            // Префаб крові не має ні скрипта, ні stopAction: Destroy — раніше
+            // кожне влучання лишало мертвий об'єкт частинок у сцені назавжди.
+            GameObject blood = PoolRegistry.Spawn(bloodPrefab, transform.position + Vector3.up * 0.5f, Quaternion.identity);
+            PoolRegistry.DespawnAfter(blood, BloodLifeTime);
+        }
 
         StartCoroutine(HitFlash());
         if (health <= 0) Die();

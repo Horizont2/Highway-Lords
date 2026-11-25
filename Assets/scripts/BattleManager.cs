@@ -568,7 +568,12 @@ public class BattleManager : MonoBehaviour
         if (Input.GetMouseButtonDown(0) && !UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject())
         {
             Vector3 targetPos = Camera.main.ScreenToWorldPoint(Input.mousePosition); targetPos.z = 0;
-            if (volleyEffectPrefab) Instantiate(volleyEffectPrefab, targetPos, Quaternion.identity);
+            if (volleyEffectPrefab)
+            {
+                // Ефект не знищував себе сам — лишався в сцені після кожного залпу.
+                GameObject volley = PoolRegistry.Spawn(volleyEffectPrefab, targetPos, Quaternion.identity);
+                PoolRegistry.DespawnAfter(volley, 3f);
+            }
             StartCoroutine(VolleyDamageRoutine(targetPos));
             Time.timeScale = 1f; isTargetingVolley = false; currentVolleyTimer = volleyCooldown; 
         }
@@ -704,7 +709,7 @@ public class BattleManager : MonoBehaviour
         if (damagePopupPrefab != null)
         {
             Vector3 spawnPos = new Vector3(pos.x, pos.y, -5f);
-            GameObject popup = Instantiate(damagePopupPrefab, spawnPos, Quaternion.identity);
+            GameObject popup = PoolRegistry.Spawn(damagePopupPrefab, spawnPos, Quaternion.identity);
             popup.GetComponent<DamagePopup>()?.Setup(dmg, false);
             MeshRenderer mr = popup.GetComponent<MeshRenderer>();
             if (mr != null) mr.sortingOrder = 100;
