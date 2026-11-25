@@ -506,17 +506,10 @@ public class GameManager : MonoBehaviour
         // === ФІКС: СПАВН АРМІЇ У РЕЖИМІ НАПАДУ ===
         if (isCampaignBattle) 
         {
-            // ВКАЖИ ТУТ: Скільки фізичних юнітів має бути в одному загоні?
-            int unitsPerSquad = 5; 
-
-            // Множимо вибір (1 або 0) на кількість юнітів у загоні (5)
-            SpawnReturningUnits(knightPrefab, CrossSceneData.knightsCount * unitsPerSquad, "Knight");
-            SpawnReturningUnits(archerPrefab, CrossSceneData.archersCount * unitsPerSquad, "Archer");
-            SpawnReturningUnits(spearmanPrefab, CrossSceneData.spearmenCount * unitsPerSquad, "Spearman");
-            SpawnReturningUnits(cavalryPrefab, CrossSceneData.cavalryCount * unitsPerSquad, "Cavalry");
-            
-            // Оновлюємо формацію, щоб вони гарно вишикувалися
-            StartCoroutine(RecalculateUnitsNextFrame());
+            // Армією в SiegeBattleScene керує виключно BattleManager.
+            // Тут раніше був паралельний спавн, який до того ж множив на 5
+            // уже помножену кількість (CrossSceneData.*Count вже містить юнітів,
+            // а не загони). Працював він лише тому, що префаби були не призначені.
             return; 
         }
 

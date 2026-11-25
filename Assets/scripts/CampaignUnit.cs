@@ -97,7 +97,7 @@ public class CampaignUnit : MonoBehaviour
     void SetTarget(CampaignUnit newTarget)
     {
         if (currentTarget == newTarget) return;
-        if (currentTarget != null && !currentTarget.isDead) currentTarget.targetedByCount--;
+        if (currentTarget != null) currentTarget.targetedByCount--;
         currentTarget = newTarget;
         if (currentTarget != null) currentTarget.targetedByCount++;
     }
@@ -222,7 +222,7 @@ public class CampaignUnit : MonoBehaviour
 
         foreach (var ally in BattleManager.Instance.GetAllUnits())
         {
-            if (ally != this && !ally.isDead && ally.isEnemy == this.isEnemy)
+            if (ally != null && ally != this && !ally.isDead && ally.isEnemy == this.isEnemy)
             {
                 float dist = Vector2.Distance(transform.position, ally.transform.position);
                 if (dist > 0 && dist < sepRadius) 
@@ -244,7 +244,7 @@ public class CampaignUnit : MonoBehaviour
 
         foreach (var u in BattleManager.Instance.GetAllUnits())
         {
-            if (u.isEnemy != this.isEnemy && !u.isDead)
+            if (u != null && u.isEnemy != this.isEnemy && !u.isDead)
             {
                 float d = Vector2.Distance(transform.position, u.transform.position);
                 if (!isRanged && u.targetedByCount >= (isEnemy ? 2 : 1)) continue; 
@@ -262,7 +262,7 @@ public class CampaignUnit : MonoBehaviour
             closestDist = Mathf.Infinity;
             foreach (var u in BattleManager.Instance.GetAllUnits())
             {
-                if (u.isEnemy != this.isEnemy && !u.isDead)
+                if (u != null && u.isEnemy != this.isEnemy && !u.isDead)
                 {
                     float d = Vector2.Distance(transform.position, u.transform.position);
                     if (d < closestDist) { closestDist = d; bestTarget = u; }
@@ -337,6 +337,9 @@ public class CampaignUnit : MonoBehaviour
         isDead = true;
         gameObject.tag = "Untagged";
         SetTarget(null);
+
+        // Виходимо зі списку живих до того, як об'єкт буде знищено.
+        if (BattleManager.Instance != null) BattleManager.Instance.UnregisterUnit(this);
         
         if (anim) anim.enabled = false; 
         if (hpFillImage != null && hpFillImage.transform.parent != null) hpFillImage.transform.parent.gameObject.SetActive(false); 

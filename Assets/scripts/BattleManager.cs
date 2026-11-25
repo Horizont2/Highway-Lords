@@ -117,11 +117,21 @@ public class BattleManager : MonoBehaviour
         if (Instance == null) Instance = this;
         else Destroy(gameObject);
 
-        if (GameManager.Instance == null)
-        {
-            GameObject gmObj = new GameObject("Temp_GameManager");
-            gmObj.AddComponent<GameManager>(); 
-        }
+        // GameManager у цій сцені не потрібен: BattleManager читає рівні юнітів
+        // напряму з PlayerPrefs. Раніше тут створювався "Temp_GameManager" —
+        // об'єкт без жодного налаштованого посилання, який ще й запускав
+        // паралельний спавн армії в GameManager.Start().
+    }
+
+    /// <summary>
+    /// Прибирає юніта зі списку живих. Викликається з CampaignUnit.Die().
+    /// Без цього список накопичує знищені об'єкти, і звернення до них
+    /// кидає MissingReferenceException у кожного юніта щокадру.
+    /// </summary>
+    public void UnregisterUnit(CampaignUnit unit)
+    {
+        if (unit == null) return;
+        allUnitsOnField.Remove(unit);
     }
 
     void Start()
@@ -429,7 +439,7 @@ public class BattleManager : MonoBehaviour
     {
         highlightedClass = uClass;
         if (SoundManager.Instance) SoundManager.Instance.PlaySFX(SoundManager.Instance.clickSound);
-        foreach (var u in allUnitsOnField) if (!u.isEnemy) u.SetHighlight(u.unitClass == highlightedClass);
+        foreach (var u in allUnitsOnField) if (u != null && !u.isEnemy) u.SetHighlight(u.unitClass == highlightedClass);
         UpdateRowUI(); 
     }
 
@@ -451,7 +461,7 @@ public class BattleManager : MonoBehaviour
         rowAssignments[targetRow] = classA;
 
         highlightedClass = ""; 
-        foreach (var u in allUnitsOnField) if (!u.isEnemy) u.SetHighlight(false);
+        foreach (var u in allUnitsOnField) if (u != null && !u.isEnemy) u.SetHighlight(false);
 
         UpdateRowUI(); 
         UpdateFormationPositions(playerSpawnPoint.position.x, false);
@@ -467,7 +477,7 @@ public class BattleManager : MonoBehaviour
         for (int i = 0; i < activeLineCount; i++)
         {
             string uClass = rowAssignments[i];
-            List<CampaignUnit> classUnits = allUnitsOnField.Where(u => !u.isEnemy && !u.isDead && u.unitClass == uClass).ToList();
+            List<CampaignUnit> classUnits = allUnitsOnField.Where(u => u != null && !u.isEnemy && !u.isDead && u.unitClass == uClass).ToList();
             if (classUnits.Count == 0) continue;
 
             for (int j = 0; j < classUnits.Count; j++)
@@ -499,7 +509,7 @@ public class BattleManager : MonoBehaviour
         if (SoundManager.Instance) SoundManager.Instance.PlaySFX(SoundManager.Instance.clickSound);
         if (SoundManager.Instance && SoundManager.Instance.victoryCries) SoundManager.Instance.PlaySFX(SoundManager.Instance.victoryCries, 0.6f);
         
-        foreach (var u in allUnitsOnField) if (!u.isEnemy) u.SetHighlight(false);
+        foreach (var u in allUnitsOnField) if (u != null && !u.isEnemy) u.SetHighlight(false);
         highlightedClass = "";
 
         if (tacticalPanel) tacticalPanel.SetActive(false);
@@ -579,7 +589,8 @@ public class BattleManager : MonoBehaviour
     {
         yield return new WaitForSeconds(0.6f);
         int damageToDeal = 150 + (PlayerPrefs.GetInt("MetaVolleyBarrage", 0) * 50);
-        foreach (var u in allUnitsOnField)
+        var snapshot = allUnitsOnField.ToArray();
+        foreach (var u in snapshot)
         {
             if (u != null && !u.isDead && u.isEnemy && Vector2.Distance(u.transform.position, targetPos) <= 3.5f) u.TakeDamage(damageToDeal);
         }
@@ -770,7 +781,7 @@ public class BattleManager : MonoBehaviour
         }
 
         int nextUncalledSlot = (currentLegion + 1) * 3;
-        for (int i = nextUncalledSlot; i < 9; i++)
+        for (int i = nextUncalledSlot; i < 9 && CrossSceneData.squadSlots != null && i < CrossSceneData.squadSlots.Length; i++)
         {
             int uType = CrossSceneData.squadSlots[i];
             if (uType == 0) k_left += 5;
