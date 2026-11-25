@@ -21,6 +21,13 @@ public class LivingButton : MonoBehaviour
     private CanvasGroup myCanvasGroup;
     private Image[] childImages;
 
+    /// <summary>
+    /// Множник від ButtonPressFeedback. Цей скрипт щокадру переписує
+    /// localScale, тож натискання не може писати туди напряму — воно
+    /// передає свою частку сюди, і обидва ефекти складаються.
+    /// </summary>
+    public float PressScale { get; set; } = 1f;
+
     void Awake()
     {
         // Записуємо базовий масштаб найпершим
@@ -73,13 +80,14 @@ public class LivingButton : MonoBehaviour
     {
         if (!CanPulse())
         {
-            // Якщо кнопка "мертва" - жорстко скидаємо розмір і зупиняємось
-            transform.localScale = originalScale;
+            // Кнопка "мертва" — пульсацію глушимо, але натискання лишаємо:
+            // неактивна кнопка теж має відповідати на дотик.
+            transform.localScale = originalScale * PressScale;
             return; 
         }
 
         float pulse = 1f + Mathf.Sin(Time.unscaledTime * pulseSpeed) * pulseAmount;
-        transform.localScale = originalScale * pulse;
+        transform.localScale = originalScale * pulse * PressScale;
 
         if (shineTransform != null)
         {

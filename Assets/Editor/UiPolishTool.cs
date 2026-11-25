@@ -216,6 +216,87 @@ public static class UiPolishTool
 
     // ==================================================================
 
+    [MenuItem("Tools/Highway Lords/UI/3. Додати відгук натискання кнопкам", false, 902)]
+    public static void AddButtonFeedback()
+    {
+        if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) return;
+
+        var log = new StringBuilder("=== ВІДГУК НАТИСКАННЯ ===\n");
+        string openScene = EditorSceneManager.GetActiveScene().path;
+        int added = 0, skipped = 0;
+
+        foreach (var entry in EditorBuildSettings.scenes)
+        {
+            if (!entry.enabled || string.IsNullOrEmpty(entry.path) || !File.Exists(entry.path)) continue;
+
+            var scene = EditorSceneManager.OpenScene(entry.path, OpenSceneMode.Single);
+            log.AppendLine();
+            log.AppendLine($"--- {scene.name}");
+
+            bool changed = false;
+            int here = 0;
+
+            foreach (var root in scene.GetRootGameObjects())
+            {
+                foreach (var button in root.GetComponentsInChildren<Button>(true))
+                {
+                    if (button.GetComponent<ButtonPressFeedback>() != null) { skipped++; continue; }
+
+                    // Edit-time: компонент лягає в сцену.
+                    button.gameObject.AddComponent<ButtonPressFeedback>();
+                    added++; here++; changed = true;
+                }
+            }
+
+            log.AppendLine($"    додано: {here}");
+
+            if (changed)
+            {
+                EditorSceneManager.MarkSceneDirty(scene);
+                EditorSceneManager.SaveScene(scene);
+                log.AppendLine("    сцену збережено");
+            }
+        }
+
+        if (!string.IsNullOrEmpty(openScene))
+            EditorSceneManager.OpenScene(openScene, OpenSceneMode.Single);
+
+        // Кнопки всередині префабів панелей теж треба охопити — частина
+        // інтерфейсу живе саме там, а не в сцені.
+        int inPrefabs = 0;
+        foreach (var guid in AssetDatabase.FindAssets("t:Prefab", new[] { "Assets" }))
+        {
+            string path = AssetDatabase.GUIDToAssetPath(guid);
+            var contents = PrefabUtility.LoadPrefabContents(path);
+            try
+            {
+                bool touched = false;
+                foreach (var button in contents.GetComponentsInChildren<Button>(true))
+                {
+                    if (button.GetComponent<ButtonPressFeedback>() != null) continue;
+                    button.gameObject.AddComponent<ButtonPressFeedback>();
+                    inPrefabs++; touched = true;
+                }
+
+                if (touched)
+                {
+                    PrefabUtility.SaveAsPrefabAsset(contents, path);
+                    log.AppendLine($"    префаб: {Path.GetFileNameWithoutExtension(path)}");
+                }
+            }
+            finally
+            {
+                PrefabUtility.UnloadPrefabContents(contents);
+            }
+        }
+
+        AssetDatabase.Refresh();
+        log.AppendLine($"\nДодано у сценах: {added}, у префабах: {inPrefabs}, вже було: {skipped}.");
+        Debug.Log(log.ToString());
+    }
+
+    // ==================================================================
+
     /// <summary>
     /// Що вважаємо панеллю: або ім'я натякає, або на об'єкт посилається
     /// поле з "panel" у назві. Другий шлях надійніший — він бере саме ті
