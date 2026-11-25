@@ -14464,7 +14464,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\u0421all for reinforcements"
+  m_text: "Call for reinforcements"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: f4dd52319d856534d8a76dab3ad6590d, type: 2}
   m_sharedMaterial: {fileID: -377453566157578514, guid: f4dd52319d856534d8a76dab3ad6590d, type: 2}

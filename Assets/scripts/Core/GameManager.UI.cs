@@ -679,6 +679,15 @@ public partial class GameManager
             UpdateCostUIGroup(ui.costUI, ResourceType.Gold, cost);
         }
     }
+    private static readonly HashSet<GameObject> warnedPanels = new HashSet<GameObject>();
+
+    private static void WarnMissingCanvasGroup(GameObject panel)
+    {
+        if (!warnedPanels.Add(panel)) return;
+        Debug.LogWarning($"[GameManager] На панелі '{panel.name}' немає CanvasGroup — " +
+                         "вона відкривається без плавної прозорості. Додай компонент в інспекторі.");
+    }
+
     private IEnumerator AnimatePanel(GameObject panel, bool isOpening)
     {
         if (panel == null) yield break;
@@ -697,8 +706,10 @@ public partial class GameManager
         Vector3 startScale = isOpening ? baseScale * 0.8f : baseScale;
         Vector3 endScale = isOpening ? baseScale : baseScale * 0.8f;
 
+        // CanvasGroup не створюємо в рантаймі: якщо його немає, просто
+        // анімуємо масштаб. Додати групу можна в інспекторі.
         CanvasGroup cg = panel.GetComponent<CanvasGroup>();
-        if (cg == null) cg = panel.gameObject.AddComponent<CanvasGroup>();
+        if (cg == null) WarnMissingCanvasGroup(panel);
 
         float startAlpha = isOpening ? 0f : 1f;
         float endAlpha = isOpening ? 1f : 0f;
@@ -709,18 +720,21 @@ public partial class GameManager
         {
             elapsed += Time.unscaledDeltaTime; 
             float t = elapsed / duration;
-            float ease = isOpening ? 1f - Mathf.Pow(1f - t, 3f) : t * t * t; 
 
-            // Змінюємо і прозорість, і масштаб
-            panel.transform.localScale = Vector3.Lerp(startScale, endScale, ease);
-            cg.alpha = Mathf.Lerp(startAlpha, endAlpha, ease);
+            // Масштаб проскакує ціль і сідає назад — від цього панель
+            // відчувається пружною, а не просто проявленою.
+            float scaleEase = isOpening ? Easing.OutBack(t, 2.4f) : Easing.InCubic(t);
+            float alphaEase = isOpening ? Easing.OutCubic(t) : Easing.InCubic(t);
+
+            panel.transform.localScale = Vector3.LerpUnclamped(startScale, endScale, scaleEase);
+            if (cg != null) cg.alpha = Mathf.Lerp(startAlpha, endAlpha, alphaEase);
 
             yield return null;
         }
 
         // 3. Гарантовано повертаємо до твого ідеального розміру
         panel.transform.localScale = endScale;
-        cg.alpha = endAlpha;
+        if (cg != null) cg.alpha = endAlpha;
 
         if (!isOpening) panel.SetActive(false);
     }

@@ -135,6 +135,7 @@ public abstract class UnitBase : MonoBehaviour
         GameManager.CreateDamagePopup(popupPos, damageAmount);
 
         SpawnHitParticles();
+        PlayHitReaction();
 
         if (spriteRenderer != null) StartCoroutine(FlashColor());
 
@@ -168,16 +169,78 @@ public abstract class UnitBase : MonoBehaviour
     // Розворот
     // ------------------------------------------------------------------
 
+    // Поворот і стиск обидва пишуть у localScale, тож вони мають
+    // проходити через одне місце — інакше по черзі затирали б одне одного.
+    private bool facingPositive = true;
+    private float squashX = 1f;
+    private float squashY = 1f;
+
     protected void FaceTowards(float targetX)
     {
         if (Mathf.Approximately(targetX, transform.position.x)) return;
 
-        float absX = Mathf.Abs(originalScale.x);
         bool goingRight = targetX > transform.position.x;
-        bool positive = FlipInverted ? !goingRight : goingRight;
+        facingPositive = FlipInverted ? !goingRight : goingRight;
 
+        ApplyScale();
+    }
+
+    private void ApplyScale()
+    {
+        float absX = Mathf.Abs(originalScale.x);
         transform.localScale = new Vector3(
-            positive ? absX : -absX, originalScale.y, originalScale.z);
+            (facingPositive ? absX : -absX) * squashX,
+            originalScale.y * squashY,
+            originalScale.z);
+    }
+
+    // ------------------------------------------------------------------
+    // Реакція на влучання
+    // ------------------------------------------------------------------
+
+    [Header("Відчуття удару")]
+    [Tooltip("Наскільки юніт сплющується від влучання")]
+    [Range(0f, 0.5f)] public float hitSquash = 0.22f;
+    [Tooltip("Скільки триває стиск і повернення")]
+    public float hitSquashDuration = 0.18f;
+
+    private Coroutine squashRoutine;
+
+    /// <summary>
+    /// Коротке "ой" від удару: юніт присідає впоперек і пружно повертається.
+    /// Читається навіть краще за спалах кольором, бо впадає в око рухом.
+    /// </summary>
+    protected void PlayHitReaction()
+    {
+        if (isDead || hitSquash <= 0f) return;
+
+        if (squashRoutine != null) StopCoroutine(squashRoutine);
+        squashRoutine = StartCoroutine(SquashRoutine());
+    }
+
+    private IEnumerator SquashRoutine()
+    {
+        float duration = Mathf.Max(0.01f, hitSquashDuration);
+        float time = 0f;
+
+        while (time < duration)
+        {
+            time += Time.deltaTime;
+
+            // Punch: різко в стиск і пружно назад, без ривка в кінці.
+            float k = Easing.Punch(time / duration);
+            squashX = 1f + hitSquash * k;
+            squashY = 1f - hitSquash * k;
+
+            if (!isDead) ApplyScale();
+            yield return null;
+        }
+
+        squashX = 1f;
+        squashY = 1f;
+        if (!isDead) ApplyScale();
+
+        squashRoutine = null;
     }
 
     // ------------------------------------------------------------------
@@ -189,6 +252,12 @@ public abstract class UnitBase : MonoBehaviour
         if (isDead) return;
         isDead = true;
         gameObject.tag = "Untagged";
+
+        // Інакше труп застигне сплющеним на тому кадрі, де його добили.
+        if (squashRoutine != null) { StopCoroutine(squashRoutine); squashRoutine = null; }
+        squashX = 1f;
+        squashY = 1f;
+        ApplyScale();
 
         if (rb != null)
         {

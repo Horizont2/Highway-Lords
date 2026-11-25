@@ -167,20 +167,27 @@ public class CampaignManager : MonoBehaviour
         Vector3 startScale = show ? new Vector3(0.8f, 0.8f, 1f) : Vector3.one;
         Vector3 endScale = show ? Vector3.one : new Vector3(0.8f, 0.8f, 1f);
 
+        // CanvasGroup у рантаймі не створюємо — якщо його немає,
+        // анімуємо лише масштаб.
         CanvasGroup cg = panel.GetComponent<CanvasGroup>();
-        if (cg == null) cg = panel.gameObject.AddComponent<CanvasGroup>();
 
         float startAlpha = show ? 0f : 1f; float endAlpha = show ? 1f : 0f;
         if (show) panel.localScale = startScale;
 
         while (time < duration)
         {
-            time += Time.unscaledDeltaTime; float t = time / duration;
-            panel.localScale = Vector3.Lerp(startScale, endScale, t);
-            cg.alpha = Mathf.Lerp(startAlpha, endAlpha, t);
+            time += Time.unscaledDeltaTime;
+            float t = time / duration;
+
+            float scaleEase = show ? Easing.OutBack(t, 2.4f) : Easing.InCubic(t);
+            float alphaEase = show ? Easing.OutCubic(t) : Easing.InCubic(t);
+
+            panel.localScale = Vector3.LerpUnclamped(startScale, endScale, scaleEase);
+            if (cg != null) cg.alpha = Mathf.Lerp(startAlpha, endAlpha, alphaEase);
             yield return null;
         }
-        panel.localScale = endScale; cg.alpha = endAlpha;
+        panel.localScale = endScale;
+        if (cg != null) cg.alpha = endAlpha;
         if (!show && mainCampaignPanel != null) mainCampaignPanel.SetActive(false);
     }
 
