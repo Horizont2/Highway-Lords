@@ -239,14 +239,11 @@ public class Guard : MonoBehaviour
             if (dist < minDistance) { minDistance = dist; closestTarget = t; }
         }
 
-        Knight[] knights = FindObjectsByType<Knight>(FindObjectsSortMode.None);
-        foreach (Knight k in knights) CheckDistance(k.transform);
-        Archer[] archers = FindObjectsByType<Archer>(FindObjectsSortMode.None);
-        foreach (Archer a in archers) CheckDistance(a.transform);
-        Spearman[] spearmen = FindObjectsByType<Spearman>(FindObjectsSortMode.None); 
-        foreach (Spearman s in spearmen) CheckDistance(s.transform);
-        Cavalry[] cavalries = FindObjectsByType<Cavalry>(FindObjectsSortMode.None); 
-        foreach (Cavalry c in cavalries) CheckDistance(c.transform);
+        if (GameManager.Instance != null)
+        {
+            var playerUnits = GameManager.Instance.GetPlayerUnits();
+            for (int i = 0; i < playerUnits.Count; i++) CheckDistance(playerUnits[i]);
+        }
 
         if (closestTarget != null && minDistance <= aggroRadius) target = closestTarget;
         else if (GameManager.Instance != null && GameManager.Instance.castle != null) target = GameManager.Instance.castle.transform;

@@ -1300,6 +1300,46 @@ public class GameManager : MonoBehaviour
         return startXOffset + (columnsUsed * rowSpacing) + 0.5f; 
     }
 
+    // Спільний буфер: вороги питають список юнітів гравця щокадру,
+    // і алокувати новий масив на кожен запит немає сенсу.
+    private readonly List<Transform> playerUnitBuffer = new List<Transform>();
+    private int playerUnitBufferFrame = -1;
+
+    /// <summary>
+    /// Живі юніти гравця одним списком.
+    ///
+    /// Замінює чотири FindObjectsByType поспіль у кожного ворога: при 20
+    /// ворогах, які перецілюються 4 рази на секунду, це було 320 повних
+    /// сканувань сцени щосекунди. Тут — готовий список, що перебудовується
+    /// щонайбільше раз на кадр.
+    ///
+    /// Список віддається напряму, без копії. Не тримай його між кадрами
+    /// і перевіряй елементи на null: юніт може загинути вже після збирання.
+    /// </summary>
+    public IReadOnlyList<Transform> GetPlayerUnits()
+    {
+        if (playerUnitBufferFrame == Time.frameCount) return playerUnitBuffer;
+        playerUnitBufferFrame = Time.frameCount;
+
+        playerUnitBuffer.Clear();
+        AppendAlive(activeKnights, playerUnitBuffer);
+        AppendAlive(activeSpearmen, playerUnitBuffer);
+        AppendAlive(activeArchers, playerUnitBuffer);
+        AppendAlive(activeCavalry, playerUnitBuffer);
+
+        return playerUnitBuffer;
+    }
+
+    private static void AppendAlive<T>(List<T> source, List<Transform> buffer) where T : MonoBehaviour
+    {
+        if (source == null) return;
+        foreach (var unit in source)
+        {
+            if (unit == null || unit.CompareTag("Untagged")) continue;
+            buffer.Add(unit.transform);
+        }
+    }
+
     public void RecalculateUnits()
     {
         var knights = FindObjectsByType<Knight>(FindObjectsSortMode.None);

@@ -218,14 +218,11 @@ public class EnemySpearman : MonoBehaviour
             if (dist < minDistance) { minDistance = dist; closestTarget = t; }
         }
 
-        Knight[] knights = FindObjectsByType<Knight>(FindObjectsSortMode.None);
-        foreach (var k in knights) Check(k.transform);
-        Spearman[] spearmen = FindObjectsByType<Spearman>(FindObjectsSortMode.None);
-        foreach (var s in spearmen) Check(s.transform);
-        Cavalry[] cavalries = FindObjectsByType<Cavalry>(FindObjectsSortMode.None);
-        foreach (var c in cavalries) Check(c.transform);
-        Archer[] archers = FindObjectsByType<Archer>(FindObjectsSortMode.None);
-        foreach (var a in archers) Check(a.transform);
+        if (GameManager.Instance != null)
+        {
+            var playerUnits = GameManager.Instance.GetPlayerUnits();
+            for (int i = 0; i < playerUnits.Count; i++) Check(playerUnits[i]);
+        }
 
         if (closestTarget != null && minDistance <= aggroRadius) target = closestTarget;
         else if (GameManager.Instance != null && GameManager.Instance.castle != null) target = GameManager.Instance.castle.transform;

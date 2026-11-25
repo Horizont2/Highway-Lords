@@ -102,6 +102,9 @@ public class CampaignUnit : MonoBehaviour
         tacticalTargetPos = transform.position; 
         FlipTowards(isEnemy ? transform.position + Vector3.left : transform.position + Vector3.right);
 
+        // Розносимо юнітів по кадрах, щоб навантаження не збиралося в піки.
+        separationPhase = Random.Range(0, SeparationInterval);
+
         isReady = true;
     }
 
@@ -251,25 +254,47 @@ public class CampaignUnit : MonoBehaviour
         DealDamage();
     }
 
+    // Розштовхування — найдорожче місце бою: кожен юніт обходить усіх інших.
+    // При 85 юнітах це ~7000 перевірок на кадр. Рахуємо вектор раз на кілька
+    // кадрів і застосовуємо збережений — рух лишається плавним.
+    private const int SeparationInterval = 4;
+    private int separationPhase;
+    private Vector3 cachedSeparation;
+
     void ApplySeparation()
+    {
+        if ((Time.frameCount + separationPhase) % SeparationInterval == 0)
+            cachedSeparation = ComputeSeparation();
+
+        if (cachedSeparation != Vector3.zero)
+            transform.position += cachedSeparation * Time.deltaTime * 8f;
+    }
+
+    private Vector3 ComputeSeparation()
     {
         Vector3 separation = Vector3.zero;
         int count = 0;
-        float sepRadius = isRanged ? 1.0f : 1.2f; 
 
-        foreach (var ally in BattleManager.Instance.GetAllUnits())
+        float sepRadius = isRanged ? 1.0f : 1.2f;
+        float sqrRadius = sepRadius * sepRadius;
+
+        var units = BattleManager.Instance.GetAllUnits();
+        for (int i = 0; i < units.Count; i++)
         {
-            if (ally != null && ally != this && !ally.isDead && ally.isEnemy == this.isEnemy)
-            {
-                float dist = Vector2.Distance(transform.position, ally.transform.position);
-                if (dist > 0 && dist < sepRadius) 
-                {
-                    separation += (transform.position - ally.transform.position).normalized * (sepRadius - dist);
-                    count++;
-                }
-            }
+            var ally = units[i];
+            if (ally == null || ally == this || ally.isDead || ally.isEnemy != isEnemy) continue;
+
+            // Без Vector2.Distance: корінь рахуємо лише для тих, хто справді поруч.
+            Vector3 delta = transform.position - ally.transform.position;
+            float sqr = delta.x * delta.x + delta.y * delta.y;
+            if (sqr <= 0.000001f || sqr >= sqrRadius) continue;
+
+            float dist = Mathf.Sqrt(sqr);
+            separation += (delta / dist) * (sepRadius - dist);
+            count++;
         }
-        if (count > 0) transform.position += (separation / count) * Time.deltaTime * 8f;
+
+        return count > 0 ? separation / count : Vector3.zero;
     }
 
     void FindTarget()

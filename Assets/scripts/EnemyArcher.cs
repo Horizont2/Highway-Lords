@@ -199,14 +199,11 @@ public class EnemyArcher : MonoBehaviour
             if (dist < minDistance) { minDistance = dist; closestUnit = t; }
         }
 
-        Knight[] knights = FindObjectsByType<Knight>(FindObjectsSortMode.None);
-        foreach (Knight k in knights) CheckDistance(k.transform);
-        Archer[] archers = FindObjectsByType<Archer>(FindObjectsSortMode.None);
-        foreach (Archer a in archers) CheckDistance(a.transform);
-        Spearman[] spearmen = FindObjectsByType<Spearman>(FindObjectsSortMode.None); 
-        foreach (Spearman s in spearmen) CheckDistance(s.transform);
-        Cavalry[] cavs = FindObjectsByType<Cavalry>(FindObjectsSortMode.None); 
-        foreach (Cavalry c in cavs) CheckDistance(c.transform);
+        if (GameManager.Instance != null)
+        {
+            var playerUnits = GameManager.Instance.GetPlayerUnits();
+            for (int i = 0; i < playerUnits.Count; i++) CheckDistance(playerUnits[i]);
+        }
 
         if (GameManager.Instance != null && GameManager.Instance.currentSpikes != null) CheckDistance(GameManager.Instance.currentSpikes.transform);
 
