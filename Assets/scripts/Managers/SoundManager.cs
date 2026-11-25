@@ -84,8 +84,8 @@ public class SoundManager : MonoBehaviour
         }
 
         // Завантажуємо збережені налаштування гучності
-        musicVolume = PlayerPrefs.GetFloat("MusicVolume", 0.5f);
-        sfxVolume = PlayerPrefs.GetFloat("SFXVolume", 1f);
+        musicVolume = SaveSystem.GetFloat("MusicVolume", 0.5f);
+        sfxVolume = SaveSystem.GetFloat("SFXVolume", 1f);
     }
 
     void Start()
@@ -244,7 +244,7 @@ public class SoundManager : MonoBehaviour
     {
         musicVolume = volume;
         if (musicSource != null) musicSource.volume = musicVolume;
-        PlayerPrefs.SetFloat("MusicVolume", musicVolume);
+        SaveSystem.SetFloat("MusicVolume", musicVolume);
     }
 
     public void SetSFXVolume(float volume)
@@ -252,7 +252,7 @@ public class SoundManager : MonoBehaviour
         sfxVolume = volume;
         if (sfxSource != null) sfxSource.volume = sfxVolume;
         if (ambientSource != null && ambientSource.isPlaying) ambientSource.volume = sfxVolume * 0.4f; 
-        PlayerPrefs.SetFloat("SFXVolume", sfxVolume);
+        SaveSystem.SetFloat("SFXVolume", sfxVolume);
     }
 
     // Викликай це зі слайдера в налаштуваннях
@@ -260,15 +260,15 @@ public class SoundManager : MonoBehaviour
     {
         musicVolume = volume;
         if (musicSource != null) musicSource.volume = musicVolume;
-        PlayerPrefs.SetFloat("MusicVolume", musicVolume);
-        PlayerPrefs.Save();
+        SaveSystem.SetFloat("MusicVolume", musicVolume);
+        SaveSystem.Save();
     }
 
     public void UpdateSFXVolume(float volume)
     {
         sfxVolume = volume;
         if (sfxSource != null) sfxSource.volume = sfxVolume;
-        PlayerPrefs.SetFloat("SFXVolume", sfxVolume);
-        PlayerPrefs.Save();
+        SaveSystem.SetFloat("SFXVolume", sfxVolume);
+        SaveSystem.Save();
     }
 }

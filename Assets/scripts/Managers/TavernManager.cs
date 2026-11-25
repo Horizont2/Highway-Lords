@@ -44,8 +44,8 @@ public class TavernManager : MonoBehaviour
 
     void Start()
     {
-        if (!PlayerPrefs.HasKey("PlayerGlory")) 
-            PlayerPrefs.SetInt("PlayerGlory", 2000); 
+        if (!SaveSystem.HasKey("PlayerGlory")) 
+            SaveSystem.SetInt("PlayerGlory", 2000); 
 
         LoadData();
 
@@ -134,7 +134,7 @@ public class TavernManager : MonoBehaviour
 
     void LoadData()
     {
-        currentGlory = PlayerPrefs.GetInt("PlayerGlory", 0);
+        currentGlory = SaveSystem.GetInt("PlayerGlory", 0);
     }
 
     public void UpdateUI()
@@ -142,7 +142,7 @@ public class TavernManager : MonoBehaviour
         if (playerGloryText) playerGloryText.text = currentGlory.ToString();
 
         // ФІКС: Отримуємо рівень міста (замку) гравця
-        int cityLevel = PlayerPrefs.GetInt("SavedCastleLevel", 1);
+        int cityLevel = SaveSystem.GetInt("SavedCastleLevel", 1);
         // ФІКС: Розраховуємо силу за "розумною" формулою
         int dynamicPower = 120 + (cityLevel * 15);
 
@@ -153,7 +153,7 @@ public class TavernManager : MonoBehaviour
             // Встановлюємо правильну динамічну силу (замість 500)
             if (slot.powerText) slot.powerText.text = $"Power: {dynamicPower}";
 
-            int battlesLeft = PlayerPrefs.GetInt("Merc_" + slot.unitClass + "_Battles", 0);
+            int battlesLeft = SaveSystem.GetInt("Merc_" + slot.unitClass + "_Battles", 0);
 
             if (battlesLeft > 0)
             {
@@ -182,10 +182,10 @@ public class TavernManager : MonoBehaviour
         if (currentGlory >= slot.costGlory)
         {
             currentGlory -= slot.costGlory;
-            PlayerPrefs.SetInt("PlayerGlory", currentGlory);
+            SaveSystem.SetInt("PlayerGlory", currentGlory);
 
-            PlayerPrefs.SetInt("Merc_" + slot.unitClass + "_Battles", slot.maxBattles);
-            PlayerPrefs.Save();
+            SaveSystem.SetInt("Merc_" + slot.unitClass + "_Battles", slot.maxBattles);
+            SaveSystem.Save();
 
             if (SoundManager.Instance) 
             {

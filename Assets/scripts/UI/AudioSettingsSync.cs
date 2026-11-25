@@ -10,12 +10,12 @@ public class AudioSettingsSync : MonoBehaviour
     {
         if (musicSlider != null) 
         {
-            musicSlider.value = PlayerPrefs.GetFloat("MusicVolume", 0.5f);
+            musicSlider.value = SaveSystem.GetFloat("MusicVolume", 0.5f);
             musicSlider.onValueChanged.AddListener(val => { if (SoundManager.Instance) SoundManager.Instance.SetMusicVolume(val); });
         }
         if (sfxSlider != null) 
         {
-            sfxSlider.value = PlayerPrefs.GetFloat("SFXVolume", 1f);
+            sfxSlider.value = SaveSystem.GetFloat("SFXVolume", 1f);
             sfxSlider.onValueChanged.AddListener(val => { if (SoundManager.Instance) SoundManager.Instance.SetSFXVolume(val); });
         }
     }

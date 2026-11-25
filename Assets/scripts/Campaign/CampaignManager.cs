@@ -242,10 +242,10 @@ public class CampaignManager : MonoBehaviour
         shouldBeVisible[1] = true; 
         shouldBeVisible[2] = GameManager.Instance.isSpearmanUnlocked;
         shouldBeVisible[3] = GameManager.Instance.isCavalryUnlocked && GameManager.Instance.barracksLevel >= 3;
-        shouldBeVisible[4] = PlayerPrefs.GetInt("Merc_Knight_Battles", 0) > 0;
-        shouldBeVisible[5] = PlayerPrefs.GetInt("Merc_Archer_Battles", 0) > 0;
-        shouldBeVisible[6] = PlayerPrefs.GetInt("Merc_Spearman_Battles", 0) > 0;
-        shouldBeVisible[7] = PlayerPrefs.GetInt("Merc_Cavalry_Battles", 0) > 0;
+        shouldBeVisible[4] = SaveSystem.GetInt("Merc_Knight_Battles", 0) > 0;
+        shouldBeVisible[5] = SaveSystem.GetInt("Merc_Archer_Battles", 0) > 0;
+        shouldBeVisible[6] = SaveSystem.GetInt("Merc_Spearman_Battles", 0) > 0;
+        shouldBeVisible[7] = SaveSystem.GetInt("Merc_Cavalry_Battles", 0) > 0;
 
         for (int i = 0; i < 9; i++)
         {
@@ -402,7 +402,7 @@ public class CampaignManager : MonoBehaviour
         for (int i = 0; i < 4; i++) 
         {
             string prefsKey = (i == 0) ? "FreeKnights" : (i == 1) ? "FreeArchers" : (i == 2) ? "FreeSpearmen" : "FreeCavalry";
-            int freeSquads = PlayerPrefs.GetInt(prefsKey, 0) / 5;
+            int freeSquads = SaveSystem.GetInt(prefsKey, 0) / 5;
             int squadsToBuy = Mathf.Max(0, selectedUnitsCount[i] - freeSquads);
             totalCost += squadsToBuy * squadCosts[i];
 
@@ -469,7 +469,7 @@ public class CampaignManager : MonoBehaviour
             if (i < shopAddButtons.Length && shopAddButtons[i] != null)
             {
                 string prefsKey = (i == 0) ? "FreeKnights" : (i == 1) ? "FreeArchers" : (i == 2) ? "FreeSpearmen" : "FreeCavalry";
-                int freeSquads = PlayerPrefs.GetInt(prefsKey, 0) / 5;
+                int freeSquads = SaveSystem.GetInt(prefsKey, 0) / 5;
                 bool canAfford = (selectedUnitsCount[i] < freeSquads) || (currentGold >= totalCost + squadCosts[i]);
                 shopAddButtons[i].interactable = limitNotReached && canAfford && !isAnimating;
             }
@@ -517,15 +517,15 @@ public class CampaignManager : MonoBehaviour
         for (int i = 0; i < 4; i++) 
         {
             string prefsKey = (i == 0) ? "FreeKnights" : (i == 1) ? "FreeArchers" : (i == 2) ? "FreeSpearmen" : "FreeCavalry";
-            int freeSquads = PlayerPrefs.GetInt(prefsKey, 0) / 5;
+            int freeSquads = SaveSystem.GetInt(prefsKey, 0) / 5;
             int squadsToBuy = Mathf.Max(0, selectedUnitsCount[i] - freeSquads);
             totalCost += squadsToBuy * squadCosts[i];
         }
 
-        PlayerPrefs.SetInt("FreeKnights", Mathf.Max(0, PlayerPrefs.GetInt("FreeKnights", 0) - (selectedUnitsCount[0] * 5)));
-        PlayerPrefs.SetInt("FreeArchers", Mathf.Max(0, PlayerPrefs.GetInt("FreeArchers", 0) - (selectedUnitsCount[1] * 5)));
-        PlayerPrefs.SetInt("FreeSpearmen", Mathf.Max(0, PlayerPrefs.GetInt("FreeSpearmen", 0) - (selectedUnitsCount[2] * 5)));
-        PlayerPrefs.SetInt("FreeCavalry", Mathf.Max(0, PlayerPrefs.GetInt("FreeCavalry", 0) - (selectedUnitsCount[3] * 5)));
+        SaveSystem.SetInt("FreeKnights", Mathf.Max(0, SaveSystem.GetInt("FreeKnights", 0) - (selectedUnitsCount[0] * 5)));
+        SaveSystem.SetInt("FreeArchers", Mathf.Max(0, SaveSystem.GetInt("FreeArchers", 0) - (selectedUnitsCount[1] * 5)));
+        SaveSystem.SetInt("FreeSpearmen", Mathf.Max(0, SaveSystem.GetInt("FreeSpearmen", 0) - (selectedUnitsCount[2] * 5)));
+        SaveSystem.SetInt("FreeCavalry", Mathf.Max(0, SaveSystem.GetInt("FreeCavalry", 0) - (selectedUnitsCount[3] * 5)));
 
         GameManager.Instance.gold -= totalCost;
         GameManager.Instance.SaveGame(); 

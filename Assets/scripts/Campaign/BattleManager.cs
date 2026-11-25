@@ -121,7 +121,7 @@ public class BattleManager : MonoBehaviour
         else Destroy(gameObject);
 
         // GameManager у цій сцені не потрібен: BattleManager читає рівні юнітів
-        // напряму з PlayerPrefs. Раніше тут створювався "Temp_GameManager" —
+        // напряму з SaveSystem. Раніше тут створювався "Temp_GameManager" —
         // об'єкт без жодного налаштованого посилання, який ще й запускав
         // паралельний спавн армії в GameManager.Start().
     }
@@ -152,8 +152,8 @@ public class BattleManager : MonoBehaviour
         audioSrc = gameObject.AddComponent<AudioSource>();
         if (SoundManager.Instance != null) SoundManager.Instance.PlayBattleMusic();
 
-        isVolleyUnlocked = PlayerPrefs.GetInt("MetaVolleyBarrage", 0) > 0;
-        isWarCryUnlocked = PlayerPrefs.GetInt("SavedKnightLevel", 1) >= 2 || PlayerPrefs.GetInt("MetaFortifiedWalls", 0) > 0; 
+        isVolleyUnlocked = SaveSystem.GetInt("MetaVolleyBarrage", 0) > 0;
+        isWarCryUnlocked = SaveSystem.GetInt("SavedKnightLevel", 1) >= 2 || SaveSystem.GetInt("MetaFortifiedWalls", 0) > 0; 
 
         currentLegion = 0;
 
@@ -269,7 +269,7 @@ public class BattleManager : MonoBehaviour
                             : uClass == "Cavalry" ? "SavedCavalryLevel"
                             : "SavedKnightLevel";
 
-            CampaignBalance.GetPlayerStats(uClass, PlayerPrefs.GetInt(prefsKey, 1),
+            CampaignBalance.GetPlayerStats(uClass, SaveSystem.GetInt(prefsKey, 1),
                 out hp, out dmg, out speed, out isRanged);
         }
 
@@ -583,7 +583,7 @@ public class BattleManager : MonoBehaviour
     IEnumerator VolleyDamageRoutine(Vector3 targetPos)
     {
         yield return new WaitForSeconds(0.6f);
-        int damageToDeal = 150 + (PlayerPrefs.GetInt("MetaVolleyBarrage", 0) * 50);
+        int damageToDeal = 150 + (SaveSystem.GetInt("MetaVolleyBarrage", 0) * 50);
         var snapshot = allUnitsOnField.ToArray();
         foreach (var u in snapshot)
         {
@@ -808,22 +808,22 @@ public class BattleManager : MonoBehaviour
             else if (uType == 3) c_left += 5;
         }
         
-        PlayerPrefs.SetInt("FreeKnights", PlayerPrefs.GetInt("FreeKnights", 0) + k_left);
-        PlayerPrefs.SetInt("FreeArchers", PlayerPrefs.GetInt("FreeArchers", 0) + a_left);
-        PlayerPrefs.SetInt("FreeSpearmen", PlayerPrefs.GetInt("FreeSpearmen", 0) + s_left);
-        PlayerPrefs.SetInt("FreeCavalry", PlayerPrefs.GetInt("FreeCavalry", 0) + c_left);
+        SaveSystem.SetInt("FreeKnights", SaveSystem.GetInt("FreeKnights", 0) + k_left);
+        SaveSystem.SetInt("FreeArchers", SaveSystem.GetInt("FreeArchers", 0) + a_left);
+        SaveSystem.SetInt("FreeSpearmen", SaveSystem.GetInt("FreeSpearmen", 0) + s_left);
+        SaveSystem.SetInt("FreeCavalry", SaveSystem.GetInt("FreeCavalry", 0) + c_left);
         
         if (isVictory)
         {
-            PlayerPrefs.SetInt("SavedGold", PlayerPrefs.GetInt("SavedGold", 100) + CrossSceneData.rewardGold);
-            PlayerPrefs.SetInt("SavedWood", PlayerPrefs.GetInt("SavedWood", 0) + CrossSceneData.rewardWood);
-            PlayerPrefs.SetInt("SavedStone", PlayerPrefs.GetInt("SavedStone", 0) + CrossSceneData.rewardStone);
-            PlayerPrefs.SetInt("Camp_" + CrossSceneData.campId + "_Conquered", 1);
-            PlayerPrefs.SetInt("PlayerGlory", PlayerPrefs.GetInt("PlayerGlory", 0) + (CrossSceneData.campLevel * 50));
-            PlayerPrefs.SetInt("CitiesConquered", 1);
+            SaveSystem.SetInt("SavedGold", SaveSystem.GetInt("SavedGold", 100) + CrossSceneData.rewardGold);
+            SaveSystem.SetInt("SavedWood", SaveSystem.GetInt("SavedWood", 0) + CrossSceneData.rewardWood);
+            SaveSystem.SetInt("SavedStone", SaveSystem.GetInt("SavedStone", 0) + CrossSceneData.rewardStone);
+            SaveSystem.SetInt("Camp_" + CrossSceneData.campId + "_Conquered", 1);
+            SaveSystem.SetInt("PlayerGlory", SaveSystem.GetInt("PlayerGlory", 0) + (CrossSceneData.campLevel * 50));
+            SaveSystem.SetInt("CitiesConquered", 1);
         }
-        PlayerPrefs.Save(); 
-        PlayerPrefs.Save();
+        SaveSystem.Save(); 
+        SaveSystem.Save();
 
         CrossSceneData.knightsCount = k_left;
         CrossSceneData.archersCount = a_left;
@@ -837,10 +837,10 @@ public class BattleManager : MonoBehaviour
 
     void DecreaseMercenaryContracts(string mClass)
     {
-        int battlesLeft = PlayerPrefs.GetInt("Merc_" + mClass + "_Battles", 0);
+        int battlesLeft = SaveSystem.GetInt("Merc_" + mClass + "_Battles", 0);
         if (battlesLeft > 0)
         {
-            PlayerPrefs.SetInt("Merc_" + mClass + "_Battles", battlesLeft - 1);
+            SaveSystem.SetInt("Merc_" + mClass + "_Battles", battlesLeft - 1);
         }
     }
 

@@ -55,7 +55,7 @@ public class TutorialManager : MonoBehaviour
 
     void Start()
     {
-        currentStepIndex = PlayerPrefs.GetInt("TutorialStepIndex", 0);
+        currentStepIndex = SaveSystem.GetInt("TutorialStepIndex", 0);
         if (currentStepIndex >= steps.Count)
         {
             if (tutorialCanvas != null) tutorialCanvas.SetActive(false);
@@ -147,7 +147,7 @@ public class TutorialManager : MonoBehaviour
                 if (pointerHand != null) pointerHand.gameObject.SetActive(false);
                 
                 // Перевіряємо, чи є в записі хоча б одна перемога
-                if (PlayerPrefs.GetInt("CitiesConquered", 0) > 0)
+                if (SaveSystem.GetInt("CitiesConquered", 0) > 0)
                 {
                     Debug.Log("Гравець вже сам захопив місто. Гайд скасовується!");
                     EndTutorial(); 
@@ -362,8 +362,8 @@ public class TutorialManager : MonoBehaviour
         }
 
         currentStepIndex++;
-        PlayerPrefs.SetInt("TutorialStepIndex", currentStepIndex);
-        PlayerPrefs.Save();
+        SaveSystem.SetInt("TutorialStepIndex", currentStepIndex);
+        SaveSystem.Save();
 
         ShowStep(currentStepIndex);
     }
@@ -375,7 +375,7 @@ public class TutorialManager : MonoBehaviour
         RestorePreviousTarget();
         HideTutorialVisuals();
         if (tutorialCanvas != null) tutorialCanvas.SetActive(false);
-        PlayerPrefs.SetInt("TutorialStepIndex", 999);
+        SaveSystem.SetInt("TutorialStepIndex", 999);
     }
 
     IEnumerator WaitForWaveRoutine()
@@ -454,7 +454,7 @@ public class TutorialManager : MonoBehaviour
     [ContextMenu("Reset Tutorial Progress")]
     public void ResetTutorial()
     {
-        PlayerPrefs.DeleteKey("TutorialStepIndex");
+        SaveSystem.DeleteKey("TutorialStepIndex");
         currentStepIndex = 0;
         Debug.Log("ПРОГРЕС ГАЙДУ СКИНУТО! ПЕРЕЗАПУСТІТЬ ГРУ.");
     }

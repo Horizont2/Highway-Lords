@@ -117,11 +117,11 @@ public class QuestManager : MonoBehaviour
     // ==========================================
     private void CheckDailyReset()
     {
-        string lastLoginStr = PlayerPrefs.GetString("LastLoginDate", "");
+        string lastLoginStr = SaveSystem.GetString("LastLoginDate", "");
         DateTime currentDate = DateTime.Now.Date;
 
-        consecutiveDays = PlayerPrefs.GetInt("ConsecutiveDays", 1);
-        todayLoginClaimed = PlayerPrefs.GetInt("TodayLoginClaimed", 0) == 1;
+        consecutiveDays = SaveSystem.GetInt("ConsecutiveDays", 1);
+        todayLoginClaimed = SaveSystem.GetInt("TodayLoginClaimed", 0) == 1;
 
         if (string.IsNullOrEmpty(lastLoginStr))
         {
@@ -157,13 +157,13 @@ public class QuestManager : MonoBehaviour
 
     private void SaveLoginData(DateTime date, int days, bool claimed)
     {
-        PlayerPrefs.SetString("LastLoginDate", date.ToString("yyyy-MM-dd"));
-        PlayerPrefs.SetInt("ConsecutiveDays", days);
-        PlayerPrefs.SetInt("TodayLoginClaimed", claimed ? 1 : 0);
+        SaveSystem.SetString("LastLoginDate", date.ToString("yyyy-MM-dd"));
+        SaveSystem.SetInt("ConsecutiveDays", days);
+        SaveSystem.SetInt("TodayLoginClaimed", claimed ? 1 : 0);
         
         consecutiveDays = days;
         todayLoginClaimed = claimed;
-        PlayerPrefs.Save();
+        SaveSystem.Save();
     }
 
     private void UpdateTimerText()
@@ -414,26 +414,26 @@ public class QuestManager : MonoBehaviour
 
     private void SaveDailies()
     {
-        PlayerPrefs.SetInt("DailiesCount", activeDailies.Count);
+        SaveSystem.SetInt("DailiesCount", activeDailies.Count);
         for (int i = 0; i < activeDailies.Count; i++)
         {
-            PlayerPrefs.SetString($"Daily_{i}_ID", activeDailies[i].questID);
-            PlayerPrefs.SetInt($"Daily_{i}_Prog", activeDailies[i].currentProgress);
-            PlayerPrefs.SetInt($"Daily_{i}_Claim", activeDailies[i].isClaimed ? 1 : 0);
+            SaveSystem.SetString($"Daily_{i}_ID", activeDailies[i].questID);
+            SaveSystem.SetInt($"Daily_{i}_Prog", activeDailies[i].currentProgress);
+            SaveSystem.SetInt($"Daily_{i}_Claim", activeDailies[i].isClaimed ? 1 : 0);
         }
-        PlayerPrefs.Save();
+        SaveSystem.Save();
     }
 
     private void LoadDailyQuests()
     {
         activeDailies.Clear();
-        int count = PlayerPrefs.GetInt("DailiesCount", 0);
+        int count = SaveSystem.GetInt("DailiesCount", 0);
         for (int i = 0; i < count; i++)
         {
             activeDailies.Add(new ActiveQuest {
-                questID = PlayerPrefs.GetString($"Daily_{i}_ID", ""),
-                currentProgress = PlayerPrefs.GetInt($"Daily_{i}_Prog", 0),
-                isClaimed = PlayerPrefs.GetInt($"Daily_{i}_Claim", 0) == 1
+                questID = SaveSystem.GetString($"Daily_{i}_ID", ""),
+                currentProgress = SaveSystem.GetInt($"Daily_{i}_Prog", 0),
+                isClaimed = SaveSystem.GetInt($"Daily_{i}_Claim", 0) == 1
             });
         }
     }
@@ -443,8 +443,8 @@ public class QuestManager : MonoBehaviour
         activeAchievements.Clear();
         foreach (var info in allAchievements)
         {
-            int prog = PlayerPrefs.GetInt($"Achieve_{info.questID}_Prog", 0);
-            bool claimed = PlayerPrefs.GetInt($"Achieve_{info.questID}_Claim", 0) == 1;
+            int prog = SaveSystem.GetInt($"Achieve_{info.questID}_Prog", 0);
+            bool claimed = SaveSystem.GetInt($"Achieve_{info.questID}_Claim", 0) == 1;
             activeAchievements.Add(new ActiveQuest { questID = info.questID, currentProgress = prog, isClaimed = claimed });
         }
     }
@@ -453,10 +453,10 @@ public class QuestManager : MonoBehaviour
     {
         foreach (var active in activeAchievements)
         {
-            PlayerPrefs.SetInt($"Achieve_{active.questID}_Prog", active.currentProgress);
-            PlayerPrefs.SetInt($"Achieve_{active.questID}_Claim", active.isClaimed ? 1 : 0);
+            SaveSystem.SetInt($"Achieve_{active.questID}_Prog", active.currentProgress);
+            SaveSystem.SetInt($"Achieve_{active.questID}_Claim", active.isClaimed ? 1 : 0);
         }
-        PlayerPrefs.Save();
+        SaveSystem.Save();
     }
 
     // ==========================================

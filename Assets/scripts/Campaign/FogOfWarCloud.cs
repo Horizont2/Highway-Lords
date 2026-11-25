@@ -20,10 +20,10 @@ public class FogOfWarCloud : MonoBehaviour
     public void CheckFogStatus()
     {
         // Перевіряємо, чи пройдено ПОПЕРЕДНЄ місто (щоб відкрити це)
-        bool isPreviousConquered = PlayerPrefs.GetInt("Camp_" + (coversCampId - 1) + "_Conquered", 0) == 1;
+        bool isPreviousConquered = SaveSystem.GetInt("Camp_" + (coversCampId - 1) + "_Conquered", 0) == 1;
         
         // Перевіряємо, чи ми ВЖЕ програвали анімацію розсіювання для цієї хмари
-        bool isFogDispelled = PlayerPrefs.GetInt("Camp_" + coversCampId + "_FogDispelled", 0) == 1;
+        bool isFogDispelled = SaveSystem.GetInt("Camp_" + coversCampId + "_FogDispelled", 0) == 1;
 
         if (isPreviousConquered)
         {
@@ -49,8 +49,8 @@ public class FogOfWarCloud : MonoBehaviour
     IEnumerator DispelAnimation()
     {
         // Одразу записуємо, що туман розсіяно, щоб не грати це знову при наступному запуску
-        PlayerPrefs.SetInt("Camp_" + coversCampId + "_FogDispelled", 1);
-        PlayerPrefs.Save();
+        SaveSystem.SetInt("Camp_" + coversCampId + "_FogDispelled", 1);
+        SaveSystem.Save();
 
         float time = 0;
         Vector3 startScale = transform.localScale;

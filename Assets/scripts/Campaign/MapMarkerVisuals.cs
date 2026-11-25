@@ -31,7 +31,7 @@ public class MapMarkerVisuals : MonoBehaviour
         int myId = nodeData.campId;
 
         // Чи захоплене саме ЦЕ місто?
-        bool isConquered = PlayerPrefs.GetInt("Camp_" + myId + "_Conquered", 0) == 1;
+        bool isConquered = SaveSystem.GetInt("Camp_" + myId + "_Conquered", 0) == 1;
         
         // Чи відкрите воно для атаки?
         bool isUnlocked = false;
@@ -41,7 +41,7 @@ public class MapMarkerVisuals : MonoBehaviour
         }
         else 
         {
-            isUnlocked = PlayerPrefs.GetInt("Camp_" + (myId - 1) + "_Conquered", 0) == 1;
+            isUnlocked = SaveSystem.GetInt("Camp_" + (myId - 1) + "_Conquered", 0) == 1;
         }
 
         // 1. БЛОКУВАННЯ КНОПКИ

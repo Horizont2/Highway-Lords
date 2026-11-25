@@ -15,7 +15,7 @@ public class FogRegion : MonoBehaviour
         cg = GetComponent<CanvasGroup>();
         
         // Перевіряємо, чи цей табір вже був захоплений раніше
-        bool isConquered = PlayerPrefs.GetInt("Camp_" + unlockCampId + "_Conquered", 0) == 1;
+        bool isConquered = SaveSystem.GetInt("Camp_" + unlockCampId + "_Conquered", 0) == 1;
 
         if (isConquered)
         {
