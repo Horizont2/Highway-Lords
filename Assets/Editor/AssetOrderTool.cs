@@ -194,6 +194,18 @@ public static class AssetOrderTool
             return;
         }
 
+        // --- спершу папки, і ТІЛЬКИ поза пакетним режимом ---
+        // Під StartAssetEditing база асетів не оновлюється, тож IsValidFolder
+        // не бачить щойно створену папку, і CreateFolder робить дубль з
+        // номером — "Units 1", "Units 2" і далі на кожен файл.
+        foreach (var folder in moves
+                     .Select(m => Path.GetDirectoryName(m.to).Replace('\\', '/'))
+                     .Distinct())
+        {
+            EnsureFolder(folder);
+        }
+        AssetDatabase.Refresh();
+
         // --- переносимо ---
         int moved = 0, failed = 0;
 
@@ -203,8 +215,6 @@ public static class AssetOrderTool
 
             foreach (var (from, to) in moves)
             {
-                EnsureFolder(Path.GetDirectoryName(to).Replace('\\', '/'));
-
                 string error = AssetDatabase.MoveAsset(from, to);
                 if (string.IsNullOrEmpty(error)) moved++;
                 else
@@ -223,6 +233,74 @@ public static class AssetOrderTool
         log.AppendLine();
         log.AppendLine($"Перенесено: {moved}, з помилками: {failed}.");
         Debug.Log(log.ToString());
+
+        // Мовчазний провал — найгірше, що може зробити такий інструмент.
+        if (failed > 0)
+        {
+            EditorUtility.DisplayDialog("Навести порядок",
+                $"Перенесено: {moved}\nНе вдалося: {failed}\n\nДеталі в консолі.", "OK");
+        }
+    }
+
+    // ==================================================================
+
+    [MenuItem("Tools/Highway Lords/Assets/3. Прибрати порожні папки", false, 702)]
+    public static void CleanEmptyFolders()
+    {
+        var empties = FindEmptyFolders().ToList();
+
+        if (empties.Count == 0)
+        {
+            EditorUtility.DisplayDialog("Порожні папки", "Порожніх папок не знайдено.", "OK");
+            return;
+        }
+
+        bool ok = EditorUtility.DisplayDialog(
+            "Прибрати порожні папки",
+            $"Знайдено порожніх папок: {empties.Count}\n\n" +
+            string.Join("\n", empties.Take(15)) +
+            (empties.Count > 15 ? $"\n... і ще {empties.Count - 15}" : "") +
+            "\n\nУ них немає жодного асета.",
+            "Видалити", "Скасувати");
+
+        if (!ok) return;
+
+        int deleted = 0;
+        foreach (var folder in empties)
+            if (AssetDatabase.DeleteAsset(folder)) deleted++;
+
+        AssetDatabase.Refresh();
+        Debug.Log($"Видалено порожніх папок: {deleted} з {empties.Count}.");
+    }
+
+    /// <summary>
+    /// Порожні папки всередині scripts/ та Art/ — здебільшого сміття від
+    /// невдалого запуску. Глибші рівні йдуть першими, щоб папка-батько
+    /// теж стала порожньою і потрапила під видалення.
+    /// </summary>
+    private static IEnumerable<string> FindEmptyFolders()
+    {
+        var roots = new[] { ScriptsRoot, "Assets/Art" }
+            .Where(AssetDatabase.IsValidFolder);
+
+        var result = new List<string>();
+
+        foreach (var root in roots)
+        {
+            foreach (var dir in Directory.GetDirectories(root, "*", SearchOption.AllDirectories))
+            {
+                string path = dir.Replace('\\', '/');
+
+                // Папка порожня, якщо в ній немає жодного файлу, крім .meta.
+                bool hasAssets = Directory
+                    .GetFiles(path, "*", SearchOption.AllDirectories)
+                    .Any(f => !f.EndsWith(".meta"));
+
+                if (!hasAssets) result.Add(path);
+            }
+        }
+
+        return result.OrderByDescending(p => p.Count(c => c == '/'));
     }
 
     /// <summary>Створює папку з усіма проміжними рівнями.</summary>
