@@ -41,7 +41,7 @@ public static class AssetOrderTool
         ["Core"] = new[]
         {
             "GameManager", "GameSaveData", "EconomyConfig", "GameStarter",
-            "InitialLoader", "ResolutionFixer", "CrossSceneData",
+            "InitialLoader", "ResolutionFixer", "CrossSceneData", "PoolRegistry",
         },
         ["Units"] = new[]
         {
@@ -89,6 +89,47 @@ public static class AssetOrderTool
     };
 
     private const string ScriptsRoot = "Assets/scripts";
+
+    /// <summary>
+    /// Папки, яким невдалий запуск дав ім'я з іншим регістром. Unity так
+    /// обходить колізію на файловій системі, нечутливій до регістру:
+    /// запит на "Units" при наявній "Units N" дав "UnitS".
+    /// </summary>
+    private static readonly Dictionary<string, string> FolderRenames = new Dictionary<string, string>
+    {
+        { ScriptsRoot + "/UnitS", "Units" },
+        { ScriptsRoot + "/BuildingS", "Buildings" },
+    };
+
+    /// <summary>
+    /// Перейменування лише за регістром файлова система не приймає,
+    /// тому йдемо через тимчасове ім'я.
+    /// </summary>
+    private static bool RenameFolderCaseSafe(string path, string targetName, StringBuilder log)
+    {
+        if (!AssetDatabase.IsValidFolder(path)) return false;
+        if (Path.GetFileName(path) == targetName) return false;
+
+        string temp = targetName + "__tmp";
+
+        string error = AssetDatabase.RenameAsset(path, temp);
+        if (!string.IsNullOrEmpty(error))
+        {
+            log.AppendLine($"  [ПОМИЛКА] {path} -> {temp}: {error}");
+            return false;
+        }
+
+        string tempPath = Path.GetDirectoryName(path).Replace('\\', '/') + "/" + temp;
+        error = AssetDatabase.RenameAsset(tempPath, targetName);
+        if (!string.IsNullOrEmpty(error))
+        {
+            log.AppendLine($"  [ПОМИЛКА] {tempPath} -> {targetName}: {error}");
+            return false;
+        }
+
+        log.AppendLine($"  {Path.GetFileName(path)} -> {targetName}");
+        return true;
+    }
 
     // ==================================================================
 
@@ -194,7 +235,11 @@ public static class AssetOrderTool
             return;
         }
 
-        // --- спершу папки, і ТІЛЬКИ поза пакетним режимом ---
+        // --- спершу нормалізуємо покручені імена папок ---
+        foreach (var pair in FolderRenames)
+            RenameFolderCaseSafe(pair.Key, pair.Value, log);
+
+        // --- потім папки, і ТІЛЬКИ поза пакетним режимом ---
         // Під StartAssetEditing база асетів не оновлюється, тож IsValidFolder
         // не бачить щойно створену папку, і CreateFolder робить дубль з
         // номером — "Units 1", "Units 2" і далі на кожен файл.
