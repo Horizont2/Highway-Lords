@@ -200,7 +200,17 @@ public class QuestManager : MonoBehaviour
         if (claimLoginButton != null)
         {
             claimLoginButton.interactable = !todayLoginClaimed;
-            claimLoginButton.GetComponentInChildren<TMP_Text>().text = todayLoginClaimed ? "CLAIMED" : "CLAIM";
+
+            // GetComponentInChildren бере ПЕРШИЙ текст у дереві. На цій кнопці
+            // їх два — підпис і сума нагороди. Варто комусь поміняти порядок
+            // дітей, і код затирав би нагороду словом CLAIM. Перевірки на null
+            // тут теж не було.
+            foreach (var label in claimLoginButton.GetComponentsInChildren<TMP_Text>(true))
+            {
+                if (label == null || label == loginRewardText) continue;
+                label.text = todayLoginClaimed ? "CLAIMED" : "CLAIM";
+                break;
+            }
             
             int reward = consecutiveDays == 7 ? 25 : 100 * consecutiveDays;
             string type = consecutiveDays == 7 ? "Gems" : "Gold";

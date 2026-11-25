@@ -24,10 +24,12 @@ public static class UiPolishTool
 {
     private static readonly string[] PanelNameHints = { "panel", "popup", "window", "dialog", "confirm" };
 
+    // "Line 1".."Line 4" свідомо НЕ тут: BattleManager.UpdateRowUI формує
+    // з них підпис "Line 1\nKnights", тобто це робоче значення, а не забутий
+    // плейсхолдер.
     private static readonly string[] PlaceholderTexts =
     {
-        "new text", "text (tmp)", "sample", "lorem", "todo", "label",
-        "line 1", "line 2", "line 3", "line 4", "???", "xxx",
+        "new text", "text (tmp)", "sample", "lorem", "todo", "label", "???", "xxx",
     };
 
     // ==================================================================
@@ -75,16 +77,23 @@ public static class UiPolishTool
                 string path = PathOf(text.transform);
                 string value = text.text ?? "";
 
-                // Текст ширший за свою рамку — найчастіша причина, коли
-                // підпис налазить на сусідній елемент.
+                // Рахуємо лише переповнення ПО ШИРИНІ: саме воно призводить
+                // до налізання на сусідні елементи.
+                //
+                // По висоті не рахуємо навмисно: GetPreferredValues повертає
+                // висоту з урахуванням інтерліньяжу й виносних елементів, тож
+                // однорядковий підпис майже завжди "не вміщається" на кілька
+                // пікселів, нічим це не проявляючи. Перша версія цієї перевірки
+                // саме через це видала 49 попереджень, з яких жодне не було
+                // справжньою проблемою.
                 var rect = text.rectTransform.rect;
-                if (rect.width > 1f && rect.height > 1f && !string.IsNullOrEmpty(value))
+                if (rect.width > 1f && !string.IsNullOrEmpty(value))
                 {
-                    Vector2 needed = text.GetPreferredValues(value, rect.width, 0f);
-                    if (needed.x > rect.width + 1f || needed.y > rect.height + 1f)
+                    Vector2 needed = text.GetPreferredValues(value, 0f, 0f);
+                    if (needed.x > rect.width + 2f)
                     {
-                        overflowing.Add($"{path}  рамка {rect.width:0}x{rect.height:0}, " +
-                                        $"треба {needed.x:0}x{needed.y:0}  {Short(value)}");
+                        overflowing.Add($"{path}  ширина рамки {rect.width:0}, " +
+                                        $"тексту треба {needed.x:0}  {Short(value)}");
                     }
                 }
 
@@ -138,7 +147,12 @@ public static class UiPolishTool
                     enterChildren = false;
                     if (prop.propertyType != SerializedPropertyType.ObjectReference) continue;
                     if (prop.objectReferenceValue != null) continue;
-                    if (prop.name == "m_Script") continue;
+
+                    // Поля з префіксом m_ — внутрішні для Unity й TMP. Саме
+                    // через них перша версія видала 253 "порожніх посилання":
+                    // майже кожен TMP_Text має незаповнений
+                    // m_linkedTextComponent, і це цілком нормально.
+                    if (prop.name.StartsWith("m_")) continue;
 
                     // Порожнє посилання саме по собі нормальне; цікавлять
                     // лише ті, що явно щось мають тримати.
