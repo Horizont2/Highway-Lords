@@ -128,7 +128,7 @@ public class CampaignManager : MonoBehaviour
         currentNode = node;
 
         if (titleText) titleText.text = "ATTACK: " + node.campName.ToUpper();
-        if (enemyPowerText) enemyPowerText.text = "ENEMY POWER: " + node.enemyPowerScore;
+        if (enemyPowerText) enemyPowerText.text = "ENEMY POWER: " + node.GarrisonPower;
         if (goldRewardText) goldRewardText.text = node.rewardGold.ToString();
         if (woodRewardText) woodRewardText.text = node.rewardWood.ToString();
         if (stoneRewardText) stoneRewardText.text = node.rewardStone.ToString();
@@ -189,30 +189,25 @@ public class CampaignManager : MonoBehaviour
         if (GameManager.Instance == null) return;
 
         int[] lvls = { GameManager.Instance.knightLevel, GameManager.Instance.archerLevel, GameManager.Instance.spearmanLevel, GameManager.Instance.cavalryLevel };
-        int[] baseDmgs = { 35, 25, 30, 40 };
-        int[] baseHPs = { 120, 60, 90, 150 };
         int[] baseCosts = { 250, 375, 300, 600 }; 
         int[] costPerLevel = { 10, 15, 10, 25 }; 
 
+        // Сила — з CampaignBalance, тією самою формулою, що й у ворога.
+        // Раніше тут до всіх чотирьох класів застосовувався приріст лицаря
+        // (+7 шкоди, +20 HP за рівень), тож лучник, списоносець і кіннота
+        // показували чужі числа.
         for (int i = 0; i < 4; i++)
         {
-            int currentDmg = baseDmgs[i] + (lvls[i] * 7);
-            int currentHp = baseHPs[i] + (lvls[i] * 20);
-            
-            squadPowers[i] = currentDmg + Mathf.RoundToInt(currentHp * 0.2f); 
+            squadPowers[i] = CampaignBalance.SquadPower(ClassOfIndex(i), lvls[i], false);
             squadCosts[i] = baseCosts[i] + ((lvls[i] - 1) * costPerLevel[i]);
         }
 
-        // === ФІКС: Точні стати найманців (такі ж, як у BattleManager) ===
-        int cityBonus = (currentNode != null) ? currentNode.campLevel * 15 : 0;
-        
-        int[] mercHPs = { 200, 100, 150, 250 };   // Knight, Archer, Spearman, Cavalry
-        int[] mercDmgs = { 45, 35, 40, 55 };
-
+        // Найманці. Бонусу за рівень табору більше немає: він лише роздував
+        // показану силу, на бій не впливав.
         for (int i = 0; i < 4; i++)
         {
-            int mercIndex = i + 4; // Індекси 4, 5, 6, 7
-            squadPowers[mercIndex] = mercDmgs[i] + Mathf.RoundToInt(mercHPs[i] * 0.2f) + cityBonus;
+            int mercIndex = i + 4;
+            squadPowers[mercIndex] = CampaignBalance.SquadPower(ClassOfIndex(i), 1, true);
             squadCosts[mercIndex] = 0; // Найманці безкоштовні (бо вже куплені в таверні)
         }
 
@@ -223,6 +218,18 @@ public class CampaignManager : MonoBehaviour
                 if (i < shopPowerTexts.Length && shopPowerTexts[i] != null) 
                     shopPowerTexts[i].text = $"POWER: {squadPowers[i]}";
             }
+        }
+    }
+
+    /// <summary>0..3 -> Knight/Archer/Spearman/Cavalry. Індекси 4..7 — ті самі класи, але найманці.</summary>
+    static string ClassOfIndex(int i)
+    {
+        switch (i % 4)
+        {
+            case 1: return "Archer";
+            case 2: return "Spearman";
+            case 3: return "Cavalry";
+            default: return "Knight";
         }
     }
 
@@ -421,9 +428,9 @@ public class CampaignManager : MonoBehaviour
         if (totalCostText) totalCostText.text = "TOTAL COST: " + totalCost.ToString() + "G";
         if (yourPowerText) yourPowerText.text = "Your Power: " + totalPower.ToString();
 
-        int wavesCount = (currentNode != null) ? currentNode.campLevel : 1;
-        float waveMultiplier = 1f + ((wavesCount - 1) * 0.5f);
-        float enemyPowerAdjusted = (currentNode != null) ? (currentNode.enemyPowerScore * waveMultiplier) : 1f;
+        // Сила гарнізону рахується з тих самих юнітів, які вийдуть у бою,
+        // і тією самою формулою, що й сила гравця.
+        float enemyPowerAdjusted = (currentNode != null) ? currentNode.GarrisonPower : 1f;
 
         if (enemyPowerText) enemyPowerText.text = "ENEMY POWER: " + Mathf.RoundToInt(enemyPowerAdjusted);
 
@@ -488,7 +495,8 @@ public class CampaignManager : MonoBehaviour
                                  $"Guards (Infantry): {currentNode.e_guards}\n" +
                                  $"Archers: {currentNode.e_archers}\n" +
                                  $"Spearmen: {currentNode.e_spearmen}\n" +
-                                 $"Cavalry: {currentNode.e_cavalry}";
+                                 $"Cavalry: {currentNode.e_cavalry}\n\n" +
+                                 $"<color=#FFDD44>TOTAL: {currentNode.TotalGarrison}</color>";
         }
         if (scoutPanel) scoutPanel.SetActive(true);
     }

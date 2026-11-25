@@ -30,8 +30,43 @@ public class CampaignUnit : MonoBehaviour
 
     public int targetedByCount = 0; 
 
+    /// <summary>Поки Setup не викликали, юніт не діє: полів ще немає.</summary>
+    private bool isReady = false;
+
+    /// <summary>
+    /// Скрипти AI з режиму оборони. У сцені бою вони не потрібні — тут
+    /// юнітом керує CampaignUnit. Раніше BattleManager зривав їх через
+    /// DestroyImmediate у рантаймі; тепер просто вимикаємо.
+    /// </summary>
+    private static readonly string[] DefenceAiScripts =
+    {
+        "Knight", "Archer", "Spearman", "Cavalry",
+        "Guard", "EnemyArcher", "EnemySpearman", "EnemyHorse",
+        "EnemyElephant", "Boss", "BatteringRam",
+        "EnemySelector", "UnitStats", "EnemyStats",
+        "WallArcher", "CrossbowTower",
+    };
+
+    private void DisableDefenceAi()
+    {
+        foreach (var script in GetComponents<MonoBehaviour>())
+        {
+            if (script == null || script == this) continue;
+
+            string name = script.GetType().Name;
+            foreach (var banned in DefenceAiScripts)
+            {
+                if (name != banned) continue;
+                script.enabled = false;
+                break;
+            }
+        }
+    }
+
     public void Setup(bool enemy, string uClass, int hp, int dmg, float spd, bool ranged, GameObject blood, bool facesLeft)
     {
+        DisableDefenceAi();
+
         isEnemy = enemy;
         unitClass = uClass;
         maxHealth = hp;
@@ -66,6 +101,8 @@ public class CampaignUnit : MonoBehaviour
 
         tacticalTargetPos = transform.position; 
         FlipTowards(isEnemy ? transform.position + Vector3.left : transform.position + Vector3.right);
+
+        isReady = true;
     }
 
     public void SetHighlight(bool isOn)
@@ -104,7 +141,7 @@ public class CampaignUnit : MonoBehaviour
 
     void Update()
     {
-        if (isDead || BattleManager.Instance == null) return;
+        if (!isReady || isDead || BattleManager.Instance == null) return;
 
         var state = BattleManager.Instance.currentState;
 

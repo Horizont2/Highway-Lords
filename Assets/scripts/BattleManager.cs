@@ -98,6 +98,9 @@ public class BattleManager : MonoBehaviour
     private int enemiesSpawned;
     private int enemiesKilled;
 
+    // Гарнізон табору — рівно той склад, який показала розвідка на мапі.
+    private int garrisonGuards, garrisonArchers, garrisonSpearmen, garrisonCavalry;
+
     private int currentWave = 0;
     private int maxWaves = 1;
 
@@ -253,28 +256,21 @@ public class BattleManager : MonoBehaviour
 
         if (prefab == null) return;
 
-        int hp = 100; int dmg = 10; bool isRanged = (uClass == "Archer");
-        float speed = 1.9f; 
-        if (uClass == "Spearman") speed = 1.6f; else if (uClass == "Archer") speed = 1.3f; else if (uClass == "Cavalry") speed = 3.2f;
+        int hp, dmg; float speed; bool isRanged;
 
         if (isMerc)
         {
-            hp = 200; dmg = 45;
-            if (uClass == "Spearman") { speed = 1.8f; hp = 150; dmg = 40; }
-            else if (uClass == "Archer") { speed = 1.5f; hp = 100; dmg = 35; }
-            else if (uClass == "Cavalry") { speed = 3.5f; hp = 250; dmg = 55; }
+            CampaignBalance.GetMercenaryStats(uClass, out hp, out dmg, out speed, out isRanged);
         }
         else
         {
-            int k_lvl = PlayerPrefs.GetInt("SavedKnightLevel", 1);
-            int a_lvl = PlayerPrefs.GetInt("SavedArcherLevel", 1);
-            int s_lvl = PlayerPrefs.GetInt("SavedSpearmanLevel", 1);
-            int c_lvl = PlayerPrefs.GetInt("SavedCavalryLevel", 1);
+            string prefsKey = uClass == "Archer" ? "SavedArcherLevel"
+                            : uClass == "Spearman" ? "SavedSpearmanLevel"
+                            : uClass == "Cavalry" ? "SavedCavalryLevel"
+                            : "SavedKnightLevel";
 
-            if (uClass == "Knight") { hp = 120 + (k_lvl * 20); dmg = 35 + (k_lvl * 7); }
-            else if (uClass == "Archer") { hp = 60 + (a_lvl * 10); dmg = 25 + (a_lvl * 5); }
-            else if (uClass == "Spearman") { hp = 90 + (s_lvl * 15); dmg = 30 + (s_lvl * 6); }
-            else if (uClass == "Cavalry") { hp = 150 + (c_lvl * 25); dmg = 40 + (c_lvl * 8); }
+            CampaignBalance.GetPlayerStats(uClass, PlayerPrefs.GetInt(prefsKey, 1),
+                out hp, out dmg, out speed, out isRanged);
         }
 
         Vector3[] formationOffsets = new Vector3[5] {
@@ -285,19 +281,13 @@ public class BattleManager : MonoBehaviour
             new Vector3(-1.2f, -1.2f, 0)  
         };
 
-        for (int i = 0; i < 5; i++)
+        for (int i = 0; i < CampaignBalance.UnitsPerSquad && i < formationOffsets.Length; i++)
         {
             Vector3 spawnPos = centerPos + formationOffsets[i];
             GameObject unitGO = Instantiate(prefab, spawnPos, Quaternion.identity);
             unitGO.tag = "PlayerUnit"; 
-            
-            MonoBehaviour[] scripts = unitGO.GetComponents<MonoBehaviour>();
-            foreach (var script in scripts) {
-                if (script == null) continue; string sName = script.GetType().Name;
-                if (sName.Contains("Enemy") || sName.Contains("UnitStats") || sName.Contains("Selector") || sName.Contains("Knight") || sName.Contains("Archer") || sName.Contains("Spearman") || sName.Contains("Cavalry") || sName == "CampaignUnit") DestroyImmediate(script); 
-            }
 
-            CampaignUnit newAI = unitGO.AddComponent<CampaignUnit>();
+            CampaignUnit newAI = PrepareUnit(unitGO, prefab);
             newAI.Setup(false, uClass, hp, dmg, speed, isRanged, bloodHitPrefab, flip);
             
             if (isMerc) newAI.transform.localScale *= 1f; 
@@ -536,7 +526,7 @@ public class BattleManager : MonoBehaviour
         
         enemiesKilled = enemiesSpawned - aliveEnemies;
         
-        if (campDefenseProgressBarFill && totalEnemies > 0 && currentWave >= maxWaves) 
+        if (campDefenseProgressBarFill && totalEnemies > 0)
             campDefenseProgressBarFill.fillAmount = 1f - ((float)enemiesKilled / totalEnemies);
 
         if (aliveEnemies <= 0 && currentWave < maxWaves)
@@ -607,26 +597,42 @@ public class BattleManager : MonoBehaviour
     void CalculateEnemyPool()
     {
         int campLvl = CrossSceneData.campLevel > 0 ? CrossSceneData.campLevel : 1;
-        
-        maxWaves = campLvl; 
+
+        garrisonGuards = Mathf.Max(0, CrossSceneData.enemyGuards);
+        garrisonArchers = Mathf.Max(0, CrossSceneData.enemyArchers);
+        garrisonSpearmen = Mathf.Max(0, CrossSceneData.enemySpearmen);
+        garrisonCavalry = Mathf.Max(0, CrossSceneData.enemyCavalry);
+
+        totalEnemies = garrisonGuards + garrisonArchers + garrisonSpearmen + garrisonCavalry;
+
+        // Сцену відкрили напряму з редактора, без заходу через мапу —
+        // даємо мінімальний гарнізон, щоб було що тестувати.
+        if (totalEnemies == 0)
+        {
+            Debug.LogWarning("[BattleManager] Гарнізон порожній (сцену запущено не з мапи). Беру запасний склад.");
+            CampaignBalance.GenerateGarrison(1, campLvl, 35 * campLvl,
+                out garrisonGuards, out garrisonArchers, out garrisonSpearmen, out garrisonCavalry);
+            totalEnemies = garrisonGuards + garrisonArchers + garrisonSpearmen + garrisonCavalry;
+        }
+
+        maxWaves = CampaignBalance.WaveCount(totalEnemies);
         currentWave = 0;
-        enemiesSpawned = 0; 
+        enemiesSpawned = 0;
         enemiesKilled = 0;
-        
-        totalEnemies = 999; 
     }
 
     void SpawnEnemyWave()
     {
         if (currentWave >= maxWaves) return; 
+
+        // Ділимо гарнізон між хвилями так, щоб сума точно дорівнювала розвідці.
+        int waveIndex = currentWave;
         currentWave++;
 
-        int campLvl = CrossSceneData.campLevel > 0 ? CrossSceneData.campLevel : 1;
-        
-        int eGuards = 3 + campLvl; 
-        int eSpearmen = campLvl >= 2 ? 1 + campLvl : 0;
-        int eArchers = campLvl >= 3 ? 1 + campLvl : 0;
-        int eCavalry = campLvl >= 4 ? 1 + campLvl : 0;
+        int eGuards = CampaignBalance.UnitsInWave(garrisonGuards, waveIndex, maxWaves);
+        int eSpearmen = CampaignBalance.UnitsInWave(garrisonSpearmen, waveIndex, maxWaves);
+        int eArchers = CampaignBalance.UnitsInWave(garrisonArchers, waveIndex, maxWaves);
+        int eCavalry = CampaignBalance.UnitsInWave(garrisonCavalry, waveIndex, maxWaves);
 
         Vector3 spawnCenter = (currentWave == 1) ? enemySpawnPoint.position : enemySpawnPoint.position + new Vector3(15f, 0, 0);
         float currentXOffset = 0f;
@@ -637,24 +643,14 @@ public class BattleManager : MonoBehaviour
         currentXOffset = SpawnEnemyGroupDynamic(enemyCavalryPrefab, eCavalry, spawnCenter, currentXOffset, "Cavalry", flipEnemyCavalry);
 
         enemiesSpawned += (eGuards + eSpearmen + eArchers + eCavalry);
-        
-        if (currentWave >= maxWaves) totalEnemies = enemiesSpawned;
     }
 
     float SpawnEnemyGroupDynamic(GameObject prefab, int count, Vector3 basePos, float startXOffset, string unitClass, bool applyFlip)
     {
         if (prefab == null || count <= 0) return startXOffset;
 
-        int hp = 100; int dmg = 10; bool isRanged = (unitClass == "Archer");
-        float speed = 1.9f; 
-        if (unitClass == "Spearman") speed = 1.6f; else if (unitClass == "Archer") speed = 1.3f; else if (unitClass == "Cavalry") speed = 3.2f;
-
         int campLvl = CrossSceneData.campLevel > 0 ? CrossSceneData.campLevel : 1;
-        
-        if (unitClass == "Knight") { hp = 60 + (campLvl * 15); dmg = 10 + (campLvl * 3); }
-        else if (unitClass == "Archer") { hp = 40 + (campLvl * 10); dmg = 7 + (campLvl * 2); }
-        else if (unitClass == "Spearman") { hp = 50 + (campLvl * 12); dmg = 9 + (campLvl * 3); }
-        else if (unitClass == "Cavalry") { hp = 90 + (campLvl * 20); dmg = 15 + (campLvl * 4); }
+        CampaignBalance.GetEnemyStats(unitClass, campLvl, out int hp, out int dmg, out float speed, out bool isRanged);
 
         int rows = 3; 
         float spacingX = 1.2f; float spacingY = 0.9f; int colsUsed = Mathf.CeilToInt((float)count / rows);
@@ -671,20 +667,37 @@ public class BattleManager : MonoBehaviour
             
             GameObject unitGO = Instantiate(prefab, spawnPos, Quaternion.identity);
             unitGO.tag = "Enemy"; 
-            
-            MonoBehaviour[] scripts = unitGO.GetComponents<MonoBehaviour>();
-            foreach (var script in scripts) {
-                if (script == null) continue; string sName = script.GetType().Name;
-                if (sName.Contains("Enemy") || sName.Contains("UnitStats") || sName.Contains("Selector") || sName == "CampaignUnit") DestroyImmediate(script); 
-            }
 
-            CampaignUnit newAI = unitGO.AddComponent<CampaignUnit>();
+            CampaignUnit newAI = PrepareUnit(unitGO, prefab);
             newAI.Setup(true, unitClass, hp, dmg, speed, isRanged, bloodHitPrefab, applyFlip);
             newAI.tacticalTargetPos = spawnPos; newAI.transform.position = spawnPos;
             allUnitsOnField.Add(newAI);
         }
         return startXOffset + (colsUsed * spacingX) + 1.5f;
     }
+
+    /// <summary>
+    /// Віддає CampaignUnit інстансу. Якщо його немає на префабі — додає
+    /// й попереджає: правильно, щоб компонент лежав на префабі заздалегідь.
+    /// Скрипти AI оборони CampaignUnit вимикає сам у Setup().
+    /// </summary>
+    private CampaignUnit PrepareUnit(GameObject unitGO, GameObject sourcePrefab)
+    {
+        var ai = unitGO.GetComponent<CampaignUnit>();
+        if (ai != null) return ai;
+
+        if (!warnedAboutMissingCampaignUnit)
+        {
+            warnedAboutMissingCampaignUnit = true;
+            Debug.LogWarning(
+                $"[BattleManager] На префабі '{sourcePrefab.name}' немає CampaignUnit, довелося додати в рантаймі. " +
+                "Запусти Tools > Highway Lords > Campaign > Підготувати префаби бою.");
+        }
+
+        return unitGO.AddComponent<CampaignUnit>();
+    }
+
+    private bool warnedAboutMissingCampaignUnit = false;
 
     public void ShowDamagePopup(Vector3 pos, int dmg)
     {
