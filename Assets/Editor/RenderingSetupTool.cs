@@ -298,6 +298,41 @@ public static class RenderingSetupTool
             changed = true;
         }
 
+        changed |= WireWeatherManager(scene, globalLight, volume, log);
+
+        return changed;
+    }
+
+    /// <summary>
+    /// WeatherManager тепер затемнює сцену справжнім світлом, а не UI-картинкою.
+    /// Підв'язуємо йому світло й Volume, щоб не робити це руками.
+    /// </summary>
+    private static bool WireWeatherManager(Scene scene, Light2D light, Volume volume, StringBuilder log)
+    {
+        bool changed = false;
+
+        foreach (var root in scene.GetRootGameObjects())
+        {
+            foreach (var weather in root.GetComponentsInChildren<WeatherManager>(true))
+            {
+                if (weather.globalLight == null && light != null)
+                {
+                    weather.globalLight = light;
+                    log.AppendLine($"    > WeatherManager.globalLight = '{light.name}'");
+                    changed = true;
+                }
+
+                if (weather.globalVolume == null && volume != null)
+                {
+                    weather.globalVolume = volume;
+                    log.AppendLine($"    > WeatherManager.globalVolume = '{volume.name}'");
+                    changed = true;
+                }
+
+                if (changed) EditorUtility.SetDirty(weather);
+            }
+        }
+
         return changed;
     }
 

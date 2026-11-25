@@ -1,67 +1,174 @@
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
 using System.Collections;
 
+/// <summary>
+/// Погода: дощ, блискавки, хмарні тіні.
+///
+/// Затемнення під дощ робиться справжнім 2D-освітленням і пост-обробкою,
+/// а не чорною UI-картинкою поверх екрана. Світло реагує на все в сцені,
+/// тож замок, юніти й земля темнішають разом, а не ховаються під плівкою.
+///
+/// Якщо globalLight / globalVolume не призначені — працює старий шлях
+/// через weatherDarkness / lightningFlash, тому сцена не ламається.
+/// </summary>
 public class WeatherManager : MonoBehaviour
 {
+    [Header("Освітлення (основний шлях)")]
+    [Tooltip("Глобальне 2D-світло сцени — Rendering/Global Light 2D")]
+    public Light2D globalLight;
+    [Tooltip("Глобальний Volume з профілем пост-обробки — Rendering/Global Volume")]
+    public Volume globalVolume;
+
     [Header("Налаштування дощу")]
     public ParticleSystem rainParticles;
-    public Image weatherDarkness; 
-    public float darknessAlpha = 0.3f; 
-    public float transitionSpeed = 0.5f;
+
+    [Header("Ясна погода")]
+    public Color clearLightColor = Color.white;
+    [Range(0f, 2f)] public float clearLightIntensity = 1f;
+
+    [Header("Погода під дощ")]
+    [Tooltip("Холодний відтінок — дощ читається навіть без затемнення")]
+    public Color rainLightColor = new Color(0.72f, 0.80f, 1f, 1f);
+    [Range(0f, 2f)] public float rainLightIntensity = 0.58f;
+    [Range(-100f, 100f)] public float rainSaturation = -20f;
+    [Range(-100f, 100f)] public float rainContrast = 8f;
+    [Range(0f, 1f)] public float rainVignette = 0.34f;
+
+    [Tooltip("Скільки секунд триває перехід між ясно і дощ")]
+    public float weatherTransitionDuration = 6f;
 
     [Header("Налаштування блискавки")]
-    public Image lightningFlash; 
-    public float minThunderTime = 10f; 
-    public float maxThunderTime = 15f; 
+    [Range(0f, 4f)] public float lightningIntensity = 2.4f;
+    public Color lightningColor = new Color(0.86f, 0.92f, 1f, 1f);
+    public float minThunderTime = 10f;
+    public float maxThunderTime = 15f;
 
     [Header("Налаштування хмар (Тіней)")]
-    public GameObject cloudShadowPrefab; 
-    public float minCloudInterval = 40f; 
+    public GameObject cloudShadowPrefab;
+    public float minCloudInterval = 40f;
     public float maxCloudInterval = 80f;
-    public float cloudSpawnOffsetX = 70f; 
+    public float cloudSpawnOffsetX = 70f;
 
     [Header("Таймери погоди (у секундах)")]
     [Tooltip("Час до найпершого дощу після старту гри")]
-    public float firstRainDelayMin = 180f; // Мінімум 3 хвилини до першого дощу
-    public float firstRainDelayMax = 300f; // Максимум 5 хвилин до першого дощу
-    
-    public float minClearTime = 120f;  // Мінімум 2 хв ясної погоди між дощами
-    public float maxClearTime = 240f;  // Максимум 4 хв ясної погоди між дощами
-    public float minRainTime = 40f;    // Мінімум 40 сек йде дощ
-    public float maxRainTime = 90f;    // Максимум 1.5 хв йде дощ
+    public float firstRainDelayMin = 180f;
+    public float firstRainDelayMax = 300f;
+
+    public float minClearTime = 120f;
+    public float maxClearTime = 240f;
+    public float minRainTime = 40f;
+    public float maxRainTime = 90f;
+
+    [Header("Застарілий шлях (лише якщо немає globalLight)")]
+    [Tooltip("Чорна UI-картинка поверх екрана. Використовується тільки як запасний варіант.")]
+    public Image weatherDarkness;
+    public float darknessAlpha = 0.3f;
+    public Image lightningFlash;
+    public float transitionSpeed = 0.5f;
 
     private bool isRaining = false;
     private Coroutine fadeCoroutine;
     private Coroutine thunderCoroutine;
 
+    // Кеш оверайдів пост-обробки
+    private ColorAdjustments colorAdjustments;
+    private Vignette vignette;
+    private float baseSaturation, baseContrast, baseVignette;
+
+    private bool UseLighting => globalLight != null;
+
     void Start()
     {
-        if (rainParticles != null) 
+        if (rainParticles != null)
         {
             rainParticles.Stop();
             rainParticles.gameObject.SetActive(false);
         }
-        
-        if (weatherDarkness != null) 
+
+        CachePostProcessing();
+
+        if (UseLighting)
         {
-            weatherDarkness.gameObject.SetActive(true); 
-            Color c = weatherDarkness.color; c.a = 0f; weatherDarkness.color = c;
+            ApplyLighting(0f);
+
+            // Запасний оверлей більше не потрібен — тримаємо його прозорим.
+            if (weatherDarkness != null) SetImageAlpha(weatherDarkness, 0f);
         }
-        
-        if (lightningFlash != null) 
+        else
         {
-            lightningFlash.gameObject.SetActive(true); 
-            Color c = lightningFlash.color; c.a = 0f; lightningFlash.color = c;
+            if (weatherDarkness != null)
+            {
+                weatherDarkness.gameObject.SetActive(true);
+                SetImageAlpha(weatherDarkness, 0f);
+            }
+        }
+
+        if (lightningFlash != null)
+        {
+            lightningFlash.gameObject.SetActive(true);
+            SetImageAlpha(lightningFlash, 0f);
         }
 
         StartCoroutine(WeatherRoutine());
-        StartCoroutine(CloudRoutine()); 
+        StartCoroutine(CloudRoutine());
+    }
+
+    private void CachePostProcessing()
+    {
+        if (globalVolume == null) return;
+
+        // .profile (а не .sharedProfile) дає рантайм-копію,
+        // тож ми не змінюємо asset на диску під час гри.
+        VolumeProfile profile = globalVolume.profile;
+        if (profile == null) return;
+
+        if (profile.TryGet(out colorAdjustments))
+        {
+            colorAdjustments.saturation.overrideState = true;
+            colorAdjustments.contrast.overrideState = true;
+            baseSaturation = colorAdjustments.saturation.value;
+            baseContrast = colorAdjustments.contrast.value;
+        }
+
+        if (profile.TryGet(out vignette))
+        {
+            vignette.intensity.overrideState = true;
+            baseVignette = vignette.intensity.value;
+        }
+    }
+
+    /// <summary>t: 0 — ясно, 1 — дощ.</summary>
+    private void ApplyLighting(float t)
+    {
+        if (globalLight != null)
+        {
+            globalLight.color = Color.Lerp(clearLightColor, rainLightColor, t);
+            globalLight.intensity = Mathf.Lerp(clearLightIntensity, rainLightIntensity, t);
+        }
+
+        if (colorAdjustments != null)
+        {
+            colorAdjustments.saturation.value = Mathf.Lerp(baseSaturation, rainSaturation, t);
+            colorAdjustments.contrast.value = Mathf.Lerp(baseContrast, rainContrast, t);
+        }
+
+        if (vignette != null)
+            vignette.intensity.value = Mathf.Lerp(baseVignette, rainVignette, t);
+    }
+
+    private static void SetImageAlpha(Image img, float a)
+    {
+        if (img == null) return;
+        Color c = img.color;
+        c.a = a;
+        img.color = c;
     }
 
     IEnumerator WeatherRoutine()
     {
-        // === ВЕЛИКА ЗАТРИМКА ПЕРЕД ПЕРШИМ ДОЩЕМ ===
         yield return new WaitForSeconds(Random.Range(firstRainDelayMin, firstRainDelayMax));
 
         while (true)
@@ -79,14 +186,14 @@ public class WeatherManager : MonoBehaviour
         while (true)
         {
             yield return new WaitForSeconds(Random.Range(minCloudInterval, maxCloudInterval));
-            
+
             if (!isRaining && cloudShadowPrefab != null && Camera.main != null)
             {
                 Vector3 spawnPos = Camera.main.transform.position;
-                spawnPos.x -= cloudSpawnOffsetX; 
-                spawnPos.y += Random.Range(-5f, 5f); 
+                spawnPos.x -= cloudSpawnOffsetX;
+                spawnPos.y += Random.Range(-5f, 5f);
                 spawnPos.z = 0;
-                
+
                 Instantiate(cloudShadowPrefab, spawnPos, Quaternion.identity);
             }
         }
@@ -97,50 +204,57 @@ public class WeatherManager : MonoBehaviour
         while (true)
         {
             yield return new WaitForSeconds(Random.Range(minThunderTime, maxThunderTime));
-            
-            if (isRaining)
-            {
-                StartCoroutine(LightningFlashEffect());
-            }
+            if (isRaining) yield return LightningFlashEffect();
         }
     }
 
     IEnumerator LightningFlashEffect()
     {
-        if (lightningFlash == null) yield break;
-
         if (SoundManager.Instance != null) SoundManager.Instance.PlayThunder();
 
-        Color c = lightningFlash.color;
-        
-        c.a = 0.8f; lightningFlash.color = c; 
-        yield return new WaitForSeconds(0.05f);
-        
-        c.a = 0f; lightningFlash.color = c; 
-        yield return new WaitForSeconds(0.05f);
-        
-        c.a = 0.4f; lightningFlash.color = c; 
-        yield return new WaitForSeconds(0.05f);
-        
-        c.a = 0f; lightningFlash.color = c; 
+        // Подвійний спалах: яскравий короткий, потім слабший.
+        yield return FlashOnce(1f, 0.05f);
+        yield return new WaitForSeconds(0.06f);
+        yield return FlashOnce(0.5f, 0.05f);
+
+        // Повертаємо поточний стан погоди (ми під дощем).
+        if (UseLighting) ApplyLighting(isRaining ? 1f : 0f);
     }
 
-    [ContextMenu("Force Start Rain")] 
+    IEnumerator FlashOnce(float strength, float duration)
+    {
+        if (UseLighting)
+        {
+            globalLight.color = Color.Lerp(rainLightColor, lightningColor, strength);
+            globalLight.intensity = Mathf.Lerp(rainLightIntensity, lightningIntensity, strength);
+            yield return new WaitForSeconds(duration);
+            globalLight.intensity = rainLightIntensity;
+            globalLight.color = rainLightColor;
+        }
+        else
+        {
+            SetImageAlpha(lightningFlash, 0.8f * strength);
+            yield return new WaitForSeconds(duration);
+            SetImageAlpha(lightningFlash, 0f);
+        }
+    }
+
+    [ContextMenu("Force Start Rain")]
     public void StartRain()
     {
         if (isRaining) return;
         isRaining = true;
 
-        if (rainParticles != null) 
+        if (rainParticles != null)
         {
-            rainParticles.gameObject.SetActive(true); 
+            rainParticles.gameObject.SetActive(true);
             rainParticles.Play();
         }
-        
+
         if (SoundManager.Instance != null) SoundManager.Instance.PlayRain();
 
         if (fadeCoroutine != null) StopCoroutine(fadeCoroutine);
-        fadeCoroutine = StartCoroutine(FadeDarkness(darknessAlpha));
+        fadeCoroutine = StartCoroutine(TransitionWeather(1f));
 
         if (thunderCoroutine != null) StopCoroutine(thunderCoroutine);
         thunderCoroutine = StartCoroutine(ThunderRoutine());
@@ -152,30 +266,49 @@ public class WeatherManager : MonoBehaviour
         if (!isRaining) return;
         isRaining = false;
 
-        if (rainParticles != null) 
+        if (rainParticles != null)
         {
-            rainParticles.Stop(); 
+            rainParticles.Stop();
             StartCoroutine(DisableRainDelay());
         }
 
         if (SoundManager.Instance != null) SoundManager.Instance.StopRain();
 
         if (fadeCoroutine != null) StopCoroutine(fadeCoroutine);
-        fadeCoroutine = StartCoroutine(FadeDarkness(0f));
+        fadeCoroutine = StartCoroutine(TransitionWeather(0f));
 
         if (thunderCoroutine != null) StopCoroutine(thunderCoroutine);
     }
 
     IEnumerator DisableRainDelay()
     {
-        yield return new WaitForSeconds(3f); 
-        if (!isRaining && rainParticles != null)
-        {
-            rainParticles.gameObject.SetActive(false); 
-        }
+        yield return new WaitForSeconds(3f);
+        if (!isRaining && rainParticles != null) rainParticles.gameObject.SetActive(false);
     }
 
-    IEnumerator FadeDarkness(float targetAlpha)
+    IEnumerator TransitionWeather(float target)
+    {
+        if (!UseLighting)
+        {
+            yield return FadeDarknessOverlay(target > 0.5f ? darknessAlpha : 0f);
+            yield break;
+        }
+
+        float from = Mathf.Approximately(target, 1f) ? 0f : 1f;
+        float duration = Mathf.Max(0.01f, weatherTransitionDuration);
+        float time = 0f;
+
+        while (time < duration)
+        {
+            time += Time.deltaTime;
+            ApplyLighting(Mathf.SmoothStep(from, target, time / duration));
+            yield return null;
+        }
+
+        ApplyLighting(target);
+    }
+
+    IEnumerator FadeDarknessOverlay(float targetAlpha)
     {
         if (weatherDarkness == null) yield break;
 

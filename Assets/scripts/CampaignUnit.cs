@@ -344,18 +344,67 @@ public class CampaignUnit : MonoBehaviour
         if (anim) anim.enabled = false; 
         if (hpFillImage != null && hpFillImage.transform.parent != null) hpFillImage.transform.parent.gameObject.SetActive(false); 
 
+        // Труп іде під живих одразу, щоб не перекривав бій.
         if (spriteRenderers != null)
+            foreach (var sr in spriteRenderers) sr.sortingOrder = -10;
+
+        StartCoroutine(DeathRoutine());
+        Destroy(gameObject, 3.5f);
+    }
+
+    /// <summary>
+    /// Падіння замість миттєвого повороту на 90°: юніт плавно завалюється,
+    /// присідає до землі й темнішає, а в кінці життя трупа згасає.
+    /// </summary>
+    IEnumerator DeathRoutine()
+    {
+        const float fallDuration = 0.35f;
+        const float holdDuration = 2.4f;
+        const float fadeDuration = 0.7f;
+
+        Quaternion startRot = transform.rotation;
+        Quaternion endRot = Quaternion.Euler(0, 0, nativelyFacesLeft ? 90f : -90f);
+        Vector3 startPos = transform.position;
+        Vector3 endPos = startPos + new Vector3(0f, -0.3f, 0f);
+
+        Color liveTint = Color.white;
+        Color deadTint = new Color(0.34f, 0.34f, 0.38f, 1f);
+
+        float t = 0f;
+        while (t < fallDuration)
         {
-            foreach (var sr in spriteRenderers) 
-            {
-                sr.color = new Color(0.3f, 0.3f, 0.3f, 1f); 
-                sr.sortingOrder = -10; 
-            }
+            t += Time.deltaTime;
+            float k = Mathf.Clamp01(t / fallDuration);
+
+            // Падіння з легким прискоренням — вага відчувається краще за лінійне.
+            float eased = k * k;
+            transform.rotation = Quaternion.Slerp(startRot, endRot, eased);
+            transform.position = Vector3.Lerp(startPos, endPos, eased);
+            SetTint(Color.Lerp(liveTint, deadTint, k));
+
+            yield return null;
         }
 
-        transform.rotation = Quaternion.Euler(0, 0, nativelyFacesLeft ? 90f : -90f);
-        transform.position += new Vector3(0, -0.3f, 0); 
-        
-        Destroy(gameObject, 3.5f);
+        transform.rotation = endRot;
+        transform.position = endPos;
+        SetTint(deadTint);
+
+        yield return new WaitForSeconds(holdDuration);
+
+        t = 0f;
+        while (t < fadeDuration)
+        {
+            t += Time.deltaTime;
+            Color c = deadTint;
+            c.a = 1f - Mathf.Clamp01(t / fadeDuration);
+            SetTint(c);
+            yield return null;
+        }
+    }
+
+    private void SetTint(Color c)
+    {
+        if (spriteRenderers == null) return;
+        foreach (var sr in spriteRenderers) if (sr != null) sr.color = c;
     }
 }
