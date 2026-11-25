@@ -168,6 +168,88 @@ public static class TextureAuditTool
     }
 
     // ==================================================================
+    // 3. Підігнати maxTextureSize під фактичне використання
+    // ==================================================================
+
+    [MenuItem("Tools/Highway Lords/Textures/3. Підігнати розміри під використання", false, 202)]
+    public static void RightSize()
+    {
+        var textures = CollectTextures();
+        var usage = CollectUsage();
+
+        var changes = new List<(TexInfo info, int from, int to)>();
+        float before = 0f, after = 0f;
+
+        foreach (var info in textures)
+        {
+            int recommended = RecommendMaxSize(info, usage);
+            if (recommended == info.MaxTextureSize) continue;
+
+            var (rw, rh) = ClampToLongestSide(info.SourceWidth, info.SourceHeight, recommended);
+            float bytesPerPixel = info.Compressed ? BytesCompressed : BytesUncompressed;
+
+            before += EstimateBytes(info, info.ImportedWidth, info.ImportedHeight, bytesPerPixel);
+            after += EstimateBytes(info, rw, rh, bytesPerPixel);
+
+            changes.Add((info, info.MaxTextureSize, recommended));
+        }
+
+        if (changes.Count == 0)
+        {
+            EditorUtility.DisplayDialog("Розміри текстур",
+                "Усі розміри вже відповідають тому, як спрайти виводяться на екрані.", "OK");
+            return;
+        }
+
+        int down = changes.Count(c => c.to < c.from);
+        int up = changes.Count(c => c.to > c.from);
+
+        bool ok = EditorUtility.DisplayDialog(
+            "Підігнати розміри текстур",
+            $"Змінюється текстур: {changes.Count}\n" +
+            $"   зменшуються: {down}\n" +
+            $"   збільшуються (зараз мило): {up}\n\n" +
+            $"Памʼять по цих текстурах: ~{before / 1048576f:0} MB → ~{after / 1048576f:0} MB\n\n" +
+            "Текстури, для яких не вдалося виміряти розмір на екрані,\n" +
+            "не чіпаються.\n\n" +
+            "Змінюється лише maxTextureSize в налаштуваннях імпорту.\n" +
+            "Відкотити можна через git або вручну в інспекторі.",
+            "Застосувати", "Скасувати");
+
+        if (!ok) return;
+
+        var log = new StringBuilder("=== ПІДІГНАНО РОЗМІРИ ТЕКСТУР ===\n");
+
+        try
+        {
+            AssetDatabase.StartAssetEditing();
+
+            for (int i = 0; i < changes.Count; i++)
+            {
+                var (info, from, to) = changes[i];
+                EditorUtility.DisplayProgressBar("Розміри текстур", info.Path, (float)i / changes.Count);
+
+                var importer = AssetImporter.GetAtPath(info.Path) as TextureImporter;
+                if (importer == null) continue;
+
+                importer.maxTextureSize = to;
+                importer.SaveAndReimport();
+
+                log.AppendLine($"  {from,5} → {to,-5} {info.Path}");
+            }
+        }
+        finally
+        {
+            AssetDatabase.StopAssetEditing();
+            EditorUtility.ClearProgressBar();
+            AssetDatabase.Refresh();
+        }
+
+        log.AppendLine($"\nЗмінено: {changes.Count} текстур.");
+        Debug.Log(log.ToString());
+    }
+
+    // ==================================================================
     // Збір даних
     // ==================================================================
 
