@@ -82,6 +82,10 @@ public static class TextureAuditTool
         sb.AppendLine();
         sb.AppendLine($"Текстур без стиску: {textures.Count(t => !t.Compressed)}");
         sb.AppendLine($"Обрізаються при імпорті: {textures.Count(t => System.Math.Max(t.SourceWidth, t.SourceHeight) > t.MaxTextureSize)}");
+
+        int unmeasured = textures.Count(t => FormatUsage(t, usage) == "?");
+        sb.AppendLine($"Не вдалося виміряти (спрайт призначається з коду або масиву): {unmeasured}");
+        sb.AppendLine("     для них розмір не чіпаємо — потрібне ручне рішення");
         sb.AppendLine();
         sb.AppendLine("--- Що варто правити (найбільша економія вгорі) ---");
 
@@ -232,6 +236,11 @@ public static class TextureAuditTool
         void Record(Sprite sprite, Vector2 pixels)
         {
             if (sprite == null) return;
+
+            // Нульовий розмір = RectTransform керується лейаутом і в едіторі
+            // ще не порахований. Це "не виміряли", а не "виводиться 0 пікселів".
+            if (pixels.x < 1f || pixels.y < 1f) return;
+
             string key = SpriteKey(sprite);
             if (key == null) return;
 
@@ -376,7 +385,9 @@ public static class TextureAuditTool
         int longest = Mathf.Max(info.SourceWidth, info.SourceHeight);
         int needed = Mathf.CeilToInt(longest * factor);
 
-        return Mathf.Clamp(NextPowerOfTwo(needed), 64, 4096);
+        // Округлення до НАЙБЛИЖЧОГО степеня двійки, не вгору: інакше потреба
+        // в 2264 px перетворюється на 4096 і подвоює памʼять заради 10% різкості.
+        return Mathf.Clamp(NearestPowerOfTwo(needed), 64, 4096);
     }
 
     private static string FormatUsage(TexInfo info, Dictionary<string, Vector2> usage)
@@ -455,10 +466,15 @@ public static class TextureAuditTool
         }
     }
 
-    private static int NextPowerOfTwo(int v)
+    /// <summary>Найближчий степінь двійки — вниз або вгору, що ближче.</summary>
+    private static int NearestPowerOfTwo(int v)
     {
-        int p = 32;
-        while (p < v && p < 4096) p <<= 1;
-        return p;
+        if (v <= 32) return 32;
+
+        int lower = 32;
+        while (lower * 2 <= v && lower < 4096) lower <<= 1;
+
+        int upper = Mathf.Min(lower * 2, 4096);
+        return (v - lower) <= (upper - v) ? lower : upper;
     }
 }

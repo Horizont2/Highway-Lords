@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -55,19 +56,46 @@ public static class RenderingSetupTool
         }
 
         sb.AppendLine();
-        sb.AppendLine($"Профіль пост-обробки: {(File.Exists(ProfilePath) ? ProfilePath : "ще не створено")}");
+
+        var existingProfile = AssetDatabase.LoadAssetAtPath<VolumeProfile>(ProfilePath);
+        if (existingProfile == null)
+        {
+            sb.AppendLine("Профіль пост-обробки: ще не створено");
+        }
+        else
+        {
+            var names = existingProfile.components.Where(c => c != null).Select(c => c.GetType().Name);
+            sb.AppendLine($"Профіль пост-обробки: {ProfilePath}");
+            sb.AppendLine($"     оверайди: {string.Join(", ", names)}");
+        }
+
         sb.AppendLine();
+
+        // Щоб звіт був повним, відкриваємо кожну сцену білда й повертаємо ту,
+        // що була відкрита. Нічого не змінюється й не зберігається.
+        if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
+        {
+            sb.AppendLine("(сцени не перевірено — є незбережені зміни)");
+            Debug.Log(sb.ToString());
+            return;
+        }
+
+        string openScenePath = EditorSceneManager.GetActiveScene().path;
 
         foreach (var entry in EditorBuildSettings.scenes)
         {
-            if (!entry.enabled) continue;
+            if (!entry.enabled || string.IsNullOrEmpty(entry.path)) continue;
 
             sb.AppendLine($"--- {Path.GetFileNameWithoutExtension(entry.path)}");
 
-            var scene = EditorSceneManager.GetSceneByPath(entry.path);
-            if (!scene.IsValid() || !scene.isLoaded)
+            Scene scene;
+            try
             {
-                sb.AppendLine("    (не відкрита — відкрий сцену, щоб побачити деталі)");
+                scene = EditorSceneManager.OpenScene(entry.path, OpenSceneMode.Single);
+            }
+            catch (System.Exception e)
+            {
+                sb.AppendLine($"    (не вдалося відкрити: {e.Message})");
                 continue;
             }
 
@@ -104,6 +132,9 @@ public static class RenderingSetupTool
                 sb.AppendLine("    [ПРОБЛЕМА] пост-обробка вимкнена на всіх камерах");
         }
 
+        if (!string.IsNullOrEmpty(openScenePath))
+            EditorSceneManager.OpenScene(openScenePath, OpenSceneMode.Single);
+
         Debug.Log(sb.ToString());
     }
 
@@ -131,29 +162,44 @@ public static class RenderingSetupTool
         var log = new StringBuilder();
         log.AppendLine("=== НАЛАШТУВАННЯ РЕНДЕРИНГУ ===");
 
+        if (profile == null)
+            log.AppendLine("[УВАГА] профіль пост-обробки недоступний — Volume буде без профілю");
+
         string openScenePath = EditorSceneManager.GetActiveScene().path;
+        int failed = 0;
 
         foreach (var entry in EditorBuildSettings.scenes)
         {
             if (!entry.enabled || string.IsNullOrEmpty(entry.path)) continue;
 
-            var scene = EditorSceneManager.OpenScene(entry.path, OpenSceneMode.Single);
             log.AppendLine();
-            log.AppendLine($"--- {scene.name}");
+            log.AppendLine($"--- {Path.GetFileNameWithoutExtension(entry.path)}");
 
-            bool changed = false;
-            changed |= SetupCameras(scene, log);
-            changed |= SetupRenderingGroup(scene, profile, log);
-
-            if (changed)
+            // Збій в одній сцені не повинен залишати решту необробленими.
+            try
             {
-                EditorSceneManager.MarkSceneDirty(scene);
-                EditorSceneManager.SaveScene(scene);
-                log.AppendLine("    сцену збережено");
+                var scene = EditorSceneManager.OpenScene(entry.path, OpenSceneMode.Single);
+
+                bool changed = false;
+                changed |= SetupCameras(scene, log);
+                changed |= SetupRenderingGroup(scene, profile, log);
+
+                if (changed)
+                {
+                    EditorSceneManager.MarkSceneDirty(scene);
+                    EditorSceneManager.SaveScene(scene);
+                    log.AppendLine("    сцену збережено");
+                }
+                else
+                {
+                    log.AppendLine("    змін не потрібно");
+                }
             }
-            else
+            catch (System.Exception e)
             {
-                log.AppendLine("    змін не потрібно");
+                failed++;
+                log.AppendLine($"    [ПОМИЛКА] {e.GetType().Name}: {e.Message}");
+                Debug.LogException(e);
             }
         }
 
@@ -161,6 +207,10 @@ public static class RenderingSetupTool
             EditorSceneManager.OpenScene(openScenePath, OpenSceneMode.Single);
 
         AssetDatabase.SaveAssets();
+
+        if (failed > 0)
+            log.AppendLine($"\nСцен із помилками: {failed}. Виправ причину і запусти ще раз.");
+
         Debug.Log(log.ToString());
     }
 
@@ -340,34 +390,76 @@ public static class RenderingSetupTool
 
     private static VolumeProfile GetOrCreateProfile()
     {
-        var existing = AssetDatabase.LoadAssetAtPath<VolumeProfile>(ProfilePath);
-        if (existing != null) return existing;
+        var profile = AssetDatabase.LoadAssetAtPath<VolumeProfile>(ProfilePath);
 
-        if (!AssetDatabase.IsValidFolder(RenderingFolder))
-            AssetDatabase.CreateFolder("Assets/Settings", "Rendering");
+        if (profile == null)
+        {
+            if (!AssetDatabase.IsValidFolder(RenderingFolder))
+                AssetDatabase.CreateFolder("Assets/Settings", "Rendering");
 
-        var profile = ScriptableObject.CreateInstance<VolumeProfile>();
-        AssetDatabase.CreateAsset(profile, ProfilePath);
+            profile = ScriptableObject.CreateInstance<VolumeProfile>();
+            AssetDatabase.CreateAsset(profile, ProfilePath);
+            Debug.Log($"Створено профіль пост-обробки: {ProfilePath}");
+        }
 
-        // Стартова база — стримана. Точне налаштування — на етапі візуалу.
-        var bloom = profile.Add<Bloom>(true);
-        bloom.threshold.overrideState = true; bloom.threshold.value = 0.9f;
-        bloom.intensity.overrideState = true; bloom.intensity.value = 0.5f;
-        bloom.scatter.overrideState = true; bloom.scatter.value = 0.6f;
+        EnsureOverrides(profile);
 
-        var vignette = profile.Add<Vignette>(true);
-        vignette.intensity.overrideState = true; vignette.intensity.value = 0.22f;
-        vignette.smoothness.overrideState = true; vignette.smoothness.value = 0.45f;
+        // Жодного AssetDatabase.Refresh() тут: він переімпортує асет і знищує
+        // цей екземпляр, після чого будь-яке звернення до profile кидає
+        // MissingReferenceException.
+        AssetDatabase.SaveAssets();
 
-        var color = profile.Add<ColorAdjustments>(true);
-        color.contrast.overrideState = true; color.contrast.value = 5f;
-        color.saturation.overrideState = true; color.saturation.value = 4f;
+        // Перезавантажуємо з диска — гарантовано живе посилання на те,
+        // що реально серіалізовано.
+        return AssetDatabase.LoadAssetAtPath<VolumeProfile>(ProfilePath) ?? profile;
+    }
+
+    /// <summary>
+    /// Стартова база пост-обробки — стримана. Точні значення підбираємо потім.
+    /// Додаємо лише те, чого ще немає, щоб не затирати ручні правки.
+    /// </summary>
+    private static void EnsureOverrides(VolumeProfile profile)
+    {
+        // Профіль, створений попередньою (помилковою) версією цього інструмента,
+        // міг лишитися з "порожніми" записами — Has<T>() на них падає.
+        int removed = profile.components.RemoveAll(c => c == null);
+        if (removed > 0)
+            Debug.Log($"Прибрано порожніх оверайдів у профілі: {removed}");
+
+        if (!profile.Has<Bloom>())
+        {
+            var bloom = AddOverride<Bloom>(profile);
+            bloom.threshold.overrideState = true; bloom.threshold.value = 0.9f;
+            bloom.intensity.overrideState = true; bloom.intensity.value = 0.5f;
+            bloom.scatter.overrideState = true; bloom.scatter.value = 0.6f;
+        }
+
+        if (!profile.Has<Vignette>())
+        {
+            var vignette = AddOverride<Vignette>(profile);
+            vignette.intensity.overrideState = true; vignette.intensity.value = 0.22f;
+            vignette.smoothness.overrideState = true; vignette.smoothness.value = 0.45f;
+        }
+
+        if (!profile.Has<ColorAdjustments>())
+        {
+            var color = AddOverride<ColorAdjustments>(profile);
+            color.contrast.overrideState = true; color.contrast.value = 5f;
+            color.saturation.overrideState = true; color.saturation.value = 4f;
+        }
 
         EditorUtility.SetDirty(profile);
-        AssetDatabase.SaveAssets();
-        AssetDatabase.Refresh();
+    }
 
-        Debug.Log($"Створено профіль пост-обробки: {ProfilePath}");
-        return profile;
+    /// <summary>
+    /// Кожен оверайд Volume — окремий ScriptableObject. Без AddObjectToAsset
+    /// він не потрапляє у файл профілю і зникає після перезапуску редактора.
+    /// </summary>
+    private static T AddOverride<T>(VolumeProfile profile) where T : VolumeComponent
+    {
+        T component = profile.Add<T>(true);
+        component.name = typeof(T).Name;
+        AssetDatabase.AddObjectToAsset(component, profile);
+        return component;
     }
 }
