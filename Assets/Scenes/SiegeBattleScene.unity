@@ -225,6 +225,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DamagePopup
   iconSprite: {fileID: 0}
   resourceIconOffset: {x: -0.8, y: 0, z: 0}
+  lifeTime: 0.75
+  fadeDuration: 0.45
+  launchSpeed: 3.2
+  horizontalSpread: 1.1
+  gravity: 7
+  popFromScale: 0.4
+  popDuration: 0.18
+  criticalScale: 1.45
+  criticalColor: {r: 1, g: 0.35, b: 0.25, a: 1}
 --- !u!1 &12066024
 GameObject:
   m_ObjectHideFlags: 0
@@ -10491,6 +10500,7 @@ GameObject:
   - component: {fileID: 1053955731}
   - component: {fileID: 1053955733}
   - component: {fileID: 1053955732}
+  - component: {fileID: 1053955734}
   m_Layer: 5
   m_Name: Skills Panel
   m_TagString: Untagged
@@ -10557,6 +10567,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1053955730}
   m_CullTransparentMesh: 1
+--- !u!225 &1053955734
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1053955730}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!1 &1056314659
 GameObject:
   m_ObjectHideFlags: 0
@@ -13007,6 +13029,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 8962101977573020415, guid: 8459af16ff185d544ab38c4d8d37d814, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1235165716}
+    - targetCorrespondingSourceObject: {fileID: 8962101977573020415, guid: 8459af16ff185d544ab38c4d8d37d814, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1235165717}
   m_SourcePrefab: {fileID: 100100000, guid: 8459af16ff185d544ab38c4d8d37d814, type: 3}
 --- !u!224 &1235165712 stripped
 RectTransform:
@@ -13054,6 +13079,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::AudioSettingsSync
   musicSlider: {fileID: 1235165715}
   sfxSlider: {fileID: 1235165714}
+--- !u!225 &1235165717
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1235165713}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!1 &1265728353
 GameObject:
   m_ObjectHideFlags: 0
@@ -14464,7 +14501,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "Call for reinforcements"
+  m_text: Call for reinforcements
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: f4dd52319d856534d8a76dab3ad6590d, type: 2}
   m_sharedMaterial: {fileID: -377453566157578514, guid: f4dd52319d856534d8a76dab3ad6590d, type: 2}
@@ -17493,6 +17530,7 @@ GameObject:
   - component: {fileID: 1628036219}
   - component: {fileID: 1628036221}
   - component: {fileID: 1628036220}
+  - component: {fileID: 1628036222}
   m_Layer: 5
   m_Name: TacticalPanel
   m_TagString: Untagged
@@ -17565,6 +17603,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1628036218}
   m_CullTransparentMesh: 1
+--- !u!225 &1628036222
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1628036218}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!1 &1666642274
 GameObject:
   m_ObjectHideFlags: 0
