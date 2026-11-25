@@ -297,6 +297,91 @@ public static class UiPolishTool
 
     // ==================================================================
 
+    private const string SpriteAssetPath = "Assets/Units/Panelimgs/GameIcons.asset";
+
+    [MenuItem("Tools/Highway Lords/UI/4. Призначити спрайт-асет текстам", false, 903)]
+    public static void AssignSpriteAsset()
+    {
+        var spriteAsset = AssetDatabase.LoadAssetAtPath<TMP_SpriteAsset>(SpriteAssetPath);
+        if (spriteAsset == null)
+        {
+            EditorUtility.DisplayDialog("Спрайт-асет",
+                $"Не знайдено {SpriteAssetPath}.", "OK");
+            return;
+        }
+
+        bool ok = EditorUtility.DisplayDialog(
+            "Призначити спрайт-асет",
+            $"Усім текстам без власного спрайт-асета буде призначено\n{spriteAsset.name}.\n\n" +
+            "Навіщо: теги <sprite name=\"icon_coin\"> у текстах доходу малюються\n" +
+            "чорними квадратами, бо TMP не знає, де шукати цей спрайт.\n\n" +
+            "На тексти без тегів <sprite> це не впливає ніяк.",
+            "Призначити", "Скасувати");
+
+        if (!ok) return;
+        if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) return;
+
+        var log = new StringBuilder("=== СПРАЙТ-АСЕТ ДЛЯ ТЕКСТІВ ===\n");
+        string openScene = EditorSceneManager.GetActiveScene().path;
+        int inScenes = 0, inPrefabs = 0;
+
+        foreach (var entry in EditorBuildSettings.scenes)
+        {
+            if (!entry.enabled || string.IsNullOrEmpty(entry.path) || !File.Exists(entry.path)) continue;
+
+            var scene = EditorSceneManager.OpenScene(entry.path, OpenSceneMode.Single);
+            bool changed = false;
+
+            foreach (var root in scene.GetRootGameObjects())
+            {
+                foreach (var text in root.GetComponentsInChildren<TMP_Text>(true))
+                {
+                    if (text.spriteAsset != null) continue;
+                    text.spriteAsset = spriteAsset;
+                    EditorUtility.SetDirty(text);
+                    inScenes++; changed = true;
+                }
+            }
+
+            if (changed)
+            {
+                EditorSceneManager.MarkSceneDirty(scene);
+                EditorSceneManager.SaveScene(scene);
+                log.AppendLine($"    {scene.name}: збережено");
+            }
+        }
+
+        if (!string.IsNullOrEmpty(openScene))
+            EditorSceneManager.OpenScene(openScene, OpenSceneMode.Single);
+
+        foreach (var guid in AssetDatabase.FindAssets("t:Prefab", new[] { "Assets" }))
+        {
+            string path = AssetDatabase.GUIDToAssetPath(guid);
+            var contents = PrefabUtility.LoadPrefabContents(path);
+            try
+            {
+                bool touched = false;
+                foreach (var text in contents.GetComponentsInChildren<TMP_Text>(true))
+                {
+                    if (text.spriteAsset != null) continue;
+                    text.spriteAsset = spriteAsset;
+                    inPrefabs++; touched = true;
+                }
+                if (touched) PrefabUtility.SaveAsPrefabAsset(contents, path);
+            }
+            finally
+            {
+                PrefabUtility.UnloadPrefabContents(contents);
+            }
+        }
+
+        AssetDatabase.Refresh();
+        log.AppendLine($"\nПризначено у сценах: {inScenes}, у префабах: {inPrefabs}.");
+        Debug.Log(log.ToString());
+    }
+
+    // ==================================================================
+
     /// <summary>
     /// Що вважаємо панеллю: або ім'я натякає, або на об'єкт посилається
     /// поле з "panel" у назві. Другий шлях надійніший — він бере саме ті

@@ -19,6 +19,17 @@ public class WallArcher : MonoBehaviour
     private Animator animator;
     private Transform target;
 
+    // Ціль перебиралася щокадру. Коли два вороги майже рівновіддалені,
+    // найближчий міняється по колу, і спрайт дзеркалився туди-сюди кожен
+    // кадр — саме це читалося як блимання лучника на стіні.
+    private float retargetTimer;
+    private const float RetargetInterval = 0.2f;
+
+    // Мертва зона розвороту: поки ворог майже строго під лучником,
+    // напрямок не міняємо.
+    private const float FlipDeadZone = 0.35f;
+    private float facing = 1f;
+
     void Awake()
     {
         animator = GetComponent<Animator>();
@@ -65,7 +76,12 @@ public class WallArcher : MonoBehaviour
     {
         if (GameManager.Instance != null && GameManager.Instance.isDefeated) return;
 
-        FindTarget();
+        retargetTimer -= Time.deltaTime;
+        if (retargetTimer <= 0f || target == null || target.CompareTag("Untagged"))
+        {
+            FindTarget();
+            retargetTimer = RetargetInterval;
+        }
 
         if (target != null)
         {
@@ -106,8 +122,11 @@ public class WallArcher : MonoBehaviour
             float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
             firePoint.rotation = Quaternion.Euler(0, 0, angle);
             
-            float flip = target.position.x > transform.position.x ? 1f : -1f;
-            transform.localScale = new Vector3(flip * Mathf.Abs(transform.localScale.x), transform.localScale.y, 1f);
+            float dx = target.position.x - transform.position.x;
+            if (Mathf.Abs(dx) > FlipDeadZone) facing = dx > 0f ? 1f : -1f;
+
+            Vector3 scale = transform.localScale;
+            transform.localScale = new Vector3(facing * Mathf.Abs(scale.x), scale.y, scale.z);
         }
     }
 

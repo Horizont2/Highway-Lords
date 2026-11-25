@@ -196,8 +196,10 @@ public class Archer : UnitBase
 
     void FlipSprite(float targetX) => FaceTowards(targetX);
 
-    // Спрайт намальований ліворуч, тож "вправо" — це від'ємний scale.
-    protected override bool FlipInverted => true;
+    // Лучник — єдиний юніт гравця, у якого спрайт намальований праворуч.
+    // До зведення в UnitBase його FlipSprite відрізнявся від решти трьох,
+    // і при уніфікації ця відмінність загубилася — лучник ходив спиною вперед.
+    protected override bool FlipInverted => false;
 
     // Труп юніта гравця лежить довше за ворожий.
     protected override float CorpseLifeTime => 10f;

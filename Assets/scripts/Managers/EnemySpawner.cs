@@ -139,8 +139,13 @@ public class EnemySpawner : MonoBehaviour
         {
             escortCount = Random.Range(bossEscortMin, bossEscortMax + 1);
         }
-        else if (squadToSpawn.Count == 0) 
+        else
         {
+            // Раніше тут стояло "else if (squadToSpawn.Count == 0)". На хвилях
+            // із візком (кожна третя) візок уже лежав у загоні, лічильник не
+            // дорівнював нулю — і супровід не рахувався зовсім. Через це на
+            // початку такої хвилі виїжджав самотній візок без жодного ворога,
+            // а перші вороги з'являлися аж на першій вісі шкали.
             int currentWaveMax = baseSquadMax + Mathf.FloorToInt(currentWaveNumber * squadGrowthPerWave);
             currentWaveMax = Mathf.Min(currentWaveMax, absoluteMaxSquadSize);
 

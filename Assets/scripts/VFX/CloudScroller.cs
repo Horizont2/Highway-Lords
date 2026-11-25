@@ -30,19 +30,20 @@ public class CloudScroller : MonoBehaviour
         float moveDir = moveRight ? 1f : -1f;
         rect.anchoredPosition += new Vector2(moveDir * speed * Time.deltaTime, 0);
 
-        if (moveRight && rect.anchoredPosition.x > despawnX)
-        {
-            RespawnCloud();
-        }
-        else if (!moveRight && rect.anchoredPosition.x < despawnX)
-        {
-            RespawnCloud();
-        }
+        // Межа виходу залежить від напрямку. Раніше для руху вліво теж
+        // порівнювалося з despawnX (1500), а умова "x < 1500" істинна майже
+        // завжди — хмара телепортувалася щокадру на випадкову висоту.
+        bool passedExit = moveRight
+            ? rect.anchoredPosition.x > despawnX
+            : rect.anchoredPosition.x < respawnX;
+
+        if (passedExit) RespawnCloud();
     }
 
     void RespawnCloud()
     {
-        float randomY = Random.Range(minY, maxY);
-        rect.anchoredPosition = new Vector2(respawnX, randomY);
+        // Заходить із протилежного боку від того, куди летить.
+        float entryX = moveRight ? respawnX : despawnX;
+        rect.anchoredPosition = new Vector2(entryX, Random.Range(minY, maxY));
     }
 }
